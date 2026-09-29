@@ -26,7 +26,7 @@ Do NOT output any markdown, only raw JSON.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'gemma2-9b-it',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         response_format: { type: 'json_object' }
@@ -71,7 +71,7 @@ export const handleChat = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'gemma2-9b-it',
         messages: [systemPrompt, ...messages],
         temperature: 0.7
       })
@@ -88,5 +88,18 @@ export const handleChat = async (req, res) => {
   } catch (error) {
     console.error('AI Chat Error:', error);
     res.status(500).json({ message: 'Server error in AI chat.' });
+  }
+};
+
+export const getModels = async (req, res) => {
+  try {
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` }
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.toString() });
   }
 };
