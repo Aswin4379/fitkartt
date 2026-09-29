@@ -26,7 +26,7 @@ Do NOT output any markdown, only raw JSON.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gemma2-9b-it',
+        model: 'openai/gpt-oss-20b',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         response_format: { type: 'json_object' }
@@ -71,7 +71,7 @@ export const handleChat = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gemma2-9b-it',
+        model: 'openai/gpt-oss-20b',
         messages: [systemPrompt, ...messages],
         temperature: 0.7
       })
