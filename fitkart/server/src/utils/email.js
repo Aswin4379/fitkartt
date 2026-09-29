@@ -29,7 +29,8 @@ export const verifyTransporter = async () => {
     console.log(`[SMTP Connected]: Ready to send real emails as ${process.env.EMAIL_USER}`);
     return true;
   } catch (error) {
-    console.warn('\n[SMTP NOTICE]: Failed to connect to Gmail (likely a bad App Password or Network issue).');
+    console.warn('\n[SMTP NOTICE]: Failed to connect to Gmail.');
+    console.warn('[SMTP ERROR DETAILS]:', error.message);
     console.warn('[SMTP NOTICE]: Emails will NOT be sent.\n');
     return false;
   }
