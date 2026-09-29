@@ -71,7 +71,7 @@ export const handleChat = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'qwen/qwen3.8-27b',
+        model: 'openai/gpt-oss-20b',
         messages: [systemPrompt, ...messages],
         temperature: 0.7
       })
