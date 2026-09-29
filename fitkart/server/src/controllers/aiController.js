@@ -61,7 +61,7 @@ export const handleChat = async (req, res) => {
 
     const systemPrompt = {
       role: 'system',
-      content: 'You are the FitKart AI Assistant. You are a helpful, concise, and expert fitness and nutrition coach. Answer questions about fitness, nutrition, and FitKart products.'
+      content: 'You are the FitKart AI Assistant. You are a helpful, concise, and expert fitness and nutrition coach. Answer questions about fitness, nutrition, and FitKart products. CRITICAL RULES: 1. NEVER use markdown tables. Output only plain text or simple bullet points. 2. If the user speaks in Tanglish (Tamil written in English letters) or Tamil, you MUST reply in Tanglish (Tamil in English letters). NEVER reply in Malayalam, Hindi, or any other language.'
     };
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -71,7 +71,7 @@ export const handleChat = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-oss-20b',
+        model: 'qwen/qwen3.8-27b',
         messages: [systemPrompt, ...messages],
         temperature: 0.7
       })
