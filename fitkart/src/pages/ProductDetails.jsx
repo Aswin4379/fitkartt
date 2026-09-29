@@ -273,7 +273,7 @@ export default function ProductDetails() {
   const deliveryDate = `${isFast ? '⚡' : '📦'} Delivery in ${dInfo.min}–${dInfo.max} ${dInfo.unit}`
 
   return (
-    <AppLayout showFooter>
+    <AppLayout showFooter showBottomNav={false}>
       {/* Breadcrumb Bar */}
       <div className="border-b border-fit-border bg-fit-surface/60 sticky top-0 z-30 backdrop-blur-md">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between h-12">
