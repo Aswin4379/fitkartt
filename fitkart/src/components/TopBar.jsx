@@ -31,7 +31,7 @@ export default function TopBar() {
             <Link to="/home" className="flex items-center gap-2.5 shrink-0 group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-fit-primary to-fit-accent p-1 flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-200 overflow-hidden">
                 <img
-                  src="/workout-logo.png"
+                  src={import.meta.env.BASE_URL + "workout-logo.png"}
                   alt="FitKart Workout Logo"
                   className="w-full h-full object-contain filter drop-shadow-sm group-hover:brightness-110 transition-all duration-200"
                 />

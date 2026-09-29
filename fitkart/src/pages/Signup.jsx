@@ -97,7 +97,7 @@ export default function Signup() {
         <div className="flex items-center gap-2.5 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fit-primary to-fit-accent p-1.5 flex items-center justify-center shadow-glow overflow-hidden">
             <img
-              src="/workout-logo.png"
+              src={import.meta.env.BASE_URL + "workout-logo.png"}
               alt="FitKart Workout Logo"
               className="w-full h-full object-contain filter drop-shadow-sm"
             />

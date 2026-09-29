@@ -29,7 +29,7 @@ export default function Splash() {
         className="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-tr from-fit-primary to-fit-accent p-3 flex items-center justify-center shadow-glow overflow-hidden"
       >
         <img
-          src="/workout-logo.png"
+          src={import.meta.env.BASE_URL + "workout-logo.png"}
           alt="FitKart Workout Logo"
           className="w-full h-full object-contain filter drop-shadow-md"
         />
