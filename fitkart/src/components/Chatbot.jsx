@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getApiBaseUrl } from '../services/api.js';
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +38,7 @@ export default function Chatbot() {
         content: m.content
       }));
 
-      const res = await fetch('http://localhost:5000/api/ai/chat', {
+      const res = await fetch(`${getApiBaseUrl()}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: chatContext })
