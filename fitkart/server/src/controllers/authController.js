@@ -49,14 +49,24 @@ export const sendOtp = async (req, res) => {
       console.log(`🔑 DEV/RENDER OTP: The OTP for ${email} is: ${otp} 🔑`);
       console.log(`========================================\n`);
 
-      if (process.env.EMAIL_USER && process.env.EMAIL_PASS && !process.env.EMAIL_PASS.includes('put_your')) {
-        // Fire and forget so we do not block the API response
-        transporter.sendMail(mailOptions)
-          .then(() => console.log(`[OTP] Email sending initiated for ${email}`))
-          .catch(err => console.error('[Nodemailer Error]: Failed to send email to', email));
-      } else {
-        console.warn(`[WARNING] Cannot send OTP. SMTP credentials are missing in .env!`);
-      }
+      // Use Google Apps Script API to send real emails (bypasses Render SMTP block)
+      const gasUrl = "https://script.google.com/macros/s/AKfycbwyiO5Fb0yE3sNHZOoLxJ5HhIhcuzKU68QeFII9KXAOt1rmG8-bxa2pjI8utPzqQ5DL/exec";
+      
+      fetch(gasUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          to: email,
+          subject: mailOptions.subject,
+          text: mailOptions.text
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) console.log(`[OTP] Real email sent successfully to ${email}`);
+        else console.error(`[OTP] Failed to send real email:`, data.error);
+      })
+      .catch(err => console.error('[GAS Email Error]:', err));
+      
       // Respond immediately without waiting for the email to finish sending
       res.json({ success: true, message: 'OTP sent successfully to your email.' });
     } catch (err) {
