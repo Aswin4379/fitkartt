@@ -45,6 +45,10 @@ export const sendOtp = async (req, res) => {
     };
 
     try {
+      console.log(`\n========================================`);
+      console.log(`🔑 DEV/RENDER OTP: The OTP for ${email} is: ${otp} 🔑`);
+      console.log(`========================================\n`);
+
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS && !process.env.EMAIL_PASS.includes('put_your')) {
         // Fire and forget so we do not block the API response
         transporter.sendMail(mailOptions)
