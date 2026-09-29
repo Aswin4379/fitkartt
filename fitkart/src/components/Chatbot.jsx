@@ -48,7 +48,8 @@ export default function Chatbot() {
         const data = await res.json();
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now.' }]);
+        const errData = await res.json().catch(() => ({}));
+        setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errData.message || 'Trouble connecting'}` }]);
       }
     } catch (err) {
       console.error(err);

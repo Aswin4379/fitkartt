@@ -78,7 +78,9 @@ export const handleChat = async (req, res) => {
     });
 
     if (!response.ok) {
-      return res.status(500).json({ message: 'Failed to generate chat response.' });
+      const errText = await response.text();
+      console.error('Groq API Error:', errText);
+      return res.status(500).json({ message: `Groq Error: ${errText}` });
     }
 
     const data = await response.json();
