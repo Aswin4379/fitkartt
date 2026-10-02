@@ -62,7 +62,13 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0';
 
+import { seedDatabase } from './seed/seedData.js';
+
 app.listen(PORT, HOST, async () => {
   console.log(`[FitKart Server Running]: http://localhost:${PORT} and network accessible on 0.0.0.0:${PORT}`);
+  
+  // Auto-seed database on server start
+  await seedDatabase().catch(err => console.error("Auto-seed failed:", err));
+  
   await verifyTransporter();
 });

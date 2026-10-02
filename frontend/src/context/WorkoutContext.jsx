@@ -53,13 +53,13 @@ export const WorkoutProvider = ({ children }) => {
   const startWorkout = (routine) => {
     // routine can be a template, a custom routine, or an empty object for a free workout
     const newWorkout = {
-      routineId: routine?._id || routine?.id || null,
+      ...(routine?._id || routine?.id ? { routineId: routine?._id || routine?.id } : {}),
       name: routine?.name || routine?.title || 'Freestyle Workout',
       exercises: routine?.exercises?.map(e => ({
         exerciseId: e.exerciseId || e.id,
         name: e.name,
         target: e.target,
-        sets: Array(e.defaultSets || 3).fill({ reps: e.defaultReps || 10, weight: e.defaultWeight || 0, isCompleted: false })
+        sets: Array(e.defaultSets || 3).fill(null).map(() => ({ reps: e.defaultReps || 10, weight: e.defaultWeight || 0, isCompleted: false }))
       })) || [],
     };
     setActiveWorkout(newWorkout);
@@ -135,7 +135,7 @@ export const WorkoutProvider = ({ children }) => {
           exerciseId: exercise.id || exercise._id,
           name: exercise.name,
           target: exercise.target,
-          sets: Array(exercise.defaultSets || 3).fill({ reps: exercise.defaultReps || 10, weight: exercise.defaultWeight || 0, isCompleted: false })
+          sets: Array(exercise.defaultSets || 3).fill(null).map(() => ({ reps: exercise.defaultReps || 10, weight: exercise.defaultWeight || 0, isCompleted: false }))
         }]
       };
     });
