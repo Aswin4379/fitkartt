@@ -41,6 +41,7 @@ import {
 import AppLayout from '../components/AppLayout.jsx'
 import { useUser } from '../context/UserContext.jsx'
 import { calculateMetabolicMetrics, getLocalDateString } from '../utils/metabolicEngine.js'
+import { getApiBaseUrl } from '../services/api.js'
 
 // Friendly non-repeating date formatter
 function formatFriendlyDate(dateStr) {
@@ -381,7 +382,7 @@ export default function Dashboard() {
     try {
       const formattedUnit = (customMeal.unit || '').replace(/([0-9]+)([a-zA-Z]+)/g, '$1 $2').trim().toLowerCase();
 
-      const res = await fetch('http://localhost:5000/api/ai/estimate-macros', {
+      const res = await fetch(`${getApiBaseUrl()}/ai/estimate-macros`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
