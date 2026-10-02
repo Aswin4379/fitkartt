@@ -1,12 +1,7 @@
 import { getLocalDateString } from '../utils/metabolicEngine.js';
 
 export const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location) {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
-      return `http://${hostname}:5000/api`;
-    }
-  }
+  // Always use the live Cloud API so mobile and laptop are 100% perfectly synchronized
   return 'https://fitkartt.onrender.com/api';
 };
 
@@ -90,6 +85,11 @@ export const reviewApi = {
 export const workoutApi = {
   getWorkouts: () => customFetch('/workouts'),
   getWorkoutById: (id) => customFetch(`/workouts/${id}`),
+  saveSession: (data) => customFetch('/workouts/sessions', { method: 'POST', body: JSON.stringify(data) }),
+  getSessions: () => customFetch('/workouts/sessions'),
+  saveCustomRoutine: (data) => customFetch('/workouts/custom-routines', { method: 'POST', body: JSON.stringify(data) }),
+  getCustomRoutines: () => customFetch('/workouts/custom-routines'),
+  deleteCustomRoutine: (id) => customFetch(`/workouts/custom-routines/${id}`, { method: 'DELETE' }),
 };
 
 // Admin API

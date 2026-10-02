@@ -25,6 +25,12 @@ import Subscription from './pages/Subscription.jsx'
 import Community from './pages/Community.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import Fitness from './pages/Fitness.jsx'
+import FitnessActiveWorkout from './pages/FitnessActiveWorkout.jsx'
+import FitnessRoutines from './pages/FitnessRoutines.jsx'
+import FitnessRoutineBuilder from './pages/FitnessRoutineBuilder.jsx'
+import FitnessHistory from './pages/FitnessHistory.jsx'
+import FitnessLibrary from './pages/FitnessLibrary.jsx'
 
 export default function App() {
   return (
@@ -55,6 +61,14 @@ export default function App() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/workouts" element={<ProtectedRoute><Workouts /></ProtectedRoute>} />
       <Route path="/workouts/:id" element={<ProtectedRoute><WorkoutDetail /></ProtectedRoute>} />
+      
+      <Route path="/fitness" element={<ProtectedRoute><Fitness /></ProtectedRoute>} />
+      <Route path="/fitness/active" element={<ProtectedRoute><FitnessActiveWorkout /></ProtectedRoute>} />
+      <Route path="/fitness/routines" element={<ProtectedRoute><FitnessRoutines /></ProtectedRoute>} />
+      <Route path="/fitness/builder" element={<ProtectedRoute><FitnessRoutineBuilder /></ProtectedRoute>} />
+      <Route path="/fitness/history" element={<ProtectedRoute><FitnessHistory /></ProtectedRoute>} />
+      <Route path="/fitness/library" element={<ProtectedRoute><FitnessLibrary /></ProtectedRoute>} />
+      
       <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />

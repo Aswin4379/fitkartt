@@ -95,6 +95,16 @@ export default function TopBar() {
               Workouts
             </Link>
             <Link
+              to="/fitness"
+              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
+                location.pathname.startsWith('/fitness')
+                  ? 'text-fit-primary bg-fit-primary/10'
+                  : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
+              }`}
+            >
+              Gym
+            </Link>
+            <Link
               to="/ai-recommendation"
               className={`px-3.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 ${
                 location.pathname === '/ai-recommendation'

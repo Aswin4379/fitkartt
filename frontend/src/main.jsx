@@ -7,6 +7,7 @@ import { UserProvider } from './context/UserContext.jsx'
 import { ProductProvider } from './context/ProductContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { WorkoutProvider } from './context/WorkoutContext.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,11 +16,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <ThemeProvider>
           <UserProvider>
-            <ProductProvider>
-              <CartProvider>
-                <App />
-              </CartProvider>
-            </ProductProvider>
+            <WorkoutProvider>
+              <ProductProvider>
+                <CartProvider>
+                  <App />
+                </CartProvider>
+              </ProductProvider>
+            </WorkoutProvider>
           </UserProvider>
         </ThemeProvider>
       </BrowserRouter>

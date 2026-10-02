@@ -8,8 +8,8 @@ import Review from '../models/Review.js';
 import Workout from '../models/Workout.js';
 import Exercise from '../models/Exercise.js';
 
-import { products } from '../../../src/data/products.js';
-import { exerciseLibrary } from '../../../src/data/workouts.js';
+import { products } from '../../../frontend/src/data/products.js';
+import { exerciseLibrary } from '../../../frontend/src/data/workouts.js';
 
 dotenv.config();
 
