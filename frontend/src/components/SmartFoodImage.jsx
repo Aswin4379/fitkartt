@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PLACEHOLDER_IMAGE } from '../utils/foodImageMap.js'
 
 export default function SmartFoodImage({
@@ -15,6 +15,7 @@ export default function SmartFoodImage({
   const [currentSrc, setCurrentSrc] = useState(initialSrc)
   const [hasError, setHasError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const imgRef = useRef(null)
 
   useEffect(() => {
     const nextSrc = src || fallbackSrc || PLACEHOLDER_IMAGE
@@ -22,6 +23,12 @@ export default function SmartFoodImage({
     setHasError(false)
     setIsLoading(true)
   }, [src, fallbackSrc])
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setIsLoading(false)
+    }
+  }, [currentSrc])
 
   const handleError = () => {
     if (!hasError && fallbackSrc && currentSrc !== fallbackSrc) {
@@ -40,6 +47,7 @@ export default function SmartFoodImage({
         <div className="absolute inset-0 shimmer" />
       )}
       <img
+        ref={imgRef}
         src={currentSrc}
         alt={alt}
         loading={loading}

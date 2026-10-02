@@ -113,12 +113,9 @@ export function UserProvider({ children }) {
     }
   }
 
-  const loginWithGoogle = async (googleData = {}) => {
+  const loginWithGoogle = async (credential) => {
     try {
-      const email = googleData.email || 'athlete@fitkart.app'
-      const name = googleData.name || (email ? email.split('@')[0] : 'Athlete')
-      const avatar = googleData.avatar || ''
-      const res = await authApi.googleLogin({ email, name, avatar })
+      const res = await authApi.googleLogin({ credential })
       if (res?.token && res?.user) {
         safeSetItem(TOKEN_KEY, res.token)
         safeSetItem(STORAGE_KEY, res.user)

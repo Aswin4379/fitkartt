@@ -110,7 +110,7 @@ export function CartProvider({ children }) {
 
   const applyCoupon = (code) => {
     const coupons = {
-      FIT50: { code: 'FIT50', type: 'flat', value: 50, label: 'â‚¹50 off' },
+      FIT50: { code: 'FIT50', type: 'flat', value: 50, label: '₹50 off' },
       FIRST20: { code: 'FIRST20', type: 'percent', value: 20, label: '20% off' },
       PROTEIN10: { code: 'PROTEIN10', type: 'percent', value: 10, label: '10% off' },
     }

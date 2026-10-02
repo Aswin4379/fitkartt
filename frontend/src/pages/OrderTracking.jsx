@@ -46,11 +46,6 @@ export default function OrderTracking() {
     syncOrder()
   }, [orderId])
 
-  useEffect(() => {
-    if (stageIndex >= stages.length - 1) return
-    const t = setTimeout(() => setStageIndex((s) => s + 1), 4000)
-    return () => clearTimeout(t)
-  }, [stageIndex])
 
   if (!order) {
     return (

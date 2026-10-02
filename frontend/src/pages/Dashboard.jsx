@@ -237,8 +237,9 @@ export default function Dashboard() {
 
   const [weightInput, setWeightInput] = useState('')
   const [showWeightModal, setShowWeightModal] = useState(false)
-  const [customMeal, setCustomMeal] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '' })
+  const [customMeal, setCustomMeal] = useState({ name: '', quantity: '', unit: '', calories: '', protein: '', carbs: '', fat: '' })
   const [showMealModal, setShowMealModal] = useState(false)
+  const [isEstimating, setIsEstimating] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
 
   const showToast = (msg) => {
@@ -371,6 +372,53 @@ export default function Dashboard() {
     showToast(`Logged: ${preset.name} (+${preset.calories} kcal, +${preset.protein}g P)`)
   }
 
+  const handleEstimateMacros = async (isManual = false) => {
+    if (!customMeal.name || !customMeal.quantity) {
+      if (isManual) showToast('Please enter Food Name and Quantity first 🍽️')
+      return
+    }
+    setIsEstimating(true)
+    try {
+      const formattedUnit = (customMeal.unit || '').replace(/([0-9]+)([a-zA-Z]+)/g, '$1 $2').trim().toLowerCase();
+
+      const res = await fetch('http://localhost:5000/api/ai/estimate-macros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foodName: customMeal.name,
+          quantity: customMeal.quantity,
+          unit: formattedUnit
+        })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setCustomMeal(prev => ({
+          ...prev,
+          calories: String(data.calories || 0),
+          protein: String(data.protein || 0),
+          carbs: String(data.carbs || 0),
+          fat: String(data.fat || 0)
+        }))
+        if (isManual) showToast('AI estimated macros successfully! 🤖✨')
+      } else {
+        if (isManual) showToast('Failed to estimate macros. Try again.')
+      }
+    } catch (err) {
+      if (isManual) showToast('Error estimating macros.')
+    }
+    setIsEstimating(false)
+  }
+
+  useEffect(() => {
+    if (!customMeal.name || !customMeal.quantity) return
+    if (customMeal.unit && !/[a-zA-Z]/.test(customMeal.unit)) return
+
+    const timer = setTimeout(() => {
+      handleEstimateMacros(false)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [customMeal.name, customMeal.quantity, customMeal.unit])
+
   const handleAddCustomMeal = async (e) => {
     e.preventDefault()
     if (!customMeal.name.trim()) return
@@ -412,7 +460,7 @@ export default function Dashboard() {
     }
 
     await updateUser({ fitnessStats: nextFitness })
-    setCustomMeal({ name: '', calories: '', protein: '', carbs: '', fat: '' })
+    setCustomMeal({ name: '', quantity: '', unit: '', calories: '', protein: '', carbs: '', fat: '' })
     setShowMealModal(false)
     showToast(`Logged: ${newMeal.name} (+${c} kcal, +${p}g P)`)
   }
@@ -1578,18 +1626,63 @@ export default function Dashboard() {
 
               <form onSubmit={handleAddCustomMeal} className="space-y-3.5">
                 <div>
-                  <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">Meal Name</label>
+                  <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">Food / Meal Name</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Protein Smoothie Bowl"
+                    placeholder="e.g. Chicken Biryani, Apple Juice..."
                     value={customMeal.name}
                     onChange={(e) => setCustomMeal({ ...customMeal, name: e.target.value })}
                     className="input-field text-xs"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">Quantity</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      placeholder="e.g. 200"
+                      value={customMeal.quantity}
+                      onChange={(e) => setCustomMeal({ ...customMeal, quantity: e.target.value })}
+                      className="input-field text-xs"
+                    />
+                  </div>
+                  <div className="w-[100px]">
+                    <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">Unit / Type</label>
+                    <input
+                      type="text"
+                      list="unit-options"
+                      required
+                      placeholder="e.g. ml, cup, scoop"
+                      value={customMeal.unit}
+                      onChange={(e) => setCustomMeal({ ...customMeal, unit: e.target.value })}
+                      className="input-field text-xs"
+                    />
+                    <datalist id="unit-options">
+                      <option value="g" />
+                      <option value="ml" />
+                      <option value="cup" />
+                      <option value="glass" />
+                      <option value="scoop" />
+                      <option value="tbsp" />
+                      <option value="pieces" />
+                    </datalist>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleEstimateMacros(true)}
+                    disabled={isEstimating || !customMeal.name || !customMeal.quantity}
+                    className="btn-outline h-[38px] px-3 flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50 text-fit-primary border-fit-primary/40 hover:bg-fit-primary/10 transition-colors"
+                  >
+                    {isEstimating ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    <span className="text-[11px] font-bold tracking-wide">Auto-Fill</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>
                     <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">Calories (kcal)</label>
                     <input

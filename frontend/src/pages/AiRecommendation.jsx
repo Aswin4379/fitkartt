@@ -7,7 +7,6 @@ import ProductCard from '../components/ProductCard.jsx'
 import FoodNutritionSearch from '../components/FoodNutritionSearch.jsx'
 import { useProducts } from '../context/ProductContext.jsx'
 import { useUser } from '../context/UserContext.jsx'
-import { calculateMetabolicMetrics } from '../utils/metabolicEngine.js'
 
 const goals = [
   { id: 'Weight Loss', category: 'weight-loss', desc: 'Caloric deficit with high protein retention' },
@@ -28,6 +27,8 @@ export default function AiRecommendation() {
   const [result, setResult] = useState(null)
   const [aiPlan, setAiPlan] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [isEvaluating, setIsEvaluating] = useState(false)
+  const [quickEvalResult, setQuickEvalResult] = useState(null)
 
   // Auto-compute baseline results on mount or when user profile updates
   useEffect(() => {
@@ -46,34 +47,42 @@ export default function AiRecommendation() {
         gender: userGender,
         goal: userGoal
       })
-
-      const metrics = calculateMetabolicMetrics({
-        weight: userWeight,
-        height: userHeight,
-        age: userAge,
-        gender: userGender,
-        goal: userGoal,
-        activityLevel: userAct
-      })
-
-      const calories = metrics.calorieGoal
-      const protein = metrics.proteinGoal
-      const fat = Math.round((calories * 0.25) / 9)
-      const carbs = Math.round((calories - (protein * 4 + fat * 9)) / 4)
-
-      setResult({
-        calories,
-        protein,
-        fat,
-        carbs,
-        bmr: metrics.bmr,
-        tdee: metrics.tdee,
-        bmi: metrics.bmi,
-        bmiCategory: metrics.bmiCategory,
-        goal: userGoal,
-      })
     }
   }, [user?._id, user?.id, user?.goal, user?.currentWeight])
+
+  // Debounced Quick Eval when profile inputs change
+  useEffect(() => {
+    const age = Number(form.age)
+    const weight = Number(form.weight)
+    const height = Number(form.height)
+    if (!age || !weight || !height) return
+
+    setIsEvaluating(true)
+    const handler = setTimeout(async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/ai/quick-eval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ age, weight, height, gender: form.gender })
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setQuickEvalResult(data)
+          if (data.recommendedGoal) {
+            setForm(prev => ({ ...prev, goal: data.recommendedGoal }))
+          }
+        } else {
+          setQuickEvalResult(null)
+        }
+      } catch (err) {
+        setQuickEvalResult(null)
+      } finally {
+        setIsEvaluating(false)
+      }
+    }, 800)
+
+    return () => clearTimeout(handler)
+  }, [form.age, form.weight, form.height, form.gender])
 
   const compute = async (e) => {
     e.preventDefault()
@@ -81,20 +90,6 @@ export default function AiRecommendation() {
     const age = Number(form.age) || 24
     const weight = Number(form.weight) || 70
     const height = Number(form.height) || 175
-
-    const metrics = calculateMetabolicMetrics({
-      weight,
-      height,
-      age,
-      gender: form.gender,
-      goal: form.goal,
-      activityLevel: user?.activityLevel || 'moderate'
-    })
-
-    const calories = metrics.calorieGoal
-    const protein = metrics.proteinGoal
-    const fat = Math.round((calories * 0.25) / 9)
-    const carbs = Math.round((calories - (protein * 4 + fat * 9)) / 4)
 
     try {
       const res = await fetch('http://localhost:5000/api/ai/diet-plan', {
@@ -112,25 +107,26 @@ export default function AiRecommendation() {
       if (res.ok) {
         const planData = await res.json();
         setAiPlan(planData);
+        setResult({
+          calories: planData.dailyCalories,
+          protein: planData.dailyProtein,
+          fat: planData.dailyFat || Math.round((planData.dailyCalories * 0.25) / 9),
+          carbs: planData.dailyCarbs || Math.round((planData.dailyCalories - (planData.dailyProtein * 4 + Math.round((planData.dailyCalories * 0.25) / 9) * 9)) / 4),
+          bmi: planData.bmi,
+          bmiCategory: planData.bmiCategory,
+          goal: form.goal,
+          recommendedGoal: planData.recommendedGoal,
+          reason: planData.reason
+        });
       } else {
         setAiPlan(null);
+        setResult(null);
       }
     } catch (err) {
       console.error(err);
       setAiPlan(null);
+      setResult(null);
     }
-
-    setResult({
-      calories,
-      protein,
-      fat,
-      carbs,
-      bmr: metrics.bmr,
-      tdee: metrics.tdee,
-      bmi: metrics.bmi,
-      bmiCategory: metrics.bmiCategory,
-      goal: form.goal,
-    })
     
     if (updateUser) {
       await updateUser({
@@ -230,21 +226,39 @@ export default function AiRecommendation() {
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-fit-muted uppercase block mb-2">Primary Fitness Target</label>
+            <label className="text-[11px] font-bold text-fit-muted uppercase flex items-center justify-between mb-2">
+              <span>Primary Fitness Target</span>
+              {isEvaluating && (
+                <span className="text-fit-primary flex items-center gap-1 animate-pulse">
+                  <Sparkles size={12} /> Analyzing Profile...
+                </span>
+              )}
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {goals.map((g) => {
                 const isSelected = form.goal === g.id
+                const isAiRecommended = quickEvalResult?.recommendedGoal === g.id
+
                 return (
                   <button
                     type="button"
                     key={g.id}
                     onClick={() => setForm({ ...form, goal: g.id })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all ${
-                      isSelected
+                    className={`relative p-3.5 rounded-2xl border-2 text-left transition-all duration-300 ${
+                      isAiRecommended
+                        ? isSelected
+                          ? 'border-fit-primary bg-fit-primary/20 text-fit-primary shadow-glow'
+                          : 'border-fit-primary/50 bg-fit-primary/10 text-fit-text shadow-glow animate-pulse-slow'
+                        : isSelected
                         ? 'border-fit-primary bg-fit-primary/10 text-fit-primary shadow-glow'
                         : 'border-fit-border bg-fit-surface2/50 text-fit-muted hover:border-fit-primary/40'
                     }`}
                   >
+                    {isAiRecommended && (
+                      <span className="absolute -top-2.5 right-2 bg-fit-primary text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-glow">
+                        AI Recommended
+                      </span>
+                    )}
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-xs text-fit-text">{g.id}</span>
                       {isSelected && <Check size={14} className="text-fit-primary stroke-[3]" />}
@@ -261,7 +275,7 @@ export default function AiRecommendation() {
             disabled={loading}
             className="w-full btn-primary py-3.5 text-sm font-bold shadow-glow"
           >
-            {loading ? 'Computing Macro Targets...' : 'Generate My Clinical Diet Plan'}
+            {loading ? 'AI is crafting your plan (takes ~3s)...' : 'Generate My Clinical Diet Plan'}
           </button>
         </form>
 
@@ -274,6 +288,29 @@ export default function AiRecommendation() {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
+              {/* AI Recommendation Banner */}
+              {result.recommendedGoal && (
+                <div className="card p-4 bg-fit-primary/10 border-fit-primary/30 flex items-start gap-4">
+                  <div className="p-3 bg-fit-primary/20 rounded-full shrink-0">
+                    <Sparkles className="text-fit-primary" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-fit-text font-bold text-sm mb-1 flex items-center gap-2">
+                      Groq AI Clinical Assessment
+                    </h3>
+                    <p className="text-xs text-fit-muted leading-relaxed mb-2">
+                      <strong className="text-fit-text">BMI:</strong> {result.bmi} ({result.bmiCategory})
+                    </p>
+                    <p className="text-xs text-fit-muted leading-relaxed mb-1">
+                      <strong className="text-fit-text">Recommended Goal:</strong> <span className="text-fit-primary font-bold">{result.recommendedGoal}</span>
+                    </p>
+                    <p className="text-xs text-fit-muted leading-relaxed italic">
+                      "{result.reason}"
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Core Targets Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                 <div className="card p-4 bg-fit-surface border-fit-border text-center">
@@ -305,28 +342,28 @@ export default function AiRecommendation() {
               <div className="card p-5 border-fit-border bg-fit-surface shadow-card space-y-3">
                 <h3 className="text-sm font-bold text-fit-text flex items-center gap-2">
                   <Salad size={16} className="text-fit-primary" />
-                  <span>{aiPlan ? `AI Generated Meal Plan (${result.goal})` : `Suggested Daily Meal Split (${result.goal})`}</span>
+                  <span>AI Generated Meal Plan ({result.recommendedGoal || result.goal})</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="p-3 rounded-xl bg-fit-surface2/60 border border-fit-border">
                     <span className="font-bold text-fit-primary block">Breakfast</span>
-                    <p className="text-fit-muted mt-1">{aiPlan?.Breakfast || 'Oats with whey protein, chia seeds, and 1 whole egg omelette.'}</p>
+                    <p className="text-fit-muted mt-1">{aiPlan?.Breakfast || aiPlan?.breakfast || aiPlan?.mealPlan?.Breakfast || aiPlan?.mealPlan?.breakfast || 'Oats with whey protein, chia seeds, and 1 whole egg omelette.'}</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-fit-surface2/60 border border-fit-border">
                     <span className="font-bold text-fit-primary block">Lunch</span>
-                    <p className="text-fit-muted mt-1">{aiPlan?.Lunch || 'Brown rice or whole wheat roti with paneer/chicken and salad bowl.'}</p>
+                    <p className="text-fit-muted mt-1">{aiPlan?.Lunch || aiPlan?.lunch || aiPlan?.mealPlan?.Lunch || aiPlan?.mealPlan?.lunch || 'Brown rice or whole wheat roti with paneer/chicken and salad bowl.'}</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-fit-surface2/60 border border-fit-border">
                     <span className="font-bold text-fit-primary block">Pre/Post Workout</span>
-                    <p className="text-fit-muted mt-1">{aiPlan?.PrePostWorkout || '1 banana with peanut butter before workout, 1 scoop whey after.'}</p>
+                    <p className="text-fit-muted mt-1">{aiPlan?.PrePostWorkout || aiPlan?.prePostWorkout || aiPlan?.mealPlan?.PrePostWorkout || aiPlan?.mealPlan?.prePostWorkout || '1 banana with peanut butter before workout, 1 scoop whey after.'}</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-fit-surface2/60 border border-fit-border">
                     <span className="font-bold text-fit-primary block">Dinner</span>
-                    <p className="text-fit-muted mt-1">{aiPlan?.Dinner || 'Grilled vegetables, tofu/fish/egg curry, light soups.'}</p>
+                    <p className="text-fit-muted mt-1">{aiPlan?.Dinner || aiPlan?.dinner || aiPlan?.mealPlan?.Dinner || aiPlan?.mealPlan?.dinner || 'Grilled vegetables, tofu/fish/egg curry, light soups.'}</p>
                   </div>
                 </div>
               </div>

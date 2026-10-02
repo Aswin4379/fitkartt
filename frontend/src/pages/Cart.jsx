@@ -80,7 +80,7 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
           
           {/* Left Column: Cart Items & Free Delivery Progress */}
-          <div className="space-y-4">
+          <div className="space-y-4 min-w-0">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-black text-fit-text flex items-center gap-2">
                 <span>My Shopping Cart</span>

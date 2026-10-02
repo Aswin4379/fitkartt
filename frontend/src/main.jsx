@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App.jsx'
 import { UserProvider } from './context/UserContext.jsx'
 import { ProductProvider } from './context/ProductContext.jsx'
@@ -10,16 +11,18 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <ThemeProvider>
-        <UserProvider>
-          <ProductProvider>
-            <CartProvider>
-              <App />
-            </CartProvider>
-          </ProductProvider>
-        </UserProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <ThemeProvider>
+          <UserProvider>
+            <ProductProvider>
+              <CartProvider>
+                <App />
+              </CartProvider>
+            </ProductProvider>
+          </UserProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   </React.StrictMode>,
 )

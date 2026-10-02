@@ -1,12 +1,12 @@
-﻿{
+{
   "name": "fitkart-root",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix fitkart run dev",
-    "dev:host": "npm --prefix fitkart run dev -- --host",
-    "server": "npm --prefix fitkart/server run start",
-    "server:dev": "npm --prefix fitkart/server run dev",
-    "build": "npm --prefix fitkart run build"
+    "dev": "npm --prefix frontend run dev",
+    "dev:host": "npm --prefix frontend run dev -- --host",
+    "server": "npm --prefix backend run start",
+    "server:dev": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build"
   }
 }

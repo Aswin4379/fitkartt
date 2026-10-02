@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import Otp from '../models/Otp.js';
 import { calculateMetabolicMetrics, getLocalDateString } from '../utils/metabolicEngine.js';
 import transporter from '../utils/email.js';
+import { OAuth2Client } from 'google-auth-library';
 
 export const sendOtp = async (req, res) => {
   try {
@@ -419,10 +420,20 @@ export const loginUser = async (req, res) => {
 // @route POST /api/auth/google
 export const googleAuth = async (req, res) => {
   try {
-    const { email, name, avatar } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: 'Google account email is required' });
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential is required' });
     }
+
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
     const cleanEmail = email.trim().toLowerCase();
     const userEmail = cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@gmail.com`;
 
@@ -445,7 +456,7 @@ export const googleAuth = async (req, res) => {
         name: extractedName,
         email: userEmail,
         password: Math.random().toString(36).slice(-10) + 'A1!',
-        avatar: avatar || '',
+        avatar: picture || '',
         role,
         goal: 'Fitness Maintenance',
         age: 24,
