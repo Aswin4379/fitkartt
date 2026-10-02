@@ -120,3 +120,9 @@ export const exerciseApi = {
   },
   getExerciseById: (id) => customFetch(`/exercises/${id}`),
 };
+
+// AI API
+export const aiApi = {
+  generatePlan: (data) => customFetch('/ai/diet-plan', { method: 'POST', body: JSON.stringify(data) }),
+  quickEval: (data) => customFetch('/ai/quick-eval', { method: 'POST', body: JSON.stringify(data) }),
+};

@@ -145,39 +145,8 @@ export function UserProvider({ children }) {
       }
     } catch (err) {
       console.warn('[Update User Error]:', err.message)
+      throw err // Do not fallback to localStorage, fail loudly so the UI knows
     }
-
-    // Optimistic fallback while online sync finishes
-    setUser((prev) => {
-      if (!prev) return prev
-      const updated = {
-        ...prev,
-        ...patch,
-        fitnessStats: patch.fitnessStats
-          ? {
-              ...(prev.fitnessStats || {}),
-              ...patch.fitnessStats,
-              nutrition: {
-                ...(prev.fitnessStats?.nutrition || {}),
-                ...(patch.fitnessStats?.nutrition || {})
-              },
-              water: {
-                ...(prev.fitnessStats?.water || {}),
-                ...(patch.fitnessStats?.water || {})
-              },
-              activity: {
-                ...(prev.fitnessStats?.activity || {}),
-                ...(patch.fitnessStats?.activity || {})
-              },
-              streak: typeof patch.fitnessStats?.streak === 'object'
-                ? { ...(prev.fitnessStats?.streak || {}), ...patch.fitnessStats?.streak }
-                : (patch.fitnessStats?.streak ?? prev.fitnessStats?.streak)
-            }
-          : prev.fitnessStats
-      }
-      safeSetItem(STORAGE_KEY, updated)
-      return updated
-    })
   }
 
   const toggleWishlist = async (productId) => {

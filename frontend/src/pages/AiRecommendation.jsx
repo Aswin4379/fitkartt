@@ -7,6 +7,7 @@ import ProductCard from '../components/ProductCard.jsx'
 import FoodNutritionSearch from '../components/FoodNutritionSearch.jsx'
 import { useProducts } from '../context/ProductContext.jsx'
 import { useUser } from '../context/UserContext.jsx'
+import { aiApi } from '../services/api.js'
 
 const goals = [
   { id: 'Weight Loss', category: 'weight-loss', desc: 'Caloric deficit with high protein retention' },
@@ -60,13 +61,8 @@ export default function AiRecommendation() {
     setIsEvaluating(true)
     const handler = setTimeout(async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/ai/quick-eval', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ age, weight, height, gender: form.gender })
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const data = await aiApi.quickEval({ age, weight, height, gender: form.gender });
+        if (data) {
           setQuickEvalResult(data)
           if (data.recommendedGoal) {
             setForm(prev => ({ ...prev, goal: data.recommendedGoal }))
@@ -92,20 +88,15 @@ export default function AiRecommendation() {
     const height = Number(form.height) || 175
 
     try {
-      const res = await fetch('http://localhost:5000/api/ai/diet-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          age,
-          weight,
-          height,
-          gender: form.gender,
-          goal: form.goal,
-          activityLevel: user?.activityLevel || 'moderate'
-        })
+      const planData = await aiApi.generatePlan({
+        age,
+        weight,
+        height,
+        gender: form.gender,
+        goal: form.goal,
+        activityLevel: user?.activityLevel || 'moderate'
       });
-      if (res.ok) {
-        const planData = await res.json();
+      if (planData) {
         setAiPlan(planData);
         setResult({
           calories: planData.dailyCalories,

@@ -126,6 +126,20 @@ export default function Profile() {
 
       <main className="w-full max-w-[1200px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-6 pb-12">
         
+        {/* DEV DIAGNOSTICS */}
+        <div className="card p-4 border border-fit-primary/50 bg-fit-primary/5 rounded-xl text-[10px] sm:text-xs font-mono text-fit-muted">
+          <p className="font-bold text-fit-primary mb-2 uppercase">System Sync Diagnostics</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div><span className="opacity-70">Email:</span> {user.email}</div>
+            <div><span className="opacity-70">MongoDB ID:</span> {user._id || user.id || 'N/A'}</div>
+            <div className="sm:col-span-2"><span className="opacity-70">API URL:</span> {typeof window !== 'undefined' ? (window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('172.') ? `http://${window.location.hostname}:5000/api` : 'https://fitkartt.onrender.com/api') : 'Unknown'}</div>
+            <div><span className="opacity-70">Weight (Current/Target):</span> {user.currentWeight}kg / {user.targetWeight}kg</div>
+            <div><span className="opacity-70">Height / Age:</span> {user.height}cm / {user.age}</div>
+            <div><span className="opacity-70">Goal:</span> {user.goal}</div>
+            <div><span className="opacity-70">Activity:</span> {user.activityLevel}</div>
+          </div>
+        </div>
+
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
           <button
