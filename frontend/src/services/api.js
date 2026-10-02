@@ -1,9 +1,11 @@
 import { getLocalDateString } from '../utils/metabolicEngine.js';
 
-// Dynamic API Base URL supporting localhost and Mobile LAN IP (e.g. 192.168.x.x:5000/api)
 export const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost') {
-    return 'http://localhost:5000/api';
+  if (typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+      return `http://${hostname}:5000/api`;
+    }
   }
   return 'https://fitkartt.onrender.com/api';
 };
