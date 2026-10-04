@@ -2,7 +2,7 @@ import React from 'react';
 import { Activity, Battery, BatteryCharging, BatteryFull, BatteryMedium } from 'lucide-react';
 
 export default function MuscleRecoveryView({ recoveryData }) {
-  if (!recoveryData) return null;
+  const safeData = recoveryData || {};
 
   const getStatusColor = (val) => {
     if (val >= 80) return 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]';
@@ -43,7 +43,7 @@ export default function MuscleRecoveryView({ recoveryData }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
         {allMuscles.map(muscle => {
-          const val = recoveryData[muscle] ?? 100; // Default 100%
+          const val = safeData[muscle] ?? 100; // Default 100%
           
           return (
             <div key={muscle} className="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-colors hover:border-white/10">
