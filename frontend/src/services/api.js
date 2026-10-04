@@ -1,8 +1,18 @@
 import { getLocalDateString } from '../utils/metabolicEngine.js';
 
 export const getApiBaseUrl = () => {
-  // Cloud database is suspended, falling back to local server
-  return 'http://localhost:5000/api';
+  // Use environment variable if provided
+  if (import.meta.env?.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  
+  // Auto-detect production vs local
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('172.')) {
+      return `http://${window.location.hostname}:5000/api`;
+    }
+  }
+  
+  // Production fallback
+  return 'https://fitkartt.onrender.com/api';
 };
 
 const getAuthToken = () => {
