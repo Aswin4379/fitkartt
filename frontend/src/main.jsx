@@ -1,8 +1,10 @@
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App.jsx'
+import GlobalErrorBoundary from './GlobalErrorBoundary.jsx'
 import { UserProvider } from './context/UserContext.jsx'
 import { ProductProvider } from './context/ProductContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
@@ -19,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <WorkoutProvider>
               <ProductProvider>
                 <CartProvider>
-                  <App />
+                  <GlobalErrorBoundary>
+                    <App />
+                  </GlobalErrorBoundary>
                 </CartProvider>
               </ProductProvider>
             </WorkoutProvider>

@@ -22,10 +22,13 @@ const workoutSessionSchema = new mongoose.Schema({
   endTime: { type: Date },
   durationSeconds: { type: Number, default: 0 },
   caloriesBurned: { type: Number, default: 0 },
+  totalVolume: { type: Number, default: 0 },
+  prsHit: [{ type: String }],
   isCompleted: { type: Boolean, default: false },
   exercises: [exerciseRecordSchema],
   muscleGroups: [{ type: String }], // e.g., 'Chest', 'Triceps'
-  notes: { type: String, default: '' }
+  notes: { type: String, default: '' },
+  recoveryImpact: { type: mongoose.Schema.Types.Mixed, default: {} }
 }, { timestamps: true });
 
 const WorkoutSession = mongoose.model('WorkoutSession', workoutSessionSchema);

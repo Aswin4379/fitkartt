@@ -226,6 +226,7 @@ export function UserProvider({ children }) {
     <UserContext.Provider
       value={{
         user,
+        setUser,
         signup,
         login,
         loginWithGoogle,

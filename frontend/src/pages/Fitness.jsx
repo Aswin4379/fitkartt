@@ -6,6 +6,10 @@ import PageHeader from '../components/PageHeader.jsx';
 import { useWorkout } from '../context/WorkoutContext.jsx';
 import { useUser } from '../context/UserContext.jsx';
 
+import FitnessAIPlan from './FitnessOnboarding/FitnessAIPlan.jsx';
+import MuscleRecoveryView from '../components/MuscleRecoveryView.jsx';
+import PersonalRecordsView from '../components/PersonalRecordsView.jsx';
+
 export default function Fitness() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -34,6 +38,9 @@ export default function Fitness() {
       />
 
       <div className="max-w-7xl mx-auto px-4 pb-24 sm:px-6 lg:px-8 mt-6 space-y-6">
+        
+        {/* AI Workout Plan Section */}
+        <FitnessAIPlan fitnessPlan={user?.fitnessStats?.fitnessPlan} />
         
         {/* Active Workout Banner */}
         {activeWorkout ? (
@@ -100,6 +107,12 @@ export default function Fitness() {
             </button>
           </div>
         )}
+
+        {/* Muscle & PRs Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MuscleRecoveryView recoveryData={user?.fitnessStats?.muscleRecovery} />
+          <PersonalRecordsView prData={user?.fitnessStats?.workoutPRs} />
+        </div>
 
         {/* Analytics Section */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">

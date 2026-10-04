@@ -1,8 +1,8 @@
 import { getLocalDateString } from '../utils/metabolicEngine.js';
 
 export const getApiBaseUrl = () => {
-  // Always use the live Cloud API so mobile and laptop are 100% perfectly synchronized
-  return 'https://fitkartt.onrender.com/api';
+  // Cloud database is suspended, falling back to local server
+  return 'http://localhost:5000/api';
 };
 
 const getAuthToken = () => {
@@ -48,7 +48,7 @@ export const authApi = {
   register: (data) => customFetch('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   login: (data) => customFetch('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   googleLogin: (data) => customFetch('/auth/google', { method: 'POST', body: JSON.stringify(data) }),
-  getMe: () => customFetch('/auth/me'),
+  getMe: () => customFetch('/auth/me', { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }),
   updateProfile: (data) => customFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
   addAddress: (data) => customFetch('/auth/addresses', { method: 'POST', body: JSON.stringify(data) }),
   deleteAddress: (id) => customFetch(`/auth/addresses/${id}`, { method: 'DELETE' }),
@@ -85,7 +85,11 @@ export const reviewApi = {
 export const workoutApi = {
   getWorkouts: () => customFetch('/workouts'),
   getWorkoutById: (id) => customFetch(`/workouts/${id}`),
+  generateAIPlan: (data) => customFetch('/workouts/generate-plan', { method: 'POST', body: JSON.stringify(data) }),
   saveSession: (data) => customFetch('/workouts/sessions', { method: 'POST', body: JSON.stringify(data) }),
+  getActiveSession: () => customFetch('/workouts/sessions/active'),
+  saveActiveSession: (data) => customFetch('/workouts/sessions/active', { method: 'POST', body: JSON.stringify(data) }),
+  clearActiveSession: () => customFetch('/workouts/sessions/active', { method: 'DELETE' }),
   getSessions: () => customFetch('/workouts/sessions'),
   saveCustomRoutine: (data) => customFetch('/workouts/custom-routines', { method: 'POST', body: JSON.stringify(data) }),
   getCustomRoutines: () => customFetch('/workouts/custom-routines'),

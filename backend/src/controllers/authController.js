@@ -213,6 +213,28 @@ const formatUserResponse = (user, clientDate) => {
   const allTimeTime = stats.workoutStats?.time ?? workoutLogs.reduce((sum, w) => sum + (Number(w.durationMinutes || w.duration) || 0), 0);
   const allTimeCalories = stats.workoutStats?.calories ?? workoutLogs.reduce((sum, w) => sum + (Number(w.caloriesBurned || w.calories) || 0), 0);
 
+  // 5. Muscle Recovery Regeneration
+  let regeneratedRecovery = stats.muscleRecovery || { chest: 100, back: 100, shoulders: 100, biceps: 100, triceps: 100, forearms: 100, abs: 100, glutes: 100, quads: 100, hamstrings: 100, calves: 100 };
+  if (regeneratedRecovery.lastUpdated) {
+    const lastUpdateDate = new Date(regeneratedRecovery.lastUpdated);
+    const now = new Date();
+    const hoursElapsed = (now - lastUpdateDate) / (1000 * 60 * 60);
+    if (hoursElapsed > 0) {
+      // Regenerate 2% per hour
+      const regenerationAmount = Math.floor(hoursElapsed * 2);
+      const muscles = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms', 'abs', 'glutes', 'quads', 'hamstrings', 'calves'];
+      
+      let updatedRecovery = { ...regeneratedRecovery };
+      muscles.forEach(m => {
+        if (updatedRecovery[m] !== undefined) {
+          updatedRecovery[m] = Math.min(100, updatedRecovery[m] + regenerationAmount);
+        }
+      });
+      // Optionally update the lastUpdated to now if it actually regenerated, but returning the computed object is usually enough for the frontend.
+      regeneratedRecovery = updatedRecovery;
+    }
+  }
+
   return {
     id: user._id.toString(),
     _id: user._id.toString(),
@@ -283,7 +305,9 @@ const formatUserResponse = (user, clientDate) => {
       workoutAchievements: stats.workoutAchievements || [],
       achievements: stats.achievements || [],
       customWorkout: stats.customWorkout || null,
-      recentActivities: stats.recentActivities || []
+      recentActivities: stats.recentActivities || [],
+      fitnessPlan: stats.fitnessPlan || null,
+      muscleRecovery: regeneratedRecovery
     }
   };
 };
@@ -625,7 +649,9 @@ export const updateProfile = async (req, res) => {
         weightHistory: fitnessStats.weightHistory !== undefined ? fitnessStats.weightHistory : (existingStats.weightHistory || []),
         achievements: fitnessStats.achievements !== undefined ? fitnessStats.achievements : (existingStats.achievements || []),
         recentActivities: fitnessStats.recentActivities !== undefined ? fitnessStats.recentActivities : (existingStats.recentActivities || []),
-        customWorkout: fitnessStats.customWorkout !== undefined ? fitnessStats.customWorkout : (existingStats.customWorkout || null)
+        customWorkout: fitnessStats.customWorkout !== undefined ? fitnessStats.customWorkout : (existingStats.customWorkout || null),
+        fitnessPlan: fitnessStats.fitnessPlan !== undefined ? fitnessStats.fitnessPlan : (existingStats.fitnessPlan || null),
+        muscleRecovery: fitnessStats.muscleRecovery !== undefined ? fitnessStats.muscleRecovery : (existingStats.muscleRecovery || null)
       };
 
       if (fitnessStats.currentWeight !== undefined) {

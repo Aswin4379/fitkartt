@@ -140,7 +140,58 @@ const userSchema = new mongoose.Schema({
       title: { type: String },
       value: { type: String },
       timestamp: { type: Date, default: Date.now }
-    }]
+    }],
+    muscleRecovery: {
+      chest: { type: Number, default: 100 },
+      back: { type: Number, default: 100 },
+      shoulders: { type: Number, default: 100 },
+      biceps: { type: Number, default: 100 },
+      triceps: { type: Number, default: 100 },
+      forearms: { type: Number, default: 100 },
+      abs: { type: Number, default: 100 },
+      glutes: { type: Number, default: 100 },
+      quads: { type: Number, default: 100 },
+      hamstrings: { type: Number, default: 100 },
+      calves: { type: Number, default: 100 },
+      lastUpdated: { type: Date, default: Date.now }
+    },
+    fitnessPlan: {
+      onboarded: { type: Boolean, default: false },
+      goal: { type: String },
+      targetAreas: [{ type: String }],
+      level: { type: String, default: 'Beginner' },
+      equipment: [{ type: String }],
+      daysPerWeek: { type: Number, default: 3 },
+      duration: { type: Number, default: 45 },
+      split: { type: String, default: 'Full Body' },
+      planGeneratedAt: { type: Date },
+      schedule: [{
+        day: { type: Number },
+        focus: { type: String },
+        estimatedDuration: { type: Number },
+        exercises: [{
+          exerciseId: { type: String },
+          name: { type: String },
+          type: { type: String, enum: ['warm-up', 'activation', 'main', 'cooldown'], default: 'main' },
+          sets: { type: Number },
+          reps: { type: mongoose.Schema.Types.Mixed }, // String or Number
+          recommendedWeight: { type: String },
+          restTime: { type: Number, default: 60 },
+          targetMuscles: [{ type: String }],
+          difficulty: { type: String },
+          equipment: { type: String },
+          reason: { type: String },
+          gifUrl: { type: String },
+          videoUrl: { type: String },
+          instructions: [{ type: String }],
+          secondary: { type: String },
+          formTips: { type: String },
+          commonMistakes: { type: String }
+        }],
+        isCompleted: { type: Boolean, default: false },
+        completedAt: { type: Date }
+      }]
+    }
   }
 }, { timestamps: true, minimize: false });
 

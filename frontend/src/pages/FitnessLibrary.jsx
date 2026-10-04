@@ -119,13 +119,20 @@ export default function FitnessLibrary() {
             
             <div className="p-4 space-y-6 pb-20">
               {/* Media */}
-              <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-black aspect-video flex items-center justify-center">
-                 {selectedExercise.videoUrl ? (
-                   <ExerciseVideoPlayer videoUrl={selectedExercise.videoUrl} />
-                 ) : selectedExercise.imageUrl ? (
-                   <img src={selectedExercise.imageUrl} alt={selectedExercise.name} className="w-full h-full object-contain" />
+              <div className="rounded-2xl overflow-hidden bg-black w-full">
+                 {selectedExercise.videoUrl || selectedExercise.imageUrl ? (
+                   <ExerciseVideoPlayer 
+                     videoUrl={selectedExercise.videoUrl} 
+                     imageUrl={selectedExercise.imageUrl}
+                     image2Url={selectedExercise.image2Url}
+                     gifUrl={selectedExercise.gifUrl}
+                     name={selectedExercise.name}
+                     target={selectedExercise.target}
+                   />
                  ) : (
-                   <Dumbbell className="text-zinc-800" size={64} />
+                   <div className="aspect-video flex items-center justify-center border border-zinc-800 rounded-2xl">
+                     <Dumbbell className="text-zinc-800" size={64} />
+                   </div>
                  )}
               </div>
 

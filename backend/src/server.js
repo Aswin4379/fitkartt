@@ -40,6 +40,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Mount Routes
+app.post('/api/log', (req, res) => { console.log('BROWSER CRASH:', req.body); res.json({}); });
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

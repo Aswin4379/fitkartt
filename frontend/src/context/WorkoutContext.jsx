@@ -31,18 +31,36 @@ export const WorkoutProvider = ({ children }) => {
       setSessions([]);
       setCustomRoutines([]);
       setActiveWorkout(null);
+      setWorkoutStartTime(null);
     }
   }, [user]);
+
+  // Sync active workout to DB whenever it changes
+  useEffect(() => {
+    if (activeWorkout) {
+      const timeout = setTimeout(() => {
+        workoutApi.saveActiveSession(activeWorkout).catch(err => console.error('Failed to sync active session', err));
+      }, 1000);
+      return () => clearTimeout(timeout);
+    } else if (activeWorkout === null && user && !loading) {
+      workoutApi.clearActiveSession().catch(() => {});
+    }
+  }, [activeWorkout]);
 
   const loadUserData = async () => {
     setLoading(true);
     try {
-      const [sessRes, routRes] = await Promise.all([
+      const [sessRes, routRes, activeRes] = await Promise.all([
         workoutApi.getSessions().catch(() => []),
-        workoutApi.getCustomRoutines().catch(() => [])
+        workoutApi.getCustomRoutines().catch(() => []),
+        workoutApi.getActiveSession().catch(() => null)
       ]);
       setSessions(sessRes);
       setCustomRoutines(routRes);
+      if (activeRes) {
+        setActiveWorkout(activeRes);
+        setWorkoutStartTime(new Date(activeRes.startTime || Date.now()));
+      }
     } catch (err) {
       console.error('Failed to load workout data', err);
     } finally {
@@ -55,12 +73,26 @@ export const WorkoutProvider = ({ children }) => {
     const newWorkout = {
       ...(routine?._id || routine?.id ? { routineId: routine?._id || routine?.id } : {}),
       name: routine?.name || routine?.title || 'Freestyle Workout',
-      exercises: routine?.exercises?.map(e => ({
-        exerciseId: e.exerciseId || e.id,
-        name: e.name,
-        target: e.target,
-        sets: Array(e.defaultSets || 3).fill(null).map(() => ({ reps: e.defaultReps || 10, weight: e.defaultWeight || 0, isCompleted: false }))
-      })) || [],
+      startTime: new Date().toISOString(),
+      exercises: routine?.exercises?.map(e => {
+        const pr = user?.fitnessStats?.workoutPRs?.[e.name];
+        const prevWeight = typeof pr === 'number' ? pr : (pr?.weight?.value || 0);
+        return {
+          exerciseId: e.exerciseId || e.id,
+          name: e.name,
+          targetMuscles: e.targetMuscles || e.target || [],
+          restTime: e.restTime || 60,
+          gifUrl: e.gifUrl || e.mediaUrl || '',
+          videoUrl: e.videoUrl || '',
+          instructions: e.instructions || [],
+          equipment: e.equipment || '',
+          secondary: e.secondary || '',
+          level: e.level || '',
+          formTips: e.formTips || '',
+          commonMistakes: e.commonMistakes || '',
+          sets: e.sets || Array(e.defaultSets || 3).fill(null).map(() => ({ reps: e.defaultReps || 10, weight: prevWeight || e.defaultWeight || 0, duration: 0, isCompleted: false }))
+        };
+      }) || [],
     };
     setActiveWorkout(newWorkout);
     setWorkoutStartTime(new Date());
@@ -90,6 +122,7 @@ export const WorkoutProvider = ({ children }) => {
       setSessions([savedSession, ...sessions]);
       setActiveWorkout(null);
       setWorkoutStartTime(null);
+      await workoutApi.clearActiveSession();
       return savedSession;
     } catch (error) {
       console.error('Failed to save workout session', error);
@@ -97,15 +130,17 @@ export const WorkoutProvider = ({ children }) => {
     }
   };
 
-  const cancelWorkout = () => {
+  const cancelWorkout = async () => {
     if (window.confirm('Are you sure you want to cancel this workout? Data will not be saved.')) {
       setActiveWorkout(null);
       setWorkoutStartTime(null);
+      await workoutApi.clearActiveSession();
     }
   };
 
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     setActiveWorkout(prev => {
+      if (!prev) return prev;
       const updated = { ...prev };
       const ex = updated.exercises[exerciseIndex];
       const newSets = [...ex.sets];
@@ -117,6 +152,7 @@ export const WorkoutProvider = ({ children }) => {
 
   const toggleSetComplete = (exerciseIndex, setIndex) => {
     setActiveWorkout(prev => {
+      if (!prev) return prev;
       const updated = { ...prev };
       const ex = updated.exercises[exerciseIndex];
       const newSets = [...ex.sets];
@@ -126,6 +162,29 @@ export const WorkoutProvider = ({ children }) => {
     });
   };
   
+  const addSetToActive = (exerciseIndex) => {
+    setActiveWorkout(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      const ex = updated.exercises[exerciseIndex];
+      // Clone last set's values or use defaults
+      const lastSet = ex.sets.length > 0 ? ex.sets[ex.sets.length - 1] : { weight: 0, reps: 0, duration: 0 };
+      ex.sets = [...ex.sets, { weight: lastSet.weight, reps: lastSet.reps, duration: lastSet.duration, isCompleted: false }];
+      return updated;
+    });
+  };
+
+  const removeSetFromActive = (exerciseIndex, setIndex) => {
+    setActiveWorkout(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      const ex = updated.exercises[exerciseIndex];
+      if (ex.sets.length <= 1) return prev; // Don't remove last set
+      ex.sets = ex.sets.filter((_, idx) => idx !== setIndex);
+      return updated;
+    });
+  };
+
   const addExerciseToActive = (exercise) => {
     setActiveWorkout(prev => {
       if (!prev) return prev;
@@ -134,8 +193,16 @@ export const WorkoutProvider = ({ children }) => {
         exercises: [...prev.exercises, {
           exerciseId: exercise.id || exercise._id,
           name: exercise.name,
-          target: exercise.target,
-          sets: Array(exercise.defaultSets || 3).fill(null).map(() => ({ reps: exercise.defaultReps || 10, weight: exercise.defaultWeight || 0, isCompleted: false }))
+          targetMuscles: exercise.targetMuscles || exercise.target || [],
+          gifUrl: exercise.gifUrl || exercise.mediaUrl || '',
+          videoUrl: exercise.videoUrl || '',
+          instructions: exercise.instructions || [],
+          equipment: exercise.equipment || '',
+          secondary: exercise.secondary || '',
+          level: exercise.level || '',
+          formTips: exercise.formTips || '',
+          commonMistakes: exercise.commonMistakes || '',
+          sets: Array(exercise.defaultSets || 3).fill(null).map(() => ({ reps: exercise.defaultReps || 10, weight: exercise.defaultWeight || 0, duration: 0, isCompleted: false }))
         }]
       };
     });
@@ -162,6 +229,8 @@ export const WorkoutProvider = ({ children }) => {
     cancelWorkout,
     updateSet,
     toggleSetComplete,
+    addSetToActive,
+    removeSetFromActive,
     addExerciseToActive,
     removeExerciseFromActive
   };
