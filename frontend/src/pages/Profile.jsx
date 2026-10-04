@@ -132,7 +132,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div><span className="opacity-70">Email:</span> {user.email}</div>
             <div><span className="opacity-70">MongoDB ID:</span> {user._id || user.id || 'N/A'}</div>
-            <div className="sm:col-span-2"><span className="opacity-70">API URL:</span> {typeof window !== 'undefined' ? (window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.') || window.location.hostname.startsWith('172.') ? `http://${window.location.hostname}:5000/api` : 'https://fitkartt.onrender.com/api') : 'Unknown'}</div>
+            <div className="sm:col-span-2"><span className="opacity-70">API URL:</span> {import.meta.env?.VITE_API_URL || 'https://fitkartt.onrender.com/api'}</div>
             <div><span className="opacity-70">Weight (Current/Target):</span> {user.currentWeight}kg / {user.targetWeight}kg</div>
             <div><span className="opacity-70">Height / Age:</span> {user.height}cm / {user.age}</div>
             <div><span className="opacity-70">Goal:</span> {user.goal}</div>
