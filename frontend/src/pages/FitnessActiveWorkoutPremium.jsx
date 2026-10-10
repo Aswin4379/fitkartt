@@ -309,40 +309,42 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
       <div className="fixed top-0 left-0 w-full h-96 bg-fit-primary/10 blur-[120px] pointer-events-none -z-10 mix-blend-screen" />
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-white/5 px-4 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center border border-white/10">
-            <Activity className="text-fit-primary animate-pulseSlow" size={20} />
-          </div>
-          <div>
-            <h1 className="font-extrabold text-lg tracking-tight leading-tight text-white">{activeWorkout.name}</h1>
-            <div className="text-fit-primary font-mono text-sm flex items-center gap-1.5 opacity-90">
-              <Clock size={13} /> {formatTime(duration)}
-              <span className="text-zinc-500 mx-1">|</span>
-              <span className="text-amber-400">{progressPercent}%</span>
+      <div className="sticky top-0 z-40 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/5 shadow-sm">
+        <div className="px-4 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-full bg-zinc-900 flex-shrink-0 flex items-center justify-center border border-white/10">
+              <Activity className="text-fit-primary animate-pulseSlow" size={20} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-extrabold text-base sm:text-lg tracking-tight leading-snug text-white line-clamp-2">{activeWorkout.name}</h1>
+              <div className="text-fit-primary font-mono text-xs sm:text-sm flex items-center gap-1.5 opacity-90 mt-0.5">
+                <Clock size={13} /> {formatTime(duration)}
+                <span className="text-zinc-500 mx-1">|</span>
+                <span className="text-amber-400">{progressPercent}%</span>
+              </div>
             </div>
           </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <button 
+              onClick={() => setShowDiscardConfirm(true)} 
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-white/10"
+              title="Discard Workout"
+            >
+              <X size={18} />
+            </button>
+            <button onClick={onSwitchTheme} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10" title="Switch Theme">
+              <Smartphone size={18} />
+            </button>
+            <button onClick={handleFinish} className="bg-white text-black px-4 sm:px-5 py-2 rounded-full font-extrabold text-xs sm:text-sm hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+              Finish
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setShowDiscardConfirm(true)} 
-            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-white/10"
-            title="Discard Workout"
-          >
-            <X size={18} />
-          </button>
-          <button onClick={onSwitchTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10" title="Switch Theme">
-            <Smartphone size={18} />
-          </button>
-          <button onClick={handleFinish} className="bg-white text-black px-5 py-2 rounded-full font-extrabold text-sm hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-            Finish
-          </button>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="w-full h-1 bg-zinc-900 absolute top-[72px] z-40">
-        <div className="h-full bg-fit-primary transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+        {/* Pinned Bottom Progress Bar */}
+        <div className="w-full h-1 bg-zinc-900 overflow-hidden">
+          <div className="h-full bg-fit-primary transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+        </div>
       </div>
 
       {saveError && (

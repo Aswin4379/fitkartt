@@ -125,22 +125,24 @@ CLINICAL GUIDELINES:
 1. NOT A DIAGNOSIS: Clearly state that your explanations are common possibilities and educational considerations, NEVER a confirmed diagnosis.
 2. DO NOT PROMISE CURES: Use responsible language ("may help relieve stiffness", "supports tissue recovery").
 3. RECOVERY & SELF-CARE: Provide 4-6 practical, non-strenuous steps (ergonomic tweaks, rest posture, hydration).
-4. GENTLE MOVEMENTS:
+4. GENTLE MOVEMENTS & PAIN RELIEF TECHNIQUES:
+   - STRICT SAFETY MANDATE: This is a pain-recovery and physical therapy guide, NOT a gym workout! NEVER EVER recommend gym lifting, dumbbells, barbells, bicep curls, squats, or heavy resistance training.
+   - If the user has muscle spasms, soreness, or knots, recommend targeted physical therapy stretches, gentle joint mobility, or self-massage / cross-friction release techniques with warm oil or lotion.
    - If severe pain (severity >= 8), acute trauma (<48h), or red flags are present, DO NOT recommend active exercise. Return an empty array or 1 passive rest guideline.
-   - If mild-to-moderate muscular stiffness or subacute ache, dynamically select 2-3 safe gentle mobility movements matching the user's symptoms.
+   - If mild-to-moderate muscular stiffness or subacute ache, dynamically select 2-3 safe gentle mobility movements or self-massage techniques matching the user's symptoms.
    - You may select from the canonical candidates list above or provide clinically sound physical therapy gentle movements.
    - For EACH movement, provide:
      * "exerciseId": canonical ID or hyphenated-name
-     * "name": exact descriptive name
+     * "name": exact descriptive name (e.g. "Gentle Doorway & Wall Biceps Stretch", "Biceps Trigger Point & Cross-Fiber Self-Massage")
      * "startingPosition": exact starting posture
      * "movementDirection": movement vector and cue
-     * "repsOrDuration": suggested reps or hold duration (e.g. "8-10 repetitions", "Hold 20-30 seconds")
+     * "repsOrDuration": suggested reps or hold duration (e.g. "Hold 20-30 seconds", "Gentle massage for 60-90 seconds")
      * "breathingGuidance": specific inhale/exhale timing
      * "stopSigns": symptoms indicating stop immediately (e.g. sharp pinch, radiating pain, numbness)
      * "instructions": array of 3-5 clear step-by-step instructions
-     * "description": brief summary of movement
+     * "description": brief summary of movement or massage technique
      * "precautions": safety precautions and when to modify
-5. MOVEMENTS TO AVOID: List 3-4 specific activities, lifting motions, or postures that could aggravate this body area.
+5. MOVEMENTS TO AVOID: List 3-4 specific activities, lifting motions, or postures that could aggravate this body area (e.g. lifting weights, bicep curls, heavy resistance training, sudden jerky pulls).
 6. HEAT VS ICE (THERMAL THERAPY):
    - Clearly state whether Cold, Heat, Contrast, or Neither is appropriate, with rationale (e.g. Cold for acute swelling <48h; Heat for chronic muscle tightness >48h; avoid heat on acute inflammation).
    - Provide exact duration (15-20 mins) and skin-barrier instructions.
@@ -313,19 +315,48 @@ Do NOT include any markdown code blocks, backticks, or conversation outside the 
         youtubeSearchUrl: 'https://www.youtube.com/results?search_query=emergency+medical+evaluation'
       }];
     } else {
-      // 1. Resolve any AI recommended movements through canonical media resolver
+      // 1. Resolve AI recommended movements through canonical media resolver
       let resolvedMovements = Array.isArray(aiData.gentleMovements) && aiData.gentleMovements.length > 0
         ? aiData.gentleMovements.map(rec => resolveExerciseMedia(rec, bodyPart)).filter(Boolean)
         : [];
 
-      // 2. Guarantee suitable video demonstrations & workout info:
-      // If AI returned fewer than 2 movements for a non-emergency discomfort presentation,
-      // automatically backfill with matching verified canonical movements for this body part!
+      // 1b. Discard any inappropriate gym lifting exercises that may have slipped past AI
+      const gymKeywords = /\b(dumbbell|barbell|bicep curl|hammer curl|weight lift|bench press|deadlift|squat)\b/i;
+      resolvedMovements = resolvedMovements.filter(m => !gymKeywords.test(m.name || ''));
+
+      // 1c. Strict deduplication by ID, normalized name, and demonstration URL
+      const normalizeClean = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+      const seenIds = new Set();
+      const seenNames = new Set();
+      const seenUrls = new Set();
+      const deduplicated = [];
+
+      for (const m of resolvedMovements) {
+        const normN = normalizeClean(m.name);
+        if (seenIds.has(m.exerciseId) || seenNames.has(normN) || (m.demonstrationUrl && seenUrls.has(m.demonstrationUrl))) {
+          continue;
+        }
+        seenIds.add(m.exerciseId);
+        seenNames.add(normN);
+        if (m.demonstrationUrl) seenUrls.add(m.demonstrationUrl);
+        deduplicated.push(m);
+      }
+      resolvedMovements = deduplicated;
+
+      // 2. Guarantee 2-3 suitable video demonstrations & techniques:
+      // If fewer than 2 movements for a non-emergency presentation, backfill with verified canonical movements
       if (resolvedMovements.length < 2) {
         const canonicalBackfills = getCanonicalExercisesForBodyPart(bodyPart);
         for (const backfill of canonicalBackfills) {
-          if (!resolvedMovements.some(m => m.exerciseId === backfill.id)) {
-            resolvedMovements.push(resolveExerciseMedia(backfill, bodyPart));
+          const normBackfillName = normalizeClean(backfill.name);
+          if (!seenIds.has(backfill.id) && !seenNames.has(normBackfillName) && (!backfill.demonstrationUrl || !seenUrls.has(backfill.demonstrationUrl))) {
+            const resolved = resolveExerciseMedia(backfill, bodyPart);
+            if (resolved) {
+              seenIds.add(resolved.exerciseId);
+              seenNames.add(normBackfillName);
+              if (resolved.demonstrationUrl) seenUrls.add(resolved.demonstrationUrl);
+              resolvedMovements.push(resolved);
+            }
           }
           if (resolvedMovements.length >= 3) break;
         }

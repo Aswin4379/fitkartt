@@ -174,40 +174,63 @@ export const CANONICAL_BODYCARE_EXERCISES = [
 
   // --- 5. BICEPS & UPPER ARM ---
   {
-    id: 'biceps-gentle-stretch',
-    name: 'Standing Gentle Biceps & Forearm Mobility',
-    aliases: ['bicep stretch', 'biceps stretch', 'bicep tendonitis stretch', 'bicep pull', 'anterior arm stretch'],
+    id: 'biceps-doorway-stretch',
+    name: 'Gentle Doorway & Wall Biceps Stretch',
+    aliases: ['bicep stretch', 'biceps stretch', 'bicep tendonitis stretch', 'bicep pull', 'anterior arm stretch', 'biceps-gentle-stretch'],
     bodyPart: 'biceps',
     mediaType: 'video',
-    demonstrationUrl: 'https://www.youtube.com/embed/3OZ2MT_5r3Q',
-    thumbnailUrl: 'https://img.youtube.com/vi/3OZ2MT_5r3Q/hqdefault.jpg',
-    durationText: 'Demonstration video (~15s loop)',
-    startingPosition: 'Stand tall with arms at sides and shoulders back.',
-    movementDirection: 'Extend arm backward with palm turned outward to gently lengthen the biceps muscle.',
-    repsOrDuration: 'Hold 15–20 seconds per arm, 2–3 repetitions.',
-    breathingGuidance: 'Breathe smoothly; do not hold your breath.',
-    stopSigns: 'Stop if sharp shoulder pinch or burning bicep groove pain occurs.',
+    demonstrationUrl: 'https://www.youtube.com/embed/M9-yNm0NpVc',
+    thumbnailUrl: 'https://img.youtube.com/vi/M9-yNm0NpVc/hqdefault.jpg',
+    durationText: 'Physical therapy demonstration (~15s loop)',
+    startingPosition: 'Stand near an open doorway or wall with your painful arm extended slightly behind you.',
+    movementDirection: 'Place your palm flat against the door frame at shoulder height and gently turn your body away to stretch the biceps tendon.',
+    repsOrDuration: 'Hold 20–30 seconds per arm, 2–3 repetitions.',
+    breathingGuidance: 'Breathe smoothly into your chest; never hold your breath.',
+    stopSigns: 'Stop if sharp anterior shoulder impingement or tingling occurs.',
     instructions: [
-      'Stand upright with relaxed posture.',
-      'Reach your affected arm straight behind your body.',
-      'Turn your palm away from your body with thumb pointing downward.',
-      'Gently raise the arm slightly backward until a mild stretch is felt in the front of your arm/bicep.',
-      'Hold for 15 to 20 seconds, then slowly return to neutral.'
+      'Stand beside a sturdy door frame or wall.',
+      'Place the palm of your affected arm flat against the frame at or slightly below shoulder level, with thumb pointing up.',
+      'Keep your elbow gently extended without locking the joint.',
+      'Slowly rotate your chest and torso in the opposite direction until a mild, relaxing stretch is felt along the front of your arm and bicep.',
+      'Hold for 20 to 30 seconds, then slowly ease out of the stretch.'
     ],
-    precautions: 'Do not arch your back to reach further. Keep shoulders squared.'
+    precautions: 'Do NOT use weights, dumbbells, or pull aggressively. Keep the stretch gentle and pain-free.'
+  },
+  {
+    id: 'biceps-self-massage',
+    name: 'Biceps Trigger Point & Cross-Fiber Self-Massage',
+    aliases: ['bicep massage', 'biceps massage', 'bicep knot', 'muscle spasm', 'arm knot release', 'bicep self massage'],
+    bodyPart: 'biceps',
+    mediaType: 'video',
+    demonstrationUrl: 'https://www.youtube.com/embed/J-TiTwZunZg',
+    thumbnailUrl: 'https://img.youtube.com/vi/J-TiTwZunZg/hqdefault.jpg',
+    durationText: 'Self-treatment demonstration (~15s loop)',
+    startingPosition: 'Sit comfortably with your affected arm supported in your lap or on a table so the biceps is completely relaxed.',
+    movementDirection: 'Use gentle fingertips or thumb pressure across the tight muscle knot, followed by soothing upward strokes.',
+    repsOrDuration: 'Gentle pressure for 60–90 seconds per knot.',
+    breathingGuidance: 'Take deep, calming breaths to help muscle fibers relax.',
+    stopSigns: 'Stop if sharp nerve tingling shoots down into the forearm or hand.',
+    instructions: [
+      'Rest your arm on a table or in your lap with your elbow slightly bent to keep the bicep completely slack.',
+      'Apply a drop of soothing warm massage oil or lotion if available.',
+      'Use the pads of your opposite fingers or thumb to gently locate the tender knot or tight band in the middle of the bicep muscle.',
+      'Apply light to moderate pressure and move slowly back and forth across the muscle fibers (cross-fiber friction).',
+      'Stroke gently upward toward the shoulder for 1 to 2 minutes to promote blood flow and release the spasm.'
+    ],
+    precautions: 'Do not press hard into the inner elbow crease or over blood vessels. Massage should feel relieving, never sharply painful.'
   },
 
   // --- 6. TRICEPS & REAR ARM ---
   {
     id: 'overhead-tricep-stretch',
-    name: 'Overhead Triceps Gentle Stretch',
+    name: 'Gentle Overhead Triceps Mobility Stretch',
     aliases: ['tricep stretch', 'overhead tricep stretch', 'tricep tendonitis', 'rear arm stretch'],
     bodyPart: 'triceps',
     mediaType: 'video',
-    demonstrationUrl: 'https://www.youtube.com/embed/Ml9QzVI-pBQ',
-    thumbnailUrl: 'https://img.youtube.com/vi/Ml9QzVI-pBQ/hqdefault.jpg',
-    durationText: 'Demonstration video (~15s loop)',
-    startingPosition: 'Stand or sit tall with core engaged.',
+    demonstrationUrl: 'https://www.youtube.com/embed/BglqDh5Xozc',
+    thumbnailUrl: 'https://img.youtube.com/vi/BglqDh5Xozc/hqdefault.jpg',
+    durationText: 'Physical therapy demonstration (~15s loop)',
+    startingPosition: 'Stand or sit tall with relaxed spine.',
     movementDirection: 'Bend elbow overhead and place palm toward upper back. Gently support the elbow with the opposite hand.',
     repsOrDuration: 'Hold 20 seconds per arm, 2 repetitions.',
     breathingGuidance: 'Inhale to prepare; exhale as you gently ease into the stretch.',
@@ -218,7 +241,7 @@ export const CANONICAL_BODYCARE_EXERCISES = [
       'Keep your head upright and avoid tucking your chin to your chest.',
       'Hold for 20 seconds, then switch arms.'
     ],
-    precautions: 'If raising the arm overhead causes shoulder pain, modify by bringing the arm across the chest instead.'
+    precautions: 'Do NOT use weights or dumbbells. If raising the arm overhead causes shoulder pain, modify by bringing the arm across the chest instead.'
   },
 
   // --- 7. ELBOWS, WRISTS & HANDS ---

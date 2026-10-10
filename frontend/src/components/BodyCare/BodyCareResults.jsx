@@ -184,8 +184,8 @@ export default function BodyCareResults({
               <Activity size={20} />
             </div>
             <div>
-              <h4 className="text-lg font-black text-white">Gentle Mobility & Exercises</h4>
-              <p className="text-xs text-zinc-500">Safe, non-strenuous movements with verified video demonstrations</p>
+              <h4 className="text-lg font-black text-white">Targeted Relief Stretches & Self-Care Therapy</h4>
+              <p className="text-xs text-zinc-500">Physical therapy stretches, gentle mobility, and self-massage techniques with verified video demonstrations</p>
             </div>
           </div>
           {guidance.gentleMovements && guidance.gentleMovements.length > 0 && (

@@ -59,7 +59,7 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -67,7 +67,7 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-16 right-0 w-80 sm:w-96 h-[450px] bg-fit-surface border border-fit-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="absolute bottom-16 right-0 w-[calc(100vw-32px)] max-w-sm sm:w-96 h-[450px] bg-fit-surface border border-fit-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-fit-primary to-fit-accent p-4 flex justify-between items-center text-fit-bg">
