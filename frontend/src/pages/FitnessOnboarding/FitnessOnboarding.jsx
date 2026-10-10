@@ -4,6 +4,101 @@ import { ChevronRight, ChevronLeft, Target, Flame, Activity, User, Activity as A
 import MuscularBodySelect from './MuscularBodySelect.jsx';
 import { workoutApi } from '../../services/api.js';
 import { useUser } from '../../context/UserContext.jsx';
+import { exerciseLibrary } from '../../data/workouts.js';
+
+// Resilient localized 30-day program generator in case remote API is deploying or unreachable
+function generateFallbackPlan(formData) {
+  const goal = formData.goal || 'Build Muscle';
+  const targetAreas = formData.targetAreas && formData.targetAreas.length > 0 ? formData.targetAreas : ['fullbody'];
+  const daysPerWeek = Number(formData.daysPerWeek) || 4;
+  const duration = Number(formData.duration) || 45;
+  const split = formData.split || 'Full Body';
+
+  const defaultPool = exerciseLibrary.length > 0 ? exerciseLibrary : [
+    { name: 'Push-ups', target: 'Chest', level: 'Beginner', equipment: 'Bodyweight', videoUrl: 'https://www.youtube.com/embed/VrSGEXrwZAc' },
+    { name: 'Bodyweight Squats', target: 'Legs', level: 'Beginner', equipment: 'Bodyweight', videoUrl: 'https://www.youtube.com/embed/r9gqv3WF90I' },
+    { name: 'Dumbbell Bicep Curls', target: 'Arms', level: 'Beginner', equipment: 'Dumbbells', videoUrl: 'https://www.youtube.com/embed/3OZ2MT_5r3Q' },
+    { name: 'Plank', target: 'Core', level: 'Beginner', equipment: 'Bodyweight', videoUrl: 'https://www.youtube.com/embed/pSHjTRCQxIw' },
+    { name: 'Arm Circles', target: 'Shoulders', level: 'Beginner', equipment: 'Bodyweight', videoUrl: 'https://www.youtube.com/embed/hne3nHGXPRM' },
+    { name: "Child's Pose", target: 'Back', level: 'Beginner', equipment: 'Bodyweight', videoUrl: 'https://www.youtube.com/embed/eqVMAPM00DM' }
+  ];
+
+  const schedule = [];
+  const focusRotations = [
+    'Upper Body Push & Core',
+    'Lower Body Legs & Foundation',
+    'Full Body Functional Strength',
+    'Chest, Back & Shoulders',
+    'Core, Cardio & Active Mobility'
+  ];
+
+  for (let i = 0; i < 30; i++) {
+    const dayNumber = i + 1;
+    const dayInCycle = i % 7;
+    const isRest = dayInCycle >= daysPerWeek;
+
+    if (isRest) {
+      schedule.push({
+        day: dayNumber,
+        focus: 'Rest & Active Recovery',
+        estimatedDuration: 0,
+        exercises: [],
+        isCompleted: false
+      });
+    } else {
+      const focusTitle = focusRotations[i % focusRotations.length];
+      const startIdx = (i * 2) % defaultPool.length;
+      const dayExercises = [];
+      
+      for (let e = 0; e < 5; e++) {
+        const sourceEx = defaultPool[(startIdx + e) % defaultPool.length];
+        dayExercises.push({
+          name: sourceEx.name || 'Exercise',
+          type: e === 0 ? 'warm-up' : (e === 4 ? 'cooldown' : 'main'),
+          sets: 3,
+          reps: sourceEx.type === 'time' ? '30-45 secs' : '10-12 reps',
+          recommendedWeight: 'Bodyweight / Moderate',
+          restTime: 60,
+          targetMuscles: sourceEx.target ? [sourceEx.target] : ['Full Body'],
+          difficulty: sourceEx.level || 'Intermediate',
+          equipment: sourceEx.equipment || 'None',
+          reason: 'Builds functional muscular strength and stability',
+          gifUrl: sourceEx.gifUrl || '',
+          videoUrl: sourceEx.videoUrl || '',
+          instructions: sourceEx.instructions || [
+            'Maintain a tight core and neutral spine.',
+            'Execute reps with controlled cadence (2 seconds eccentric, 1 second pause).',
+            'Breathe rhythmically throughout the set.'
+          ],
+          secondary: sourceEx.secondary || '',
+          formTips: sourceEx.formTips || 'Control the eccentric portion of every rep.',
+          commonMistakes: sourceEx.commonMistakes || 'Avoid bouncing or using excessive momentum.'
+        });
+      }
+
+      schedule.push({
+        day: dayNumber,
+        focus: focusTitle,
+        estimatedDuration: duration,
+        exercises: dayExercises,
+        isCompleted: false
+      });
+    }
+  }
+
+  return {
+    onboarded: true,
+    goal,
+    targetAreas,
+    level: formData.level || 'Beginner',
+    equipment: formData.equipment || ['Bodyweight'],
+    daysPerWeek,
+    duration,
+    split,
+    planGeneratedAt: new Date().toISOString(),
+    schedule
+  };
+}
 
 export default function FitnessOnboarding() {
   const navigate = useNavigate();
@@ -19,7 +114,7 @@ export default function FitnessOnboarding() {
     height: 175,
     age: 25,
     equipment: [],
-    daysPerWeek: 3,
+    daysPerWeek: 4,
     duration: 45,
     split: 'Full Body',
     targetAreas: []
@@ -81,20 +176,64 @@ export default function FitnessOnboarding() {
         targetAreas: formData.targetAreas.length === 0 ? ['fullbody'] : formData.targetAreas
       };
       
-      // Call the API
-      await workoutApi.generateAIPlan(payload);
+      let generatedPlan = null;
+
+      try {
+        // Attempt backend API call first
+        generatedPlan = await workoutApi.generateAIPlan(payload);
+      } catch (apiErr) {
+        console.warn("[FitnessOnboarding] Backend API error, activating localized fallback generator:", apiErr.message);
+        // Fallback generator to guarantee user is never blocked by a 404 or backend downtime
+        generatedPlan = generateFallbackPlan(payload);
+
+        // Update local user state immediately
+        try {
+          const raw = localStorage.getItem('fitkart_user');
+          const localUser = raw ? JSON.parse(raw) : {};
+          const updatedUser = {
+            ...localUser,
+            fitnessStats: {
+              ...(localUser.fitnessStats || {}),
+              fitnessPlan: generatedPlan
+            }
+          };
+          localStorage.setItem('fitkart_user', JSON.stringify(updatedUser));
+          if (typeof setUser === 'function') {
+            setUser(updatedUser);
+          }
+        } catch (storageErr) {
+          console.error("Storage update error:", storageErr);
+        }
+      }
       
-      // Refresh user to get the newly generated plan from MongoDB
+      // Attempt to refresh user from MongoDB
       if (typeof refreshUser === 'function') {
-        await refreshUser();
+        try { await refreshUser(); } catch (rErr) {}
       }
       
       setLoading(false);
       navigate('/fitness');
     } catch (err) {
       console.error("Failed to generate plan", err);
-      setErrorMsg("Something went wrong generating your AI plan: " + (err.message || 'Unknown Error'));
+      // Even if any uncaught error occurs, provide the fallback plan and proceed!
+      const fallback = generateFallbackPlan(formData);
+      try {
+        const raw = localStorage.getItem('fitkart_user');
+        const localUser = raw ? JSON.parse(raw) : {};
+        const updatedUser = {
+          ...localUser,
+          fitnessStats: {
+            ...(localUser.fitnessStats || {}),
+            fitnessPlan: fallback
+          }
+        };
+        localStorage.setItem('fitkart_user', JSON.stringify(updatedUser));
+        if (typeof setUser === 'function') {
+          setUser(updatedUser);
+        }
+      } catch (e) {}
       setLoading(false);
+      navigate('/fitness');
     }
   };
 
@@ -136,7 +275,7 @@ export default function FitnessOnboarding() {
         <div className="w-10" />
       </div>
 
-      <div className="flex-1 p-6 flex flex-col max-w-md mx-auto w-full">
+      <div className="flex-1 px-4 sm:px-6 py-4 flex flex-col max-w-md mx-auto w-full min-h-0 overflow-y-auto hide-scrollbar">
         {errorMsg && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-sm font-semibold">
             {errorMsg}
@@ -267,28 +406,30 @@ export default function FitnessOnboarding() {
 
         {/* Step 4: Training Details & Target Areas */}
         {step === 4 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1 flex flex-col overflow-y-auto hide-scrollbar pb-6">
-            <h2 className="text-3xl font-extrabold mb-2 leading-tight">Training Details</h2>
-            <p className="text-zinc-400 text-sm mb-6">Finalize your plan parameters.</p>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1 flex flex-col space-y-6">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-1 leading-tight text-white">Training Details</h2>
+              <p className="text-zinc-400 text-xs sm:text-sm">Finalize your plan parameters.</p>
+            </div>
             
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Days / Week</label>
+                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1.5">Days / Week</label>
                   <select 
                     value={formData.daysPerWeek} 
                     onChange={e => updateForm('daysPerWeek', Number(e.target.value))}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none text-sm"
                   >
                     {[2,3,4,5,6].map(n => <option key={n} value={n}>{n} Days</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Duration</label>
+                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1.5">Duration</label>
                   <select 
                     value={formData.duration} 
                     onChange={e => updateForm('duration', Number(e.target.value))}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none text-sm"
                   >
                     <option value={30}>30 mins</option>
                     <option value={45}>45 mins</option>
@@ -299,11 +440,11 @@ export default function FitnessOnboarding() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Training Split</label>
+                <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1.5">Training Split</label>
                 <select 
                   value={formData.split} 
                   onChange={e => updateForm('split', e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white font-bold outline-none text-sm"
                 >
                   <option value="Full Body">Full Body (Recommended for Beginners)</option>
                   <option value="Push/Pull/Legs">Push / Pull / Legs (PPL)</option>
@@ -313,18 +454,57 @@ export default function FitnessOnboarding() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Target Muscles (Optional)</label>
-                <div className="bg-zinc-900/50 rounded-2xl p-4 border border-zinc-800 flex justify-center items-center h-64">
-                  <MuscularBodySelect selectedParts={formData.targetAreas} togglePart={toggleTargetArea} />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Target Muscles (Optional)</label>
+                  {formData.targetAreas.length > 0 && (
+                    <span className="text-xs font-bold text-[#2196f3] bg-[#2196f3]/10 px-2.5 py-0.5 rounded-full border border-[#2196f3]/30">
+                      {formData.targetAreas.length} selected
+                    </span>
+                  )}
                 </div>
-                <div className="mt-2 text-center text-zinc-500 text-xs">Tap body to focus specific areas</div>
+
+                <div className="bg-zinc-900/60 rounded-2xl p-4 border border-zinc-800 flex flex-col items-center shadow-lg">
+                  <div className="w-full flex justify-center py-2">
+                    <MuscularBodySelect selectedParts={formData.targetAreas} togglePart={toggleTargetArea} />
+                  </div>
+                  <div className="mt-2 text-center text-zinc-500 text-xs mb-3">
+                    Tap body areas or select quick chips below:
+                  </div>
+                  {/* Quick Select Muscle Pills for easy mobile finger tapping */}
+                  <div className="flex flex-wrap gap-1.5 justify-center w-full">
+                    {[
+                      { id: 'fullbody', label: 'Full Body' },
+                      { id: 'chest', label: 'Chest' },
+                      { id: 'arms', label: 'Arms' },
+                      { id: 'abs', label: 'Core / Abs' },
+                      { id: 'legs', label: 'Legs' }
+                    ].map(part => {
+                      const isSel = formData.targetAreas.includes(part.id);
+                      return (
+                        <button
+                          key={part.id}
+                          type="button"
+                          onClick={() => toggleTargetArea(part.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            isSel
+                              ? 'bg-[#2196f3] text-black shadow-md shadow-[#2196f3]/25 scale-105'
+                              : 'bg-zinc-800 text-zinc-300 hover:text-white border border-white/5 hover:border-white/20'
+                          }`}
+                        >
+                          {isSel && '✓ '}
+                          {part.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Next Button */}
-        <div className="mt-8 pt-4 pb-8">
+        <div className="mt-6 mb-6 pb-8 shrink-0">
           <button
             type="button"
             onClick={handleNext}

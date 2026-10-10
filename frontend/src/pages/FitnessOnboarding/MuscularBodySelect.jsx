@@ -14,7 +14,7 @@ export default function MuscularBodySelect({ selectedParts, togglePart }) {
   ];
 
   return (
-    <div className="relative w-full max-w-sm mx-auto aspect-[3/4] rounded-3xl overflow-hidden bg-black border border-white/10 shadow-[0_0_30px_rgba(33,150,243,0.1)] group">
+    <div className="relative w-full max-w-[210px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden bg-black/90 border border-white/10 shadow-[0_0_25px_rgba(33,150,243,0.15)] group select-none">
       {/* Background Image */}
       <img 
         src={muscularBodyImg} 
