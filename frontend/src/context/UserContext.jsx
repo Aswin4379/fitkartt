@@ -42,9 +42,69 @@ export function UserProvider({ children }) {
     try {
       const res = await authApi.getMe()
       if (res?.user) {
-        setUser(res.user)
-        safeSetItem(STORAGE_KEY, res.user)
-        return res.user
+        let mergedUser = res.user;
+
+        // Ensure fitnessPlan in local storage isn't lost if MongoDB was missing it
+        try {
+          const rawLocal = safeGetItem(STORAGE_KEY);
+          if (rawLocal) {
+            const localUser = JSON.parse(rawLocal);
+            const localPlan = localUser?.fitnessStats?.fitnessPlan;
+            const serverPlan = res.user?.fitnessStats?.fitnessPlan;
+
+            // If server has no plan but local has an onboarded plan, sync local plan to MongoDB
+            if (localPlan?.onboarded && (!serverPlan || !serverPlan.onboarded)) {
+              authApi.updateProfile({
+                fitnessStats: {
+                  ...(res.user.fitnessStats || {}),
+                  fitnessPlan: localPlan
+                }
+              }).catch(err => console.warn('[UserContext] Auto-sync local plan error:', err));
+
+              mergedUser = {
+                ...mergedUser,
+                fitnessStats: {
+                  ...(mergedUser.fitnessStats || {}),
+                  fitnessPlan: localPlan
+                }
+              };
+            } else if (localPlan?.onboarded && serverPlan?.onboarded) {
+              // Merge completed days if local had marked any days that server didn't receive yet
+              const localCompleted = (localPlan.schedule || []).filter(s => s.isCompleted).map(s => s.day);
+              const serverCompleted = (serverPlan.schedule || []).filter(s => s.isCompleted).map(s => s.day);
+              const missingOnServer = localCompleted.filter(d => !serverCompleted.includes(d));
+
+              if (missingOnServer.length > 0) {
+                const updatedSchedule = serverPlan.schedule.map(s => {
+                  if (missingOnServer.includes(s.day)) {
+                    return { ...s, isCompleted: true, completedAt: new Date() };
+                  }
+                  return s;
+                });
+                const mergedPlan = { ...serverPlan, schedule: updatedSchedule };
+                authApi.updateProfile({
+                  fitnessStats: {
+                    ...(res.user.fitnessStats || {}),
+                    fitnessPlan: mergedPlan
+                  }
+                }).catch(() => {});
+                mergedUser = {
+                  ...mergedUser,
+                  fitnessStats: {
+                    ...(mergedUser.fitnessStats || {}),
+                    fitnessPlan: mergedPlan
+                  }
+                };
+              }
+            }
+          }
+        } catch (mergeErr) {
+          console.warn('[UserContext] Plan merge notice:', mergeErr);
+        }
+
+        setUser(mergedUser)
+        safeSetItem(STORAGE_KEY, mergedUser)
+        return mergedUser
       }
     } catch (err) {
       console.warn('[Refresh User MongoDB Warning]:', err.message)

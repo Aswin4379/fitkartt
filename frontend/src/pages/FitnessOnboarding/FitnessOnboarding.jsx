@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Target, Flame, Activity, User, Activity as ActivityIcon, Dumbbell } from 'lucide-react';
 import MuscularBodySelect from './MuscularBodySelect.jsx';
-import { workoutApi } from '../../services/api.js';
+import { workoutApi, authApi } from '../../services/api.js';
 import { useUser } from '../../context/UserContext.jsx';
 import { exerciseLibrary } from '../../data/workouts.js';
 
@@ -204,6 +204,17 @@ export default function FitnessOnboarding() {
         } catch (storageErr) {
           console.error("Storage update error:", storageErr);
         }
+
+        // Persist fallback plan to MongoDB on the user account
+        try {
+          await authApi.updateProfile({
+            fitnessStats: {
+              fitnessPlan: generatedPlan
+            }
+          });
+        } catch (cloudErr) {
+          console.warn("[FitnessOnboarding] Cloud sync notice:", cloudErr.message);
+        }
       }
       
       // Attempt to refresh user from MongoDB
@@ -231,6 +242,11 @@ export default function FitnessOnboarding() {
         if (typeof setUser === 'function') {
           setUser(updatedUser);
         }
+        await authApi.updateProfile({
+          fitnessStats: {
+            fitnessPlan: fallback
+          }
+        }).catch(() => {});
       } catch (e) {}
       setLoading(false);
       navigate('/fitness');

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info } from 'lucide-react';
+import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info, Activity } from 'lucide-react';
 import { useWorkout } from '../../context/WorkoutContext.jsx';
 import FitnessDayModal from './FitnessDayModal.jsx';
 
 export default function FitnessAIPlan({ fitnessPlan }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const navigate = useNavigate();
-  const { startWorkout } = useWorkout();
+  const { startWorkout, activeWorkout } = useWorkout();
 
   if (!fitnessPlan || !fitnessPlan.onboarded) {
     return (
@@ -62,18 +62,38 @@ export default function FitnessAIPlan({ fitnessPlan }) {
     return new Date(`${y}-${m}-${day}T00:00:00Z`);
   };
 
-  let currentDay = 1;
+  const completedDays = (fitnessPlan.schedule || []).filter(s => s.isCompleted).map(s => s.day);
+  const maxCompletedDay = completedDays.length > 0 ? Math.max(...completedDays) : 0;
+  const nextIncompleteDay = (fitnessPlan.schedule || []).find(s => !s.isCompleted)?.day || 30;
+
+  let calendarDay = 1;
   if (fitnessPlan.planGeneratedAt) {
     const startIST = getISTDayStart(fitnessPlan.planGeneratedAt);
     const todayIST = getISTDayStart(new Date());
     const diffDays = Math.floor((todayIST - startIST) / (1000 * 60 * 60 * 24));
-    currentDay = Math.min(30, Math.max(1, diffDays + 1));
+    calendarDay = Math.min(30, Math.max(1, diffDays + 1));
   } else {
-    // Fallback if planGeneratedAt is missing for some reason
-    currentDay = fitnessPlan.schedule?.find(s => !s.isCompleted)?.day || 30;
+    calendarDay = nextIncompleteDay;
+  }
+
+  // Calculate currentDay taking into account:
+  // 1. Active ongoing workout session
+  // 2. Completed workout progress (e.g. if Day 8 is completed, current is Day 9)
+  // 3. Calendar days elapsed
+  let currentDay = calendarDay;
+  if (activeWorkout?.planDay) {
+    currentDay = activeWorkout.planDay;
+  } else if (maxCompletedDay > 0) {
+    currentDay = Math.min(30, Math.max(calendarDay, maxCompletedDay + 1));
   }
 
   const currentDayData = fitnessPlan.schedule?.find(s => s.day === currentDay);
+  const isCurrentDayActive = Boolean(
+    activeWorkout && (
+      (activeWorkout.planDay === currentDay) ||
+      (activeWorkout.name && activeWorkout.name.toLowerCase().includes(`day ${currentDay}:`))
+    )
+  );
 
   const handleStartDay = (dayData) => {
     if (!dayData?.exercises || dayData.exercises.length === 0) return; // Rest day
@@ -91,15 +111,24 @@ export default function FitnessAIPlan({ fitnessPlan }) {
           <div className="text-xs font-bold text-[#2196f3] uppercase tracking-wider bg-[#2196f3]/10 px-3 py-1 rounded-full border border-[#2196f3]/20">
             Day {currentDay} / 30
           </div>
+          {isCurrentDayActive && (
+            <span className="text-[11px] font-black text-fit-primary bg-fit-primary/10 border border-fit-primary/30 px-2.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+              <Activity size={12} /> IN PROGRESS
+            </span>
+          )}
         </div>
         
         {/* Quick Continue Button */}
         {currentDayData && currentDayData.exercises.length > 0 && (
           <button 
             onClick={() => handleStartDay(currentDayData)}
-            className="bg-[#2196f3] text-black px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(33,150,243,0.3)]"
+            className={`px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg ${
+              isCurrentDayActive
+                ? 'bg-fit-primary text-black shadow-[0_0_20px_rgba(34,197,94,0.35)] animate-pulse'
+                : 'bg-[#2196f3] text-black shadow-[0_0_15px_rgba(33,150,243,0.3)]'
+            }`}
           >
-            Start Day {currentDay} <Play size={14} fill="currentColor" />
+            {isCurrentDayActive ? `Resume Day ${currentDay}` : `Start Day ${currentDay}`} <Play size={14} fill="currentColor" />
           </button>
         )}
       </div>
@@ -107,11 +136,17 @@ export default function FitnessAIPlan({ fitnessPlan }) {
       {/* Horizontal Scroll Calendar */}
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
         {fitnessPlan.schedule?.map((day) => {
+          const isThisDayActive = Boolean(
+            activeWorkout && (
+              (activeWorkout.planDay === day.day) ||
+              (activeWorkout.name && activeWorkout.name.toLowerCase().includes(`day ${day.day}:`))
+            )
+          );
           const isPast = day.day < currentDay;
           const isToday = day.day === currentDay;
           const isFuture = day.day > currentDay;
           const isRest = !day.exercises || day.exercises.length === 0;
-          const canView = !isRest && !isFuture;
+          const canView = !isRest;
 
           return (
             <div 
@@ -120,7 +155,9 @@ export default function FitnessAIPlan({ fitnessPlan }) {
               className={`snap-start flex-shrink-0 w-64 rounded-2xl p-5 border flex flex-col transition-all relative overflow-hidden ${
                 canView ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''
               } ${
-                day.isCompleted
+                isThisDayActive
+                  ? 'bg-gradient-to-b from-fit-primary/15 to-zinc-900/90 border-fit-primary shadow-[0_0_20px_rgba(34,197,94,0.25)]'
+                  : day.isCompleted
                   ? 'bg-zinc-900/90 border-emerald-500/40 hover:border-emerald-500/70 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
                   : isToday && !isRest
                   ? 'bg-gradient-to-b from-[#2196f3]/15 to-zinc-900/90 border-[#2196f3] shadow-[0_0_20px_rgba(33,150,243,0.15)]'
@@ -128,28 +165,30 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                   ? 'bg-zinc-900/80 border-amber-500/30 hover:border-amber-500/50'
                   : isRest
                   ? 'bg-zinc-900/40 border-zinc-800/80 opacity-60'
-                  : 'bg-zinc-900/30 border-zinc-800/50 opacity-40'
+                  : 'bg-zinc-900/30 border-zinc-800/50 opacity-80'
               }`}
             >
-              {day.isCompleted && (
+              {isThisDayActive ? (
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-fit-primary/20 border border-fit-primary/40 px-2 py-0.5 rounded-full text-fit-primary text-[10px] font-black animate-pulse">
+                  <Activity size={12} /> IN PROGRESS
+                </div>
+              ) : day.isCompleted ? (
                 <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-400 text-[10px] font-bold">
                   <CheckCircle2 size={12} /> COMPLETED
                 </div>
-              )}
-              {isPast && !day.isCompleted && !isRest && (
+              ) : isPast && !day.isCompleted && !isRest ? (
                 <div className="absolute top-4 right-4 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                   MISSED
                 </div>
-              )}
-              {isFuture && (
-                <div className="absolute top-4 right-4">
-                  <Lock size={16} className="text-zinc-600" />
+              ) : isFuture ? (
+                <div className="absolute top-4 right-4 text-[10px] font-semibold text-zinc-500">
+                  DAY {day.day}
                 </div>
-              )}
+              ) : null}
 
               <div className="mb-4">
                 <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${
-                  day.isCompleted ? 'text-emerald-400' : isToday ? 'text-[#2196f3]' : 'text-zinc-500'
+                  isThisDayActive ? 'text-fit-primary' : day.isCompleted ? 'text-emerald-400' : isToday ? 'text-[#2196f3]' : 'text-zinc-500'
                 }`}>
                   Day {day.day}
                 </div>
@@ -170,12 +209,12 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                   >
                     Rest Day
                   </button>
-                ) : isFuture ? (
+                ) : isThisDayActive ? (
                   <button 
-                    disabled 
-                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-zinc-800/30 text-zinc-600 flex items-center justify-center gap-1.5 cursor-not-allowed"
+                    onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
+                    className="w-full py-2.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-1.5 bg-fit-primary text-black shadow-[0_0_15px_rgba(34,197,94,0.3)] animate-pulse hover:scale-[1.02] transition-all"
                   >
-                    <Lock size={14} /> Locked
+                    <Play size={14} fill="currentColor" /> Resume Workout
                   </button>
                 ) : day.isCompleted ? (
                   <button 
@@ -194,7 +233,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                 ) : (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition-all shadow-sm"
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition-colors"
                   >
                     <Info size={14} /> View Workout
                   </button>

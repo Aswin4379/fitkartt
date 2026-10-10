@@ -13,11 +13,31 @@ export const useWorkout = () => {
 };
 
 export const WorkoutProvider = ({ children }) => {
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
+  const ACTIVE_STORAGE_KEY = 'fitkart_active_workout';
   
-  // Active workout session state
-  const [activeWorkout, setActiveWorkout] = useState(null);
-  const [workoutStartTime, setWorkoutStartTime] = useState(null);
+  // Active workout session state - initialize from local cache if present
+  const [activeWorkout, setActiveWorkout] = useState(() => {
+    try {
+      const cached = localStorage.getItem(ACTIVE_STORAGE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [workoutStartTime, setWorkoutStartTime] = useState(() => {
+    try {
+      const cached = localStorage.getItem(ACTIVE_STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.startTime) return new Date(parsed.startTime);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
   
   // Persisted data
   const [sessions, setSessions] = useState([]);
@@ -32,20 +52,30 @@ export const WorkoutProvider = ({ children }) => {
       setCustomRoutines([]);
       setActiveWorkout(null);
       setWorkoutStartTime(null);
+      try { localStorage.removeItem(ACTIVE_STORAGE_KEY); } catch {}
     }
   }, [user]);
 
-  // Sync active workout to DB whenever it changes
+  // Sync active workout to local storage immediately and to DB on debounce
   useEffect(() => {
     if (activeWorkout) {
+      try {
+        localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(activeWorkout));
+      } catch (e) {}
+
       const timeout = setTimeout(() => {
         workoutApi.saveActiveSession(activeWorkout).catch(err => console.error('Failed to sync active session', err));
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timeout);
-    } else if (activeWorkout === null && user && !loading) {
-      workoutApi.clearActiveSession().catch(() => {});
+    } else if (activeWorkout === null && !loading) {
+      try {
+        localStorage.removeItem(ACTIVE_STORAGE_KEY);
+      } catch (e) {}
+      if (user) {
+        workoutApi.clearActiveSession().catch(() => {});
+      }
     }
-  }, [activeWorkout]);
+  }, [activeWorkout, user, loading]);
 
   const loadUserData = async () => {
     setLoading(true);
@@ -57,9 +87,24 @@ export const WorkoutProvider = ({ children }) => {
       ]);
       setSessions(sessRes);
       setCustomRoutines(routRes);
-      if (activeRes) {
+
+      // Prioritize cloud active session if present with exercises; otherwise fallback to local cache
+      if (activeRes && Array.isArray(activeRes.exercises) && activeRes.exercises.length > 0) {
         setActiveWorkout(activeRes);
         setWorkoutStartTime(new Date(activeRes.startTime || Date.now()));
+        try { localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(activeRes)); } catch {}
+      } else if (!activeWorkout) {
+        try {
+          const cached = localStorage.getItem(ACTIVE_STORAGE_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed && Array.isArray(parsed.exercises) && parsed.exercises.length > 0) {
+              setActiveWorkout(parsed);
+              setWorkoutStartTime(new Date(parsed.startTime || Date.now()));
+              workoutApi.saveActiveSession(parsed).catch(() => {});
+            }
+          }
+        } catch {}
       }
     } catch (err) {
       console.error('Failed to load workout data', err);
@@ -69,11 +114,25 @@ export const WorkoutProvider = ({ children }) => {
   };
 
   const startWorkout = (routine) => {
-    // routine can be a template, a custom routine, or an empty object for a free workout
+    // If an active session for the same routine / planDay is already in progress, resume it without overwriting!
+    if (activeWorkout && routine) {
+      const isSameDay = Boolean(routine.planDay && activeWorkout.planDay && String(routine.planDay) === String(activeWorkout.planDay));
+      const isSameName = Boolean(routine.name && activeWorkout.name && routine.name.trim().toLowerCase() === activeWorkout.name.trim().toLowerCase());
+      const routineDayNum = routine.name?.match(/Day\s+(\d+)/i)?.[1] || routine.planDay;
+      const activeDayNum = activeWorkout.name?.match(/Day\s+(\d+)/i)?.[1] || activeWorkout.planDay;
+      const isMatchingDayNum = Boolean(routineDayNum && activeDayNum && String(routineDayNum) === String(activeDayNum));
+
+      if (isSameDay || isSameName || isMatchingDayNum) {
+        return activeWorkout;
+      }
+    }
+
     const newWorkout = {
       ...(routine?._id || routine?.id ? { routineId: routine?._id || routine?.id } : {}),
+      planDay: routine?.planDay || routine?.day || null,
       name: routine?.name || routine?.title || 'Freestyle Workout',
       startTime: new Date().toISOString(),
+      currentExerciseIndex: 0,
       exercises: routine?.exercises?.map(e => {
         const pr = user?.fitnessStats?.workoutPRs?.[e.name];
         const prevWeight = typeof pr === 'number' ? pr : (pr?.weight?.value || 0);
@@ -96,20 +155,31 @@ export const WorkoutProvider = ({ children }) => {
     };
     setActiveWorkout(newWorkout);
     setWorkoutStartTime(new Date());
+    try { localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(newWorkout)); } catch {}
+  };
+
+  const setActiveExerciseIndex = (exerciseIndex) => {
+    setActiveWorkout(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, currentExerciseIndex: exerciseIndex };
+      try { localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
   };
 
   const endWorkout = async (notes = '') => {
     if (!activeWorkout) return;
     
     const endTime = new Date();
-    const durationSeconds = Math.floor((endTime - workoutStartTime) / 1000);
+    const durationSeconds = Math.floor((endTime - (workoutStartTime || new Date(activeWorkout.startTime || Date.now()))) / 1000);
     
     // Calculate simple calories (approx 5-8 kcal per min of weightlifting)
-    const caloriesBurned = Math.round((durationSeconds / 60) * 6); 
+    const caloriesBurned = Math.round((Math.max(1, durationSeconds) / 60) * 6); 
     
     const sessionData = {
       ...activeWorkout,
-      startTime: workoutStartTime,
+      planDay: activeWorkout.planDay || null,
+      startTime: workoutStartTime || activeWorkout.startTime,
       endTime,
       durationSeconds,
       caloriesBurned,
@@ -119,10 +189,16 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const savedSession = await workoutApi.saveSession(sessionData);
-      setSessions([savedSession, ...sessions]);
+      setSessions(prev => [savedSession, ...prev]);
       setActiveWorkout(null);
       setWorkoutStartTime(null);
-      await workoutApi.clearActiveSession();
+      try { localStorage.removeItem(ACTIVE_STORAGE_KEY); } catch {}
+      await workoutApi.clearActiveSession().catch(() => {});
+      
+      // Instantly refresh user from MongoDB so day completion, streak, and PRs reflect everywhere
+      if (typeof refreshUser === 'function') {
+        try { await refreshUser(); } catch (rErr) {}
+      }
       return savedSession;
     } catch (error) {
       console.error('Failed to save workout session', error);
@@ -133,7 +209,8 @@ export const WorkoutProvider = ({ children }) => {
   const cancelWorkout = async () => {
     setActiveWorkout(null);
     setWorkoutStartTime(null);
-    await workoutApi.clearActiveSession();
+    try { localStorage.removeItem(ACTIVE_STORAGE_KEY); } catch {}
+    await workoutApi.clearActiveSession().catch(() => {});
   };
 
   const updateSet = (exerciseIndex, setIndex, field, value) => {
@@ -230,7 +307,8 @@ export const WorkoutProvider = ({ children }) => {
     addSetToActive,
     removeSetFromActive,
     addExerciseToActive,
-    removeExerciseFromActive
+    removeExerciseFromActive,
+    setActiveExerciseIndex
   };
 
   return (

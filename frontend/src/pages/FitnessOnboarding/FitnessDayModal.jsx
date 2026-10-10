@@ -6,14 +6,31 @@ import { useUser } from '../../context/UserContext.jsx';
 
 export default function FitnessDayModal({ dayData, onClose }) {
   const navigate = useNavigate();
-  const { startWorkout } = useWorkout();
+  const { startWorkout, activeWorkout } = useWorkout();
   const { user } = useUser();
 
   if (!dayData) return null;
 
+  const isThisWorkoutActive = Boolean(
+    activeWorkout && (
+      (dayData.day && activeWorkout.planDay === dayData.day) ||
+      (activeWorkout.name && activeWorkout.name.toLowerCase().includes(`day ${dayData.day}:`))
+    )
+  );
+
+  const activeCompletedCount = isThisWorkoutActive && activeWorkout?.exercises
+    ? activeWorkout.exercises.filter(ex => ex.sets?.every(s => s.isCompleted)).length
+    : 0;
+
   const handleStart = () => {
+    if (isThisWorkoutActive) {
+      navigate('/fitness/active');
+      return;
+    }
+
     startWorkout({
       name: `Day ${dayData.day}: ${dayData.focus}`,
+      planDay: dayData.day,
       exercises: (dayData.exercises || []).map(ex => {
         const pr = user?.fitnessStats?.workoutPRs?.[ex.name];
         const prevWeight = typeof pr === 'number' ? pr : (pr?.weight?.value || 0);
@@ -69,6 +86,12 @@ export default function FitnessDayModal({ dayData, onClose }) {
               <Dumbbell size={16} className="text-blue-500" />
               <span className="font-bold">{dayData.exercises.length} Exercises</span>
             </div>
+            {isThisWorkoutActive && (
+              <div className="flex items-center gap-1.5 text-fit-primary bg-fit-primary/10 px-3 py-1.5 rounded-lg border border-fit-primary/30 animate-pulse">
+                <Activity size={16} />
+                <span className="font-bold">In Progress ({activeCompletedCount}/{activeWorkout.exercises?.length || dayData.exercises.length} Done)</span>
+              </div>
+            )}
             {dayData.isCompleted && (
               <div className="flex items-center gap-1.5 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
                 <CheckCircle2 size={16} />
@@ -133,12 +156,20 @@ export default function FitnessDayModal({ dayData, onClose }) {
           <button 
             onClick={handleStart}
             className={`w-full py-4 rounded-xl font-extrabold text-lg flex items-center justify-center gap-2 transition-all ${
-              dayData.isCompleted 
+              isThisWorkoutActive
+                ? 'bg-fit-primary text-black hover:scale-[1.02] shadow-[0_0_25px_rgba(34,197,94,0.4)] animate-pulse'
+                : dayData.isCompleted 
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
                 : 'bg-[#2196f3] text-black hover:scale-[1.02] hover:bg-[#1976d2] shadow-[0_0_20px_rgba(33,150,243,0.3)]'
             }`}
           >
-            {dayData.isCompleted ? 'View / Re-do Workout' : <><Play fill="currentColor" size={20} /> Start Workout Session</>}
+            {isThisWorkoutActive ? (
+              <><Play fill="currentColor" size={20} /> Resume In-Progress Workout ({activeCompletedCount} of {activeWorkout.exercises?.length || dayData.exercises.length} Done)</>
+            ) : dayData.isCompleted ? (
+              'View / Re-do Workout'
+            ) : (
+              <><Play fill="currentColor" size={20} /> Start Workout Session</>
+            )}
           </button>
         </div>
         

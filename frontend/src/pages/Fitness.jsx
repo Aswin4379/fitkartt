@@ -52,6 +52,17 @@ export default function Fitness() {
                 Workout in Progress
               </h2>
               <p className="text-sm font-medium mt-1 opacity-90">{activeWorkout.name}</p>
+              {activeWorkout.exercises && activeWorkout.exercises.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold text-black/80">
+                  <span className="bg-black/15 px-2.5 py-0.5 rounded-full">
+                    {activeWorkout.exercises.filter(ex => ex.sets?.every(s => s.isCompleted)).length} of {activeWorkout.exercises.length} Exercises Done
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Exercise {(activeWorkout.currentExerciseIndex || 0) + 1}: {activeWorkout.exercises[activeWorkout.currentExerciseIndex || 0]?.name || ''}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="mt-4 sm:mt-0 flex items-center gap-3">
               <button 

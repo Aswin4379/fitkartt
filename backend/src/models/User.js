@@ -191,7 +191,8 @@ const userSchema = new mongoose.Schema({
         isCompleted: { type: Boolean, default: false },
         completedAt: { type: Date }
       }]
-    }
+    },
+    activeWorkoutSession: { type: mongoose.Schema.Types.Mixed, default: null }
   }
 }, { timestamps: true, minimize: false });
 

@@ -122,7 +122,7 @@ export const saveWorkoutSession = async (req, res) => {
 
 
     // 2. Update AI Plan if this was a scheduled day
-    const dayMatch = name.match(/Day (\d+):/);
+    const dayMatch = name.match(/Day (\d+):/i) || (req.body.planDay ? [null, req.body.planDay] : null);
     if (dayMatch && user.fitnessStats.fitnessPlan?.schedule) {
       const dayNum = parseInt(dayMatch[1]);
       const scheduleDay = user.fitnessStats.fitnessPlan.schedule.find(s => s.day === dayNum);
@@ -131,6 +131,10 @@ export const saveWorkoutSession = async (req, res) => {
         scheduleDay.completedAt = new Date();
       }
     }
+
+    // Clear active session upon successful workout completion
+    user.fitnessStats.activeWorkoutSession = null;
+    user.markModified('fitnessStats.activeWorkoutSession');
 
     // 3. Update Streak & Stats
     const todayStr = new Date().toISOString().split('T')[0];
@@ -459,8 +463,8 @@ Output ONLY raw JSON. No markdown or conversational text.`;
 // Active Session Logic
 export const getActiveSession = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    res.json(user.fitnessStats?.activeWorkoutSession || null);
+    const user = await User.findById(req.user._id).lean();
+    res.json(user?.fitnessStats?.activeWorkoutSession || null);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -468,12 +472,12 @@ export const getActiveSession = async (req, res) => {
 
 export const saveActiveSession = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if(!user.fitnessStats) user.fitnessStats = {};
-    user.fitnessStats.activeWorkoutSession = req.body;
-    user.markModified('fitnessStats.activeWorkoutSession');
-    await user.save();
-    res.json(user.fitnessStats.activeWorkoutSession);
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { 'fitnessStats.activeWorkoutSession': req.body } },
+      { new: true, runValidators: false }
+    );
+    res.json(updated?.fitnessStats?.activeWorkoutSession || null);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -481,12 +485,11 @@ export const saveActiveSession = async (req, res) => {
 
 export const clearActiveSession = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if(user.fitnessStats) {
-      user.fitnessStats.activeWorkoutSession = null;
-      user.markModified('fitnessStats.activeWorkoutSession');
-      await user.save();
-    }
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { 'fitnessStats.activeWorkoutSession': null } },
+      { new: true, runValidators: false }
+    );
     res.json({ message: 'Active session cleared' });
   } catch (error) {
     res.status(500).json({ message: error.message });

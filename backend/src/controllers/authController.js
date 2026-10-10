@@ -307,6 +307,7 @@ const formatUserResponse = (user, clientDate) => {
       customWorkout: stats.customWorkout || null,
       recentActivities: stats.recentActivities || [],
       fitnessPlan: stats.fitnessPlan || null,
+      activeWorkoutSession: stats.activeWorkoutSession || null,
       muscleRecovery: regeneratedRecovery
     }
   };
@@ -651,6 +652,7 @@ export const updateProfile = async (req, res) => {
         recentActivities: fitnessStats.recentActivities !== undefined ? fitnessStats.recentActivities : (existingStats.recentActivities || []),
         customWorkout: fitnessStats.customWorkout !== undefined ? fitnessStats.customWorkout : (existingStats.customWorkout || null),
         fitnessPlan: fitnessStats.fitnessPlan !== undefined ? fitnessStats.fitnessPlan : (existingStats.fitnessPlan || null),
+        activeWorkoutSession: fitnessStats.activeWorkoutSession !== undefined ? fitnessStats.activeWorkoutSession : (existingStats.activeWorkoutSession || null),
         muscleRecovery: fitnessStats.muscleRecovery !== undefined ? fitnessStats.muscleRecovery : (existingStats.muscleRecovery || null)
       };
 

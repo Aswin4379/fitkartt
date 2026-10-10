@@ -8,14 +8,53 @@ import ActiveWorkoutMuscleView from './ActiveWorkoutMuscleView.jsx';
 
 export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
   const navigate = useNavigate();
-  const { activeWorkout, workoutStartTime, endWorkout, cancelWorkout, updateSet, toggleSetComplete, removeExerciseFromActive, sessions, addSetToActive, addExerciseToActive } = useWorkout();
+  const { 
+    activeWorkout, 
+    workoutStartTime, 
+    endWorkout, 
+    cancelWorkout, 
+    updateSet, 
+    toggleSetComplete, 
+    removeExerciseFromActive, 
+    sessions, 
+    addSetToActive, 
+    addExerciseToActive,
+    setActiveExerciseIndex 
+  } = useWorkout();
 
   const [duration, setDuration] = useState(0);
   const [restTimer, setRestTimer] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  // Initialize current exercise index from active workout state or first incomplete exercise
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(() => {
+    if (!activeWorkout?.exercises?.length) return 0;
+    if (typeof activeWorkout.currentExerciseIndex === 'number' && 
+        activeWorkout.currentExerciseIndex >= 0 && 
+        activeWorkout.currentExerciseIndex < activeWorkout.exercises.length) {
+      return activeWorkout.currentExerciseIndex;
+    }
+    const firstIncomplete = activeWorkout.exercises.findIndex(ex => ex.sets && ex.sets.some(s => !s.isCompleted));
+    return firstIncomplete !== -1 ? firstIncomplete : 0;
+  });
+
+  // Sync current exercise index when activeWorkout is loaded from cloud / storage
+  useEffect(() => {
+    if (activeWorkout?.exercises?.length) {
+      if (typeof activeWorkout.currentExerciseIndex === 'number' && 
+          activeWorkout.currentExerciseIndex >= 0 && 
+          activeWorkout.currentExerciseIndex < activeWorkout.exercises.length) {
+        setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
+      } else {
+        const firstIncomplete = activeWorkout.exercises.findIndex(ex => ex.sets && ex.sets.some(s => !s.isCompleted));
+        if (firstIncomplete !== -1) {
+          setCurrentExerciseIndex(firstIncomplete);
+        }
+      }
+    }
+  }, [activeWorkout?.name, activeWorkout?.planDay]);
+
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -161,18 +200,33 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
     }
   };
 
-  const handleNextExercise = () => {
-    if (currentExerciseIndex < activeWorkout.exercises.length - 1) {
-      setCurrentExerciseIndex(prev => prev + 1);
-      setIsResting(false);
+  const handleSelectExercise = (idx) => {
+    setCurrentExerciseIndex(idx);
+    setIsResting(false);
+    if (typeof setActiveExerciseIndex === 'function') {
+      setActiveExerciseIndex(idx);
     }
   };
 
+  const handleNextExercise = () => {
+    if (currentExerciseIndex < activeWorkout.exercises.length - 1) {
+      const nextIdx = currentExerciseIndex + 1;
+      setCurrentExerciseIndex(nextIdx);
+      setIsResting(false);
+      if (typeof setActiveExerciseIndex === 'function') {
+        setActiveExerciseIndex(nextIdx);
+      }
+    }
+  };
 
   const handlePrevExercise = () => {
     if (currentExerciseIndex > 0) {
-      setCurrentExerciseIndex(prev => prev - 1);
+      const prevIdx = currentExerciseIndex - 1;
+      setCurrentExerciseIndex(prevIdx);
       setIsResting(false);
+      if (typeof setActiveExerciseIndex === 'function') {
+        setActiveExerciseIndex(prevIdx);
+      }
     }
   };
 
@@ -476,7 +530,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
               return (
                 <button
                   key={idx}
-                  onClick={() => setCurrentExerciseIndex(idx)}
+                  onClick={() => handleSelectExercise(idx)}
                   className={`flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                     isCurrent
                       ? 'bg-fit-primary text-black shadow-lg shadow-fit-primary/25 scale-[1.02]'
