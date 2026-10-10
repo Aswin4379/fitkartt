@@ -131,11 +131,9 @@ export const WorkoutProvider = ({ children }) => {
   };
 
   const cancelWorkout = async () => {
-    if (window.confirm('Are you sure you want to cancel this workout? Data will not be saved.')) {
-      setActiveWorkout(null);
-      setWorkoutStartTime(null);
-      await workoutApi.clearActiveSession();
-    }
+    setActiveWorkout(null);
+    setWorkoutStartTime(null);
+    await workoutApi.clearActiveSession();
   };
 
   const updateSet = (exerciseIndex, setIndex, field, value) => {

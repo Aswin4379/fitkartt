@@ -31,6 +31,7 @@ import FitnessRoutines from './pages/FitnessRoutines.jsx'
 import FitnessRoutineBuilder from './pages/FitnessRoutineBuilder.jsx'
 import FitnessHistory from './pages/FitnessHistory.jsx'
 import FitnessLibrary from './pages/FitnessLibrary.jsx'
+import FitnessBodyCare from './pages/FitnessBodyCare.jsx'
 import FitnessOnboarding from './pages/FitnessOnboarding/FitnessOnboarding.jsx'
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="/fitness/builder" element={<ProtectedRoute><FitnessRoutineBuilder /></ProtectedRoute>} />
       <Route path="/fitness/history" element={<ProtectedRoute><FitnessHistory /></ProtectedRoute>} />
       <Route path="/fitness/library" element={<ProtectedRoute><FitnessLibrary /></ProtectedRoute>} />
+      <Route path="/fitness/bodycare" element={<ProtectedRoute><FitnessBodyCare /></ProtectedRoute>} />
       <Route path="/fitness/onboarding" element={<ProtectedRoute><FitnessOnboarding /></ProtectedRoute>} />
       
       <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />

@@ -25,7 +25,10 @@ export default function FitnessOnboarding() {
     targetAreas: []
   });
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const toggleArrayItem = (key, value) => {
+    setErrorMsg('');
     setFormData(prev => {
       const arr = prev[key] || [];
       if (arr.includes(value)) {
@@ -36,9 +39,13 @@ export default function FitnessOnboarding() {
     });
   };
 
-  const updateForm = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
+  const updateForm = (key, value) => {
+    setErrorMsg('');
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
 
   const toggleTargetArea = (area) => {
+    setErrorMsg('');
     setFormData(prev => {
       let newAreas;
       if (area === 'fullbody') {
@@ -57,14 +64,16 @@ export default function FitnessOnboarding() {
 
   const handleNext = (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (step === 1 && !formData.goal) return alert("Please select a goal.");
-    if (step === 3 && formData.equipment.length === 0) return alert("Please select at least one equipment.");
+    setErrorMsg('');
+    if (step === 1 && !formData.goal) return setErrorMsg("Please select a goal.");
+    if (step === 3 && formData.equipment.length === 0) return setErrorMsg("Please select at least one equipment.");
     if (step < 4) setStep(step + 1);
     else generateAIPlan();
   };
 
   const generateAIPlan = async () => {
     setLoading(true);
+    setErrorMsg('');
     try {
       // Create a payload for the AI plan generation
       const payload = {
@@ -84,8 +93,7 @@ export default function FitnessOnboarding() {
       navigate('/fitness');
     } catch (err) {
       console.error("Failed to generate plan", err);
-      // We do not want to set a black screen on error, just alert and stop loading.
-      alert("Something went wrong generating your AI plan. Please check your inputs and try again.\nError: " + (err.message || 'Unknown Error'));
+      setErrorMsg("Something went wrong generating your AI plan: " + (err.message || 'Unknown Error'));
       setLoading(false);
     }
   };
@@ -129,6 +137,11 @@ export default function FitnessOnboarding() {
       </div>
 
       <div className="flex-1 p-6 flex flex-col max-w-md mx-auto w-full">
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-sm font-semibold">
+            {errorMsg}
+          </div>
+        )}
         
         {/* Step 1: Goal */}
         {step === 1 && (

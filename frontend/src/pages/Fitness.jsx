@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell } from 'lucide-react';
+import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell, Sparkles, HeartPulse } from 'lucide-react';
 import AppLayout from '../components/AppLayout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { useWorkout } from '../context/WorkoutContext.jsx';
@@ -9,11 +9,12 @@ import { useUser } from '../context/UserContext.jsx';
 import FitnessAIPlan from './FitnessOnboarding/FitnessAIPlan.jsx';
 import MuscleRecoveryView from '../components/MuscleRecoveryView.jsx';
 import PersonalRecordsView from '../components/PersonalRecordsView.jsx';
+import { exerciseLibrary } from '../data/workouts.js';
 
 export default function Fitness() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { sessions, activeWorkout, loadUserData, loading, startWorkout } = useWorkout();
+  const { sessions, activeWorkout, loadUserData, loading, startWorkout, cancelWorkout } = useWorkout();
 
   useEffect(() => {
     loadUserData();
@@ -42,8 +43,8 @@ export default function Fitness() {
         {/* AI Workout Plan Section */}
         <FitnessAIPlan fitnessPlan={user?.fitnessStats?.fitnessPlan} />
         
-        {/* Active Workout Banner */}
-        {activeWorkout ? (
+        {/* Active Workout Banner (Visible when workout in progress) */}
+        {activeWorkout && (
           <div className="bg-gradient-to-r from-fit-primary to-emerald-600 rounded-2xl p-6 shadow-[0_0_20px_rgba(34,197,94,0.3)] text-black flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -52,61 +53,94 @@ export default function Fitness() {
               </h2>
               <p className="text-sm font-medium mt-1 opacity-90">{activeWorkout.name}</p>
             </div>
-            <button 
-              onClick={() => navigate('/fitness/active')}
-              className="mt-4 sm:mt-0 bg-black text-white px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2"
-            >
-              Resume <Play size={16} fill="white" />
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
-              onClick={() => {
-                startWorkout({ name: 'Freestyle Workout', exercises: [] });
-                navigate('/fitness/active');
-              }}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-fit-primary transition-colors group relative overflow-hidden"
-            >
-              <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
-                <Activity size={120} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Quick Start</h3>
-              <p className="text-zinc-400 text-sm mb-4">Start an empty workout and track as you go.</p>
-              <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
-                Start Freely <Play size={16} className="ml-2" />
-              </div>
-            </button>
-
-            <button 
-              onClick={() => navigate('/fitness/routines')}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-blue-500 transition-colors group relative overflow-hidden flex flex-col"
-            >
-              <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
-                <Calendar size={120} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Routines</h3>
-              <p className="text-zinc-400 text-sm mb-4">Select a pre-built plan or your custom routine.</p>
-              <div className="flex items-center text-blue-500 font-semibold text-sm mt-auto">
-                Browse Plans <Plus size={16} className="ml-2" />
-              </div>
-            </button>
-
-            <button 
-              onClick={() => navigate('/fitness/library')}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-amber-500 transition-colors group relative overflow-hidden flex flex-col"
-            >
-              <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:-rotate-12 transition-all">
-                <Dumbbell size={120} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Exercises</h3>
-              <p className="text-zinc-400 text-sm mb-4">Learn proper form with our extensive library.</p>
-              <div className="flex items-center text-amber-500 font-semibold text-sm mt-auto">
-                Search DB <Search size={16} className="ml-2" />
-              </div>
-            </button>
+            <div className="mt-4 sm:mt-0 flex items-center gap-3">
+              <button 
+                onClick={async () => {
+                  await cancelWorkout();
+                }}
+                className="bg-black/20 hover:bg-black/30 text-black border border-black/20 px-4 py-2 rounded-full font-semibold text-sm transition-colors"
+                title="Discard active workout"
+              >
+                Discard
+              </button>
+              <button 
+                onClick={() => navigate('/fitness/active')}
+                className="bg-black text-white px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2 shadow-md"
+              >
+                Resume <Play size={16} fill="white" />
+              </button>
+            </div>
           </div>
         )}
+
+        {/* Quick Actions: Quick Start, Routines, Exercises (ALWAYS VISIBLE) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button 
+            onClick={() => {
+              if (activeWorkout && activeWorkout.exercises && activeWorkout.exercises.length > 0) {
+                navigate('/fitness/active');
+              } else {
+                const defaultQuickExercises = [
+                  exerciseLibrary.find(e => e.id === 'standard-pushup' || e.id === 'dumbbell-push-ups'),
+                  exerciseLibrary.find(e => e.id === 'dumbbell-squats' || e.id === 'bodyweight-squat'),
+                  exerciseLibrary.find(e => e.id === 'dumbbell-bicep-curls'),
+                  exerciseLibrary.find(e => e.id === 'plank')
+                ].filter(Boolean);
+
+                const finalExercises = defaultQuickExercises.length > 0 ? defaultQuickExercises : exerciseLibrary.slice(0, 4);
+
+                startWorkout({ 
+                  name: 'Full Body Quick Session', 
+                  exercises: finalExercises 
+                });
+                navigate('/fitness/active');
+              }
+            }}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-fit-primary transition-colors group relative overflow-hidden"
+          >
+            <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
+              <Activity size={120} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Quick Start</h3>
+            <p className="text-zinc-400 text-sm mb-4">Start an empty workout and track as you go.</p>
+            <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
+              Start Freely <Play size={16} className="ml-2" />
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/fitness/routines')}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-blue-500 transition-colors group relative overflow-hidden flex flex-col"
+          >
+            <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
+              <Calendar size={120} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Routines</h3>
+            <p className="text-zinc-400 text-sm mb-4">Select a pre-built plan or your custom routine.</p>
+            <div className="flex items-center text-blue-500 font-semibold text-sm mt-auto">
+              Browse Plans <Plus size={16} className="ml-2" />
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/fitness/bodycare')}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden flex flex-col shadow-lg hover:shadow-[0_0_25px_rgba(34,197,94,0.15)]"
+          >
+            <div className="absolute -right-8 -top-8 opacity-10 group-hover:opacity-25 group-hover:scale-110 transition-all text-fit-primary">
+              <HeartPulse size={120} />
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-xl font-bold text-white">BodyCare AI</h3>
+              <span className="px-2 py-0.5 rounded-full bg-fit-primary/20 border border-fit-primary/30 text-[10px] font-black text-fit-primary uppercase tracking-wider flex items-center gap-1">
+                <Sparkles size={10} /> AI Powered
+              </span>
+            </div>
+            <p className="text-zinc-400 text-sm mb-4">Interactive pain assessment & dynamic recovery guidance.</p>
+            <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
+              Assess Body <Sparkles size={16} className="ml-2" />
+            </div>
+          </button>
+        </div>
 
         {/* Muscle & PRs Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

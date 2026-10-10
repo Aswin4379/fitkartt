@@ -5,7 +5,7 @@ const routineExerciseSchema = new mongoose.Schema({
   name: { type: String, required: true },
   target: { type: String },
   defaultSets: { type: Number, default: 3 },
-  defaultReps: { type: Number, default: 12 },
+  defaultReps: { type: mongoose.Schema.Types.Mixed, default: 12 },
   defaultWeight: { type: Number, default: 0 },
   restTimeSeconds: { type: Number, default: 60 },
   order: { type: Number, default: 0 }

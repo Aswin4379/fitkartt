@@ -111,23 +111,33 @@ export default function FitnessAIPlan({ fitnessPlan }) {
           const isToday = day.day === currentDay;
           const isFuture = day.day > currentDay;
           const isRest = !day.exercises || day.exercises.length === 0;
+          const canView = !isRest && !isFuture;
 
           return (
             <div 
               key={day.day}
-              className={`snap-start flex-shrink-0 w-64 rounded-2xl p-5 border flex flex-col transition-all relative overflow-hidden
-                ${isPast ? 'bg-zinc-900/50 border-zinc-800 opacity-60' : ''}
-                ${isToday ? 'bg-gradient-to-b from-[#2196f3]/10 to-transparent border-[#2196f3] shadow-[0_0_20px_rgba(33,150,243,0.1)]' : ''}
-                ${isFuture ? 'bg-zinc-900 border-zinc-800' : ''}
-              `}
+              onClick={() => canView && handleStartDay(day)}
+              className={`snap-start flex-shrink-0 w-64 rounded-2xl p-5 border flex flex-col transition-all relative overflow-hidden ${
+                canView ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''
+              } ${
+                day.isCompleted
+                  ? 'bg-zinc-900/90 border-emerald-500/40 hover:border-emerald-500/70 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
+                  : isToday && !isRest
+                  ? 'bg-gradient-to-b from-[#2196f3]/15 to-zinc-900/90 border-[#2196f3] shadow-[0_0_20px_rgba(33,150,243,0.15)]'
+                  : isPast && !isRest
+                  ? 'bg-zinc-900/80 border-amber-500/30 hover:border-amber-500/50'
+                  : isRest
+                  ? 'bg-zinc-900/40 border-zinc-800/80 opacity-60'
+                  : 'bg-zinc-900/30 border-zinc-800/50 opacity-40'
+              }`}
             >
-              {isPast && day.isCompleted && (
-                <div className="absolute top-4 right-4">
-                  <CheckCircle2 size={20} className="text-green-500" />
+              {day.isCompleted && (
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-400 text-[10px] font-bold">
+                  <CheckCircle2 size={12} /> COMPLETED
                 </div>
               )}
               {isPast && !day.isCompleted && !isRest && (
-                <div className="absolute top-4 right-4 text-xs font-bold text-red-500/70 border border-red-500/20 px-2 py-0.5 rounded-full">
+                <div className="absolute top-4 right-4 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                   MISSED
                 </div>
               )}
@@ -138,7 +148,9 @@ export default function FitnessAIPlan({ fitnessPlan }) {
               )}
 
               <div className="mb-4">
-                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isToday ? 'text-[#2196f3]' : 'text-zinc-500'}`}>
+                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${
+                  day.isCompleted ? 'text-emerald-400' : isToday ? 'text-[#2196f3]' : 'text-zinc-500'
+                }`}>
                   Day {day.day}
                 </div>
                 <h4 className="text-lg font-extrabold text-white leading-tight">
@@ -151,18 +163,42 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                   {isRest ? 'Take a break and recover.' : `${day.exercises.length} Exercises`}
                 </div>
 
-                <button 
-                  onClick={() => handleStartDay(day)}
-                  disabled={isPast || isFuture || isRest}
-                  className={`w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all
-                    ${isRest ? 'bg-zinc-800/50 text-zinc-500' : ''}
-                    ${isPast ? (day.isCompleted ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500') : ''}
-                    ${isFuture ? 'bg-zinc-800 text-zinc-500' : ''}
-                    ${isToday && !isRest ? 'bg-[#2196f3] text-white hover:bg-[#1976d2] hover:scale-[1.02]' : ''}
-                  `}
-                >
-                  {isRest ? 'Rest Day' : isPast ? (day.isCompleted ? 'Completed' : 'Missed') : isFuture ? 'Locked' : <><Info size={14} /> View Details</>}
-                </button>
+                {isRest ? (
+                  <button 
+                    disabled 
+                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-zinc-800/40 text-zinc-500 cursor-default"
+                  >
+                    Rest Day
+                  </button>
+                ) : isFuture ? (
+                  <button 
+                    disabled 
+                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-zinc-800/30 text-zinc-600 flex items-center justify-center gap-1.5 cursor-not-allowed"
+                  >
+                    <Lock size={14} /> Locked
+                  </button>
+                ) : day.isCompleted ? (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all shadow-sm"
+                  >
+                    <CheckCircle2 size={14} /> View Completed
+                  </button>
+                ) : isToday ? (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-[#2196f3] text-white hover:bg-[#1976d2] shadow-md transition-all hover:scale-[1.02]"
+                  >
+                    <Play size={14} fill="currentColor" /> Start Day {day.day}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition-all shadow-sm"
+                  >
+                    <Info size={14} /> View Workout
+                  </button>
+                )}
               </div>
             </div>
           );

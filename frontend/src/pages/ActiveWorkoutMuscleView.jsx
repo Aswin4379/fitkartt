@@ -1,5 +1,6 @@
 import React from 'react';
 import { Activity } from 'lucide-react';
+import { exerciseLibrary } from '../data/workouts.js';
 import muscularBodyImg from '../assets/muscular_body.jpg';
 
 // Precise anatomical hitboxes that overlay the exact muscle shape

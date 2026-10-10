@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const setSchema = new mongoose.Schema({
-  reps: { type: Number, required: true },
+  reps: { type: mongoose.Schema.Types.Mixed, required: true },
   weight: { type: Number, default: 0 },
   rpe: { type: Number, min: 0, max: 10 },
   isCompleted: { type: Boolean, default: false }

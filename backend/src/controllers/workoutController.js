@@ -363,23 +363,28 @@ Output ONLY raw JSON. No markdown or conversational text.`;
     
     // Helper to find closest DB exercise
     const findMatchingExercise = (aiName) => {
-      const nameLower = aiName.toLowerCase();
-      // Exact match
-      let match = allDbExercises.find(ex => ex.name.toLowerCase() === nameLower);
+      const nameClean = (aiName || '').toLowerCase().trim();
+      const nameNorm = nameClean.replace(/[^a-z0-9 ]/g, '');
+      
+      // 1. Exact match
+      let match = allDbExercises.find(ex => (ex.name || '').toLowerCase().trim() === nameClean);
       if (match) return match;
-      // Partial match
-      match = allDbExercises.find(ex => ex.name.toLowerCase().includes(nameLower) || nameLower.includes(ex.name.toLowerCase()));
+
+      // 2. Normalized match (without special characters or extra spacing)
+      match = allDbExercises.find(ex => (ex.name || '').toLowerCase().replace(/[^a-z0-9 ]/g, '') === nameNorm);
       if (match) return match;
-      // Keyword match (e.g., 'squat', 'push up')
-      const keywords = nameLower.split(' ').filter(w => w.length > 3);
-      for (const kw of keywords) {
-        match = allDbExercises.find(ex => ex.name.toLowerCase().includes(kw));
-        if (match) return match;
-      }
+
+      // 3. Exact containment (only if DB name is contained in AI name, avoiding false positives)
+      match = allDbExercises.find(ex => {
+        const dbNorm = (ex.name || '').toLowerCase().replace(/[^a-z0-9 ]/g, '');
+        return nameNorm.includes(dbNorm) || dbNorm.includes(nameNorm);
+      });
+      if (match) return match;
+
       return {
         name: aiName,
-        gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif',
-        videoUrl: 'https://www.youtube.com/embed/2MJGg-dUKh0',
+        gifUrl: '',
+        videoUrl: '',
         level: 'Beginner',
         equipment: 'Bodyweight',
         target: 'Full Body'

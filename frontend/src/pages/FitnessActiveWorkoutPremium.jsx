@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Play, Pause, CheckCircle, Plus, X, ChevronLeft, ChevronRight, Clock, Trash2, StopCircle, Check, Activity, Dumbbell, SkipForward, Info, AlertTriangle } from 'lucide-react';
+import { Smartphone, Play, Pause, CheckCircle, Plus, X, ChevronLeft, ChevronRight, Clock, Trash2, StopCircle, Check, Activity, Dumbbell, SkipForward, Info, AlertTriangle, ExternalLink } from 'lucide-react';
+import { exerciseLibrary } from '../data/workouts.js';
 
 import { useWorkout } from '../context/WorkoutContext.jsx';
 import ActiveWorkoutMuscleView from './ActiveWorkoutMuscleView.jsx';
 
 export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
   const navigate = useNavigate();
-  const { activeWorkout, workoutStartTime, endWorkout, updateSet, toggleSetComplete, removeExerciseFromActive, sessions, addSetToActive } = useWorkout();
+  const { activeWorkout, workoutStartTime, endWorkout, cancelWorkout, updateSet, toggleSetComplete, removeExerciseFromActive, sessions, addSetToActive, addExerciseToActive } = useWorkout();
 
   const [duration, setDuration] = useState(0);
   const [restTimer, setRestTimer] = useState(0);
@@ -16,10 +17,25 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [showSummary, setShowSummary] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const [completedSession, setCompletedSession] = useState(null);
+
+  // Auto-populate foundational exercises if active workout has 0 exercises
+  useEffect(() => {
+    if (activeWorkout && (!activeWorkout.exercises || activeWorkout.exercises.length === 0)) {
+      const defaultQuickExercises = [
+        exerciseLibrary.find(e => e.id === 'standard-pushup' || e.id === 'dumbbell-push-ups'),
+        exerciseLibrary.find(e => e.id === 'dumbbell-squats' || e.id === 'bodyweight-squat'),
+        exerciseLibrary.find(e => e.id === 'dumbbell-bicep-curls'),
+        exerciseLibrary.find(e => e.id === 'plank')
+      ].filter(Boolean);
+
+      const exercisesToAdd = defaultQuickExercises.length > 0 ? defaultQuickExercises : exerciseLibrary.slice(0, 4);
+      exercisesToAdd.forEach(ex => addExerciseToActive(ex));
+    }
+  }, [activeWorkout]);
   
   // Timer for workout duration
   useEffect(() => {
@@ -45,173 +61,6 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
     return () => clearInterval(interval);
   }, [isResting, restTimer, isTimerPaused]);
 
-  if (!activeWorkout || activeWorkout.exercises.length === 0) {
-    return (
-      <div className="min-h-screen bg-black w-full">
-        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-          <div className="w-24 h-24 bg-gradient-to-tr from-zinc-800 to-zinc-900 rounded-full flex items-center justify-center mb-6 shadow-2xl border border-zinc-800/50">
-            <StopCircle size={48} className="text-zinc-500" />
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">No Active Workout</h2>
-          <p className="text-zinc-400 mb-8 max-w-sm text-lg">Start a new workout or pick a routine from the library to begin tracking.</p>
-          <button onClick={() => navigate('/fitness')} className="bg-gradient-to-r from-fit-primary to-emerald-400 text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-            Go to Gym Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentExercise = activeWorkout.exercises[currentExerciseIndex];
-  if (!currentExercise) return null;
-
-  console.log('--- EXERCISE RENDER TRACE ---');
-  console.log('EXERCISE NAME:', currentExercise.name);
-  console.log('VIDEO URL:', currentExercise.videoUrl);
-  console.log('GIF URL:', currentExercise.gifUrl);
-  console.log('MEDIA URL:', currentExercise.mediaUrl);
-  console.log('ALL KEYS:', Object.keys(currentExercise));
-  console.log('-----------------------------');
-
-  const handleCompleteSet = (setIndex) => {
-    toggleSetComplete(currentExerciseIndex, setIndex);
-    const isNowCompleted = !currentExercise.sets[setIndex].isCompleted;
-    if (isNowCompleted) {
-      setRestTimer(currentExercise.restTime || 60);
-      setIsResting(true);
-      setIsTimerPaused(false);
-    }
-  };
-
-  const handleNextExercise = () => {
-    if (currentExerciseIndex < activeWorkout.exercises.length - 1) {
-      setCurrentExerciseIndex(prev => prev + 1);
-      setIsResting(false);
-    }
-  };
-
-  useEffect(() => { setImgError(false); }, [currentExerciseIndex]);
-
-  const handlePrevExercise = () => {
-    if (currentExerciseIndex > 0) {
-      setCurrentExerciseIndex(prev => prev - 1);
-      setIsResting(false);
-    }
-  };
-
-  
-  const handleFinish = async () => {
-    // Check if ALL exercises have ALL sets complete
-    let incompleteExercises = 0;
-    activeWorkout.exercises.forEach(ex => {
-       if (!ex.sets.every(s => s.isCompleted)) incompleteExercises++;
-    });
-    
-    if (incompleteExercises > 0) {
-      alert(`You have ${incompleteExercises} exercise(s) with incomplete sets! Please complete them or click Skip on the remaining exercises to finish.`);
-      setShowFinishConfirm(false);
-      return;
-    }
-
-    const isAllDone = activeWorkout.exercises.every(ex => ex.sets.every(s => s.isCompleted));
-    if (!isAllDone) {
-      setShowFinishConfirm(true);
-      return;
-    }
-    await executeFinish();
-  };
-
-  const executeFinish = async () => {
-    try {
-      setSaveError('');
-      const session = await endWorkout();
-      setCompletedSession(session);
-      setShowSummary(true);
-      setShowFinishConfirm(false);
-    } catch (err) {
-      setSaveError(`Failed to save workout: ${err.message || 'Unknown error'}`);
-      setShowFinishConfirm(false);
-    }
-  };
-
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const allSetsCompleted = currentExercise.sets.every(s => s.isCompleted);
-  const totalCompletedSets = activeWorkout.exercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.isCompleted).length, 0);
-  const totalSets = activeWorkout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-  const progressPercent = Math.round((totalCompletedSets / totalSets) * 100) || 0;
-
-  const EXERCISE_MEDIA = {
-    'bench press': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif',
-    'incline press': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif',
-    'fly': 'https://gymvisual.com/img/p/1/0/2/8/0/10280.gif',
-    'pushdown': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pushdown.gif',
-    'deadlift': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif',
-    'overhead press': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Shoulder-Press.gif',
-    'pull up': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pull-up.gif',
-    'bicep': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif',
-    'curl': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif',
-    'tricep extension': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Triceps-Extension.gif',
-    'leg curl': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif',
-    'push up': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif',
-    'row': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif',
-    'lunge': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif',
-    'circle': 'https://gymvisual.com/img/p/2/3/7/1/7/23717.gif',
-    'child': 'https://gymvisual.com/img/p/2/6/0/1/2/26012.gif',
-    'stretch': 'https://gymvisual.com/img/p/2/6/0/1/2/26012.gif',
-    'pose': 'https://gymvisual.com/img/p/2/6/0/1/2/26012.gif'
-  };
-
-  
-  const getExerciseType = (ex) => {
-    const name = ex.name?.toLowerCase() || '';
-    if (['plank', 'sit', 'hold', 'stretch', 'child', 'circle', 'pose'].some(w => name.includes(w))) return 'time';
-    if (ex.equipment?.toLowerCase() === 'bodyweight') return 'bodyweight';
-    return 'weighted';
-  };
-
-  const getPrevString = (exName, setIndex, type) => {
-    const lastSession = sessions.find(s => s.exercises.some(e => e.name === exName));
-    if (lastSession) {
-      const pastEx = lastSession.exercises.find(e => e.name === exName);
-      if (pastEx && pastEx.sets && pastEx.sets[setIndex]) {
-         const pastSet = pastEx.sets[setIndex];
-         if (type === 'weighted') return `${pastSet.weight}kg × ${pastSet.reps}`;
-         if (type === 'bodyweight') return `${pastSet.reps} reps`;
-         if (type === 'time') return `${pastSet.duration || pastSet.reps} sec`;
-      }
-    }
-    return '—';
-  };
-
-  const getMediaUrl = (ex) => {
-    const lowerName = ex.name?.toLowerCase() || '';
-    // Priority 1: High Quality 3D GIFs
-    for (const [key, url] of Object.entries(EXERCISE_MEDIA)) {
-      if (lowerName.includes(key)) return url;
-    }
-    // Always fallback to a working 3D animation if nothing matches!
-    return 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Superman.gif';
-  };
-
-    const getEmbedUrl = (url) => {
-    if (!url) return null;
-    let videoId = '';
-    if (url.includes('youtube.com/watch?v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    } else if (url.includes('youtube.com/embed/')) {
-      return url;
-    }
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-  };
 
   if (showSummary && completedSession) {
     return (
@@ -263,6 +112,191 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
     );
   }
 
+  if (!activeWorkout) {
+    return (
+      <div className="min-h-screen bg-black w-full">
+        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+          <div className="w-24 h-24 bg-gradient-to-tr from-zinc-800 to-zinc-900 rounded-full flex items-center justify-center mb-6 shadow-2xl border border-zinc-800/50">
+            <StopCircle size={48} className="text-zinc-500" />
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">No Active Workout</h2>
+          <p className="text-zinc-400 mb-8 max-w-sm text-lg">Pick a routine from the library to begin tracking.</p>
+          <button onClick={() => navigate('/fitness')} className="bg-gradient-to-r from-fit-primary to-emerald-400 text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+            Go to Gym Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeWorkout.exercises || activeWorkout.exercises.length === 0) {
+    return (
+      <div className="min-h-screen bg-black w-full flex items-center justify-center text-zinc-400">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-fit-primary border-t-transparent rounded-full animate-spin" />
+          <p className="font-bold">Preparing Workout Exercises...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentExercise = activeWorkout.exercises[currentExerciseIndex] || activeWorkout.exercises[0];
+  if (!currentExercise) return null;
+
+  console.log('--- EXERCISE RENDER TRACE ---');
+  console.log('EXERCISE NAME:', currentExercise.name);
+  console.log('VIDEO URL:', currentExercise.videoUrl);
+  console.log('GIF URL:', currentExercise.gifUrl);
+  console.log('MEDIA URL:', currentExercise.mediaUrl);
+  console.log('ALL KEYS:', Object.keys(currentExercise));
+  console.log('-----------------------------');
+
+  const handleCompleteSet = (setIndex) => {
+    toggleSetComplete(currentExerciseIndex, setIndex);
+    const isNowCompleted = !currentExercise.sets[setIndex].isCompleted;
+    if (isNowCompleted) {
+      setRestTimer(currentExercise.restTime || 60);
+      setIsResting(true);
+      setIsTimerPaused(false);
+    }
+  };
+
+  const handleNextExercise = () => {
+    if (currentExerciseIndex < activeWorkout.exercises.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setIsResting(false);
+    }
+  };
+
+
+  const handlePrevExercise = () => {
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(prev => prev - 1);
+      setIsResting(false);
+    }
+  };
+
+  
+  const handleFinish = async () => {
+    // Check if any exercises have incomplete sets
+    const hasIncomplete = activeWorkout.exercises.some(ex => ex.sets.some(s => !s.isCompleted));
+    if (hasIncomplete) {
+      setShowFinishConfirm(true);
+      return;
+    }
+
+    await executeFinish();
+  };
+
+  const executeFinish = async () => {
+    try {
+      setSaveError('');
+      const session = await endWorkout();
+      setCompletedSession(session);
+      setShowSummary(true);
+      setShowFinishConfirm(false);
+    } catch (err) {
+      setSaveError(`Failed to save workout: ${err.message || 'Unknown error'}`);
+      setShowFinishConfirm(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const allSetsCompleted = currentExercise.sets.every(s => s.isCompleted);
+  const totalCompletedSets = activeWorkout.exercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.isCompleted).length, 0);
+  const totalSets = activeWorkout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  const progressPercent = Math.round((totalCompletedSets / totalSets) * 100) || 0;
+
+  const getExerciseType = (ex) => {
+    const name = ex.name?.toLowerCase() || '';
+    if (['plank', 'sit', 'hold', 'stretch', 'child', 'circle', 'pose'].some(w => name.includes(w))) return 'time';
+    if (ex.equipment?.toLowerCase() === 'bodyweight') return 'bodyweight';
+    return 'weighted';
+  };
+
+  const getPrevString = (exName, setIndex, type) => {
+    const lastSession = sessions.find(s => s.exercises.some(e => e.name === exName));
+    if (lastSession) {
+      const pastEx = lastSession.exercises.find(e => e.name === exName);
+      if (pastEx && pastEx.sets && pastEx.sets[setIndex]) {
+         const pastSet = pastEx.sets[setIndex];
+         if (type === 'weighted') return `${pastSet.weight}kg × ${pastSet.reps}`;
+         if (type === 'bodyweight') return `${pastSet.reps} reps`;
+         if (type === 'time') return `${pastSet.duration || pastSet.reps} sec`;
+      }
+    }
+    return '—';
+  };
+
+  const VERIFIED_EXERCISE_VIDEOS = {
+    'jumping jacks': 'https://www.youtube.com/embed/uLVt6u15L98',
+    'dumbbell floor press': 'https://www.youtube.com/embed/6J_qDTZZ0AM',
+    'dumbbell push-ups': 'https://www.youtube.com/embed/VrSGEXrwZAc',
+    'dumbbell push ups': 'https://www.youtube.com/embed/VrSGEXrwZAc',
+    'dumbbell push-up': 'https://www.youtube.com/embed/VrSGEXrwZAc',
+    'dumbbell squats': 'https://www.youtube.com/embed/r9gqv3WF90I',
+    'dumbbell squat': 'https://www.youtube.com/embed/r9gqv3WF90I',
+    'dumbbell bicep curls': 'https://www.youtube.com/embed/3OZ2MT_5r3Q',
+    'dumbbell bicep curl': 'https://www.youtube.com/embed/3OZ2MT_5r3Q',
+    'standing calf raises': 'https://www.youtube.com/embed/hPA98_r-6e4',
+    'standing calf raise': 'https://www.youtube.com/embed/hPA98_r-6e4',
+    'arm circles': 'https://www.youtube.com/embed/hne3nHGXPRM',
+    'dumbbell incline press (using step/chair)': 'https://www.youtube.com/embed/DnV3R4vp3K0',
+    'dumbbell incline press': 'https://www.youtube.com/embed/DnV3R4vp3K0',
+    'incline dumbbell press': 'https://www.youtube.com/embed/DnV3R4vp3K0',
+    'dumbbell flyes': 'https://www.youtube.com/embed/auTPCuLVjbA',
+    'dumbbell flys': 'https://www.youtube.com/embed/auTPCuLVjbA',
+    'dumbbell lunges': 'https://www.youtube.com/embed/xn8OY4SkX8Y',
+    'dumbbell lunge': 'https://www.youtube.com/embed/xn8OY4SkX8Y',
+    'dumbbell overhead tricep extension': 'https://www.youtube.com/embed/Ml9QzVI-pBQ',
+    'seated overhead dumbbell tricep extension': 'https://www.youtube.com/embed/Ml9QzVI-pBQ',
+    'overhead dumbbell tricep extension': 'https://www.youtube.com/embed/Ml9QzVI-pBQ',
+    "child's pose": 'https://www.youtube.com/embed/eqVMAPM00DM',
+    'childs pose': 'https://www.youtube.com/embed/eqVMAPM00DM'
+  };
+
+  const getVideoUrl = (ex) => {
+    if (!ex) return '';
+    const cleanName = (ex.name || '').toLowerCase().trim();
+    if (VERIFIED_EXERCISE_VIDEOS[cleanName]) {
+      return VERIFIED_EXERCISE_VIDEOS[cleanName];
+    }
+    const dbMatch = exerciseLibrary.find(e => (e.name || '').toLowerCase().trim() === cleanName);
+    if (dbMatch && dbMatch.videoUrl) {
+      return dbMatch.videoUrl;
+    }
+    return ex.videoUrl || '';
+  };
+
+  const getEmbedUrl = (rawUrl) => {
+    if (!rawUrl) return null;
+    let videoId = '';
+    if (rawUrl.includes('youtube.com/embed/')) {
+      videoId = rawUrl.split('youtube.com/embed/')[1].split('?')[0];
+    } else if (rawUrl.includes('youtube.com/watch?v=')) {
+      videoId = rawUrl.split('v=')[1].split('&')[0];
+    } else if (rawUrl.includes('youtu.be/')) {
+      videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : null;
+  };
+
+  const getWatchUrl = (ex, embedUrl) => {
+    if (embedUrl) {
+      const videoId = embedUrl.split('embed/')[1]?.split('?')[0];
+      if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent((ex?.name || '') + ' exercise proper form tutorial')}`;
+  };
+
+
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col relative overflow-hidden">
       
@@ -290,7 +324,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onSwitchTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
+          <button 
+            onClick={() => setShowDiscardConfirm(true)} 
+            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-white/10"
+            title="Discard Workout"
+          >
+            <X size={18} />
+          </button>
+          <button onClick={onSwitchTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10" title="Switch Theme">
             <Smartphone size={18} />
           </button>
           <button onClick={handleFinish} className="bg-white text-black px-5 py-2 rounded-full font-extrabold text-sm hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.2)]">
@@ -315,49 +356,72 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
         
         {/* Left Col: Media & Muscles */}
         <div className="md:w-5/12 flex flex-col gap-6">
-          <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-4 border border-white/10 flex flex-col relative overflow-hidden group min-h-[300px]">
-             {/* 3D Animation Top Box */}
-             <div className="w-full h-64 rounded-2xl overflow-hidden relative bg-black/50 border border-white/5 flex items-center justify-center p-4">
-               <img 
-                 key={getMediaUrl(currentExercise)} 
-                 src={getMediaUrl(currentExercise)} 
-                 className="w-full h-full object-contain" 
-                 alt={currentExercise.name} 
-                 onError={(e) => { e.target.style.display = 'none'; setImgError(true); }}
-               />
-               {/* Fallback to static DB image if GIF fails */}
-               {imgError && currentExercise.gifUrl && (
-                 <img key={currentExercise.gifUrl} src={currentExercise.gifUrl} className="w-full h-full object-contain" alt={currentExercise.name} />
-               )}
-             </div>
-          </div>
+          {/* Exact Exercise Video Demonstration */}
+          {(() => {
+            const rawVidUrl = getVideoUrl(currentExercise);
+            const currentEmbedUrl = getEmbedUrl(rawVidUrl);
+            const currentWatchUrl = getWatchUrl(currentExercise, currentEmbedUrl);
 
-          
-          {/* YouTube Video Fallback Box */}
-          <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-5 border border-white/10 mb-6">
-            <h3 className="text-zinc-400 font-bold text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Play size={14} className="text-fit-primary" /> Video Demonstration
-            </h3>
-            
-            <a 
-              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentExercise.name + ' exercise proper form')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full h-64 rounded-2xl overflow-hidden relative bg-black border border-white/5 flex items-center justify-center group cursor-pointer"
-            >
-               <img 
-                 src={getMediaUrl(currentExercise)} 
-                 className="absolute inset-0 w-full h-full object-contain opacity-40 group-hover:opacity-20 transition-opacity blur-[2px]" 
-                 alt="Thumbnail" 
-               />
-               <div className="relative z-10 flex flex-col items-center gap-4">
-                 <div className="bg-red-600 text-white w-16 h-16 rounded-full shadow-[0_0_30px_rgba(220,38,38,0.6)] group-hover:scale-110 group-hover:shadow-[0_0_40px_rgba(220,38,38,0.8)] transition-all flex items-center justify-center">
-                   <Play fill="currentColor" size={28} className="ml-1" />
-                 </div>
-                 <span className="font-bold text-lg bg-black/60 px-4 py-2 rounded-lg backdrop-blur-sm">Watch on YouTube</span>
-               </div>
-            </a>
-          </div>
+            return (
+              <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-5 border border-white/10 flex flex-col gap-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-zinc-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                    <Play size={14} className="text-fit-primary" /> Video Demonstration
+                  </h3>
+                  <a 
+                    href={currentWatchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-fit-primary hover:underline flex items-center gap-1.5 transition-colors"
+                  >
+                    Watch on YouTube <ExternalLink size={12} />
+                  </a>
+                </div>
+                
+                <div className="w-full aspect-video rounded-2xl overflow-hidden relative bg-black border border-white/5 flex items-center justify-center">
+                  {currentEmbedUrl ? (
+                    <iframe
+                      key={currentEmbedUrl}
+                      src={currentEmbedUrl}
+                      title={`${currentExercise.name} Video Demonstration`}
+                      className="w-full h-full border-0 rounded-2xl"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                        <Play size={24} className="opacity-40" />
+                      </div>
+                      <p className="text-zinc-400 text-sm font-medium">Video demonstration unavailable</p>
+                      <a
+                        href={currentWatchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-red-600/20"
+                      >
+                        <Play size={14} fill="currentColor" /> Watch on YouTube
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between px-1 text-xs">
+                  <span className="text-zinc-400">
+                    Exercise: <span className="text-white font-bold">{currentExercise.name}</span>
+                  </span>
+                  <a
+                    href={currentWatchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                  >
+                    Open in YouTube <ExternalLink size={11} />
+                  </a>
+                </div>
+              </div>
+            );
+          })()}
           
           {/* Exercise Details */}
           <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-5 border border-white/10 text-sm">
@@ -402,6 +466,31 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
 
         {/* Right Col: Sets & Tracking */}
         <div className="md:w-7/12 flex flex-col gap-4">
+          {/* Quick Exercise Selector Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            {activeWorkout.exercises.map((ex, idx) => {
+              const isCurrent = idx === currentExerciseIndex;
+              const isAllDone = ex.sets?.every(s => s.isCompleted);
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentExerciseIndex(idx)}
+                  className={`flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    isCurrent
+                      ? 'bg-fit-primary text-black shadow-lg shadow-fit-primary/25 scale-[1.02]'
+                      : isAllDone
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5 hover:border-white/10'
+                  }`}
+                >
+                  <span className="opacity-70">{idx + 1}.</span>
+                  <span className="max-w-[120px] truncate">{ex.name}</span>
+                  {isAllDone && <Check size={12} strokeWidth={3} className={isCurrent ? 'text-black' : 'text-emerald-400'} />}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex justify-between items-start bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 border border-white/10">
             <div>
               <div className="text-fit-primary font-bold text-sm uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -634,22 +723,90 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
         </div>
       )}
 
-      {/* Finish Confirmation Modal */}
+      {/* Finish Confirmation Modal (Custom In-App Modal) */}
       {showFinishConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowFinishConfirm(false)} />
-          <div className="bg-zinc-900 border border-white/10 p-8 rounded-3xl relative z-10 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <StopCircle size={32} className="text-amber-500" />
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowFinishConfirm(false)} />
+          <div className="bg-zinc-900 border border-white/10 p-6 sm:p-8 rounded-3xl relative z-10 max-w-md w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-amber-500/20 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <StopCircle size={32} className="text-amber-400" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">End Workout Early?</h3>
-            <p className="text-zinc-400 mb-6">You still have incomplete sets. Are you sure you want to finish and save now?</p>
+            
+            <h3 className="text-2xl font-black text-white mb-2">Finish Workout Early?</h3>
+            <p className="text-zinc-400 text-sm mb-5 leading-relaxed">
+              You still have incomplete sets. You can save your completed exercises now, or continue your workout.
+            </p>
+            
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 mb-6 text-left text-xs text-zinc-400 space-y-2">
+              <div className="flex justify-between text-zinc-300 font-semibold">
+                <span>Completed Sets:</span>
+                <span className="text-fit-primary font-bold">{totalCompletedSets} / {totalSets} sets</span>
+              </div>
+              <div className="flex justify-between text-zinc-300 font-semibold">
+                <span>Elapsed Time:</span>
+                <span className="text-white font-mono">{formatTime(duration)}</span>
+              </div>
+              <div className="flex justify-between text-zinc-300 font-semibold">
+                <span>Workout Progress:</span>
+                <span className="text-amber-400 font-bold">{progressPercent}%</span>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-3">
-              <button onClick={executeFinish} className="w-full bg-fit-primary text-black py-3.5 rounded-xl font-bold hover:bg-emerald-400 transition-colors">
-                Yes, Finish Workout
+              <button 
+                onClick={executeFinish} 
+                className="w-full bg-gradient-to-r from-fit-primary to-emerald-400 text-black py-3.5 rounded-xl font-black text-sm hover:opacity-95 transition-all shadow-lg shadow-fit-primary/20 flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={18} /> Yes, Finish & Save Workout
               </button>
-              <button onClick={() => setShowFinishConfirm(false)} className="w-full bg-zinc-800 text-white py-3.5 rounded-xl font-bold hover:bg-zinc-700 transition-colors">
-                Cancel
+              <button 
+                onClick={() => setShowFinishConfirm(false)} 
+                className="w-full bg-zinc-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
+              >
+                Resume Workout
+              </button>
+              <button 
+                onClick={() => {
+                  setShowFinishConfirm(false);
+                  setShowDiscardConfirm(true);
+                }} 
+                className="w-full text-zinc-500 hover:text-red-400 py-2 font-semibold text-xs transition-colors"
+              >
+                Discard Workout Without Saving
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Discard Confirmation Modal (Custom In-App Modal) */}
+      {showDiscardConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowDiscardConfirm(false)} />
+          <div className="bg-zinc-900 border border-red-500/20 p-6 sm:p-8 rounded-3xl relative z-10 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-400">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-2xl font-black text-white mb-2">Discard Workout?</h3>
+            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+              Are you sure you want to cancel this workout? Unsaved sets and timer records will be lost.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={async () => {
+                  setShowDiscardConfirm(false);
+                  await cancelWorkout();
+                  navigate('/fitness');
+                }} 
+                className="w-full bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-xl font-bold text-sm transition-colors shadow-lg shadow-red-600/20"
+              >
+                Discard Session
+              </button>
+              <button 
+                onClick={() => setShowDiscardConfirm(false)} 
+                className="w-full bg-zinc-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
+              >
+                Continue Training
               </button>
             </div>
           </div>

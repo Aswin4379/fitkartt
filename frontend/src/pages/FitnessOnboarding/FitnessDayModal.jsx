@@ -21,7 +21,7 @@ export default function FitnessDayModal({ dayData, onClose }) {
           id: ex.exerciseId || `ai-ex-${Math.random()}`,
           name: ex.name,
           type: ex.type || 'main',
-          sets: Array(ex.sets || 3).fill(null).map(() => ({ reps: ex.reps || 10, weight: prevWeight, isCompleted: false })),
+          sets: Array(ex.sets || 3).fill(null).map(() => ({ reps: ex.reps || 10, weight: prevWeight, isCompleted: dayData.isCompleted || false })),
           recommendedWeight: ex.recommendedWeight || 'Bodyweight',
           restTime: ex.restTime || 60,
           targetMuscles: ex.targetMuscles || [],
@@ -132,14 +132,13 @@ export default function FitnessDayModal({ dayData, onClose }) {
         <div className="p-6 border-t border-zinc-800 bg-[#121212] rounded-b-3xl">
           <button 
             onClick={handleStart}
-            disabled={dayData.isCompleted}
             className={`w-full py-4 rounded-xl font-extrabold text-lg flex items-center justify-center gap-2 transition-all ${
               dayData.isCompleted 
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
                 : 'bg-[#2196f3] text-black hover:scale-[1.02] hover:bg-[#1976d2] shadow-[0_0_20px_rgba(33,150,243,0.3)]'
             }`}
           >
-            {dayData.isCompleted ? 'Already Completed' : <><Play fill="currentColor" size={20} /> Start Workout Session</>}
+            {dayData.isCompleted ? 'View / Re-do Workout' : <><Play fill="currentColor" size={20} /> Start Workout Session</>}
           </button>
         </div>
         

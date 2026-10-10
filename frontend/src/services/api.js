@@ -140,3 +140,11 @@ export const aiApi = {
   generatePlan: (data) => customFetch('/ai/diet-plan', { method: 'POST', body: JSON.stringify(data) }),
   quickEval: (data) => customFetch('/ai/quick-eval', { method: 'POST', body: JSON.stringify(data) }),
 };
+
+// BodyCare AI API
+export const bodyCareApi = {
+  assess: (data) => customFetch('/bodycare/assess', { method: 'POST', body: JSON.stringify(data) }),
+  chat: (data) => customFetch('/bodycare/chat', { method: 'POST', body: JSON.stringify(data) }),
+  getHistory: () => customFetch('/bodycare/history'),
+  deleteHistory: (id) => customFetch(`/bodycare/history/${id}`, { method: 'DELETE' }),
+};

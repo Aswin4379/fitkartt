@@ -47,9 +47,12 @@ export default function FitnessRoutineBuilder() {
     setSelectedExercises(updated);
   };
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSave = async () => {
-    if (!name.trim()) return alert('Please enter a routine name');
-    if (selectedExercises.length === 0) return alert('Please add at least one exercise');
+    setErrorMsg('');
+    if (!name.trim()) return setErrorMsg('Please enter a routine name');
+    if (selectedExercises.length === 0) return setErrorMsg('Please add at least one exercise');
     
     setIsSaving(true);
     try {
@@ -60,7 +63,7 @@ export default function FitnessRoutineBuilder() {
       await loadUserData(); // Refresh global state
       navigate('/fitness/routines');
     } catch (err) {
-      alert('Failed to save routine');
+      setErrorMsg('Failed to save routine. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -77,6 +80,12 @@ export default function FitnessRoutineBuilder() {
 
       <div className="max-w-3xl mx-auto px-4 pb-24 sm:px-6 lg:px-8 mt-6 space-y-6">
         
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500/40 p-4 rounded-2xl text-red-400 font-bold text-sm">
+            {errorMsg}
+          </div>
+        )}
+
         {/* Name Input */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
           <label className="block text-sm font-bold text-zinc-400 mb-2 uppercase">Routine Name</label>

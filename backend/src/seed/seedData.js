@@ -62,13 +62,13 @@ export const seedDatabase = async () => {
 
     console.log('[Seeding]: Populating products, workouts, and exercises collections...');
 
-    // 1. Seed exercises (All 124 exercises)
-    console.log(`[Seeding]: Inserting ${exerciseLibrary.length} exercises into MongoDB...`);
+    const validExercises = exerciseLibrary.filter(Boolean);
+    console.log(`[Seeding]: Inserting ${validExercises.length} exercises into MongoDB...`);
     try {
       await mongoose.connection.collection('exercises').drop();
     } catch (e) {}
 
-    const exerciseDocs = exerciseLibrary.map((e) => ({
+    const exerciseDocs = validExercises.map((e) => ({
       id: e.id,
       name: e.name,
       target: e.target,

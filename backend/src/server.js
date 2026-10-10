@@ -1,4 +1,5 @@
 import express from 'express';
+// Trigger nodemon restart 2
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -14,6 +15,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import nutritionRoutes from './routes/nutritionRoutes.js';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import bodyCareRoutes from './routes/bodyCareRoutes.js';
 
 dotenv.config();
 
@@ -50,6 +52,7 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/bodycare', bodyCareRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
