@@ -1013,30 +1013,37 @@ export default function Workouts() {
               </div>
             ) : (
               <div className="space-y-3">
-                {todaysWorkoutLogs.map((log, idx) => (
-                  <div key={log.id || idx} className="p-3.5 rounded-xl bg-fit-surface2/80 border border-fit-primary/30 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-extrabold text-fit-text">{log.workoutName || log.routineName}</span>
-                        <span className="chip text-[9px] px-2 py-0.5 bg-fit-primary/15 text-fit-primary border-fit-primary/30 uppercase font-extrabold">
-                          Today
-                        </span>
+                {todaysWorkoutLogs.map((log, idx) => {
+                  const title = typeof log.workoutName === 'string' ? log.workoutName : (typeof log.routineName === 'string' ? log.routineName : 'Workout Session')
+                  const duration = typeof log.duration === 'object' ? (log.duration?.value || 15) : (Number(log.duration || log.durationMinutes) || 15)
+                  const calories = typeof log.calories === 'object' ? (log.calories?.value || 100) : (Number(log.calories || log.caloriesBurned) || 100)
+                  const exCount = typeof log.exercisesCount === 'object' ? (log.exercisesCount?.value || 1) : (Number(log.exercisesCount || log.exerciseNames?.length) || 1)
+
+                  return (
+                    <div key={log.id || idx} className="p-3.5 rounded-xl bg-fit-surface2/80 border border-fit-primary/30 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-fit-text">{title}</span>
+                          <span className="chip text-[9px] px-2 py-0.5 bg-fit-primary/15 text-fit-primary border-fit-primary/30 uppercase font-extrabold">
+                            Today
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-[11px] text-fit-muted font-medium">
+                          <span className="flex items-center gap-1 text-fit-text font-bold">
+                            <Clock size={11} className="text-fit-primary" /> {duration}m
+                          </span>
+                          <span>•</span>
+                          <span className="text-fit-accent font-bold">
+                            {calories} kcal
+                          </span>
+                          <span>•</span>
+                          <span>{exCount} exercises</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] text-fit-muted font-medium">
-                        <span className="flex items-center gap-1 text-fit-text font-bold">
-                          <Clock size={11} className="text-fit-primary" /> {log.duration || log.durationMinutes || 15}m
-                        </span>
-                        <span>•</span>
-                        <span className="text-fit-accent font-bold">
-                          {log.calories || log.caloriesBurned || 100} kcal
-                        </span>
-                        <span>•</span>
-                        <span>{log.exercisesCount || log.exerciseNames?.length || 1} exercises</span>
-                      </div>
+                      <CheckCircle size={18} className="text-fit-primary shrink-0" />
                     </div>
-                    <CheckCircle size={18} className="text-fit-primary shrink-0" />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -1132,7 +1139,7 @@ export default function Workouts() {
             </h3>
             <div className="grid grid-cols-3 gap-3">
               {achievementDefinitions.map((ach) => {
-                const earned = achievements.includes(ach.id)
+                const earned = achievements.some((a) => (typeof a === 'string' ? a === ach.id : a?.id === ach.id))
                 const IconComponent = ach.icon
 
                 return (
@@ -1161,12 +1168,52 @@ export default function Workouts() {
               <p className="text-[11px] text-fit-muted">Log sets in workouts to track your maximum weight loads.</p>
             ) : (
               <div className="divide-y divide-fit-border/40">
-                {Object.entries(personalRecords).map(([exName, record]) => (
-                  <div key={exName} className="py-2.5 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-fit-text">{exName}</span>
-                    <span className="font-extrabold text-fit-primary font-mono">{record} kg</span>
-                  </div>
-                ))}
+                {Object.entries(personalRecords).map(([exName, record]) => {
+                  let weightVal = 0
+                  let oneRepMaxVal = 0
+                  let repsVal = 0
+                  let dateStr = ''
+
+                  if (typeof record === 'number') {
+                    weightVal = record
+                  } else if (record && typeof record === 'object') {
+                    if (typeof record.weight === 'object' && record.weight !== null) {
+                      weightVal = Number(record.weight.value) || 0
+                      if (record.weight.date) dateStr = getLocalDateString(record.weight.date)
+                    } else if (record.weight !== undefined) {
+                      weightVal = Number(record.weight) || 0
+                    }
+
+                    if (typeof record.oneRepMax === 'object' && record.oneRepMax !== null) {
+                      oneRepMaxVal = Number(record.oneRepMax.value) || 0
+                    } else if (record.oneRepMax !== undefined) {
+                      oneRepMaxVal = Number(record.oneRepMax) || 0
+                    }
+
+                    if (typeof record.reps === 'object' && record.reps !== null) {
+                      repsVal = Number(record.reps.value) || 0
+                    } else if (record.reps !== undefined) {
+                      repsVal = Number(record.reps) || 0
+                    }
+                  }
+
+                  return (
+                    <div key={exName} className="py-2.5 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-semibold text-fit-text block">{exName}</span>
+                        {(oneRepMaxVal > 0 || repsVal > 0 || dateStr) && (
+                          <span className="text-[10px] text-fit-muted">
+                            {oneRepMaxVal > 0 ? `Est. 1RM: ${oneRepMaxVal} kg` : ''}
+                            {oneRepMaxVal > 0 && repsVal > 0 ? ' • ' : ''}
+                            {repsVal > 0 ? `Best: ${repsVal} reps` : ''}
+                            {dateStr ? ` (${dateStr})` : ''}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-extrabold text-fit-primary font-mono">{weightVal} kg</span>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -1191,40 +1238,45 @@ export default function Workouts() {
                 {workoutLogs.map((log, idx) => {
                   const logDate = getLocalDateString(log.date || log.completedAt)
                   const isTodayLog = Boolean(logDate) && logDate === todayDateKey
+                  const title = typeof log.workoutName === 'string' ? log.workoutName : (typeof log.routineName === 'string' ? log.routineName : 'Workout Session')
+                  const duration = typeof log.duration === 'object' ? (log.duration?.value || 15) : (Number(log.duration || log.durationMinutes) || 15)
+                  const calories = typeof log.calories === 'object' ? (log.calories?.value || 100) : (Number(log.calories || log.caloriesBurned) || 100)
+                  const exCount = typeof log.exercisesCount === 'object' ? (log.exercisesCount?.value || 1) : (Number(log.exercisesCount || log.exerciseNames?.length) || 1)
+                  const displayDate = typeof log.date === 'string' ? log.date : (logDate || 'Past Session')
 
                   return (
                     <div key={log.id || idx} className="card p-4 border border-fit-border bg-fit-surface/40 hover:border-fit-primary/40 transition-colors">
                       <div className="flex items-center justify-between border-b border-fit-border/40 pb-2 mb-2.5">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-fit-text">
                           <Calendar size={13} className="text-fit-primary" />
-                          {log.workoutName || log.routineName}
+                          {title}
                           {isTodayLog && (
                             <span className="chip text-[8px] px-1.5 py-0.2 bg-fit-primary/20 text-fit-primary border-fit-primary/40 uppercase font-black ml-1">
                               Today
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-fit-muted font-mono">{log.date}</span>
+                        <span className="text-[10px] text-fit-muted font-mono">{displayDate}</span>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 text-center text-[10px] text-fit-muted mb-2">
                         <div>
-                          <span className="block font-bold text-fit-text text-xs">{log.duration || log.durationMinutes || 15}m</span>
+                          <span className="block font-bold text-fit-text text-xs">{duration}m</span>
                           Duration
                         </div>
                         <div>
-                          <span className="block font-bold text-fit-text text-xs">{log.calories || log.caloriesBurned || 100} kcal</span>
+                          <span className="block font-bold text-fit-text text-xs">{calories} kcal</span>
                           Burned
                         </div>
                         <div>
-                          <span className="block font-bold text-fit-text text-xs">{log.exercisesCount || log.exerciseNames?.length || 1}</span>
+                          <span className="block font-bold text-fit-text text-xs">{exCount}</span>
                           Exercises
                         </div>
                       </div>
 
                       {Array.isArray(log.exerciseNames) && log.exerciseNames.length > 0 && (
                         <div className="text-[10px] text-fit-muted line-clamp-1">
-                          Exercises: {log.exerciseNames.join(', ')}
+                          Exercises: {log.exerciseNames.filter(e => typeof e === 'string').join(', ')}
                         </div>
                       )}
                     </div>
