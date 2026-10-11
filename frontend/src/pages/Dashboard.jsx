@@ -238,6 +238,7 @@ export default function Dashboard() {
 
   const [weightInput, setWeightInput] = useState('')
   const [showWeightModal, setShowWeightModal] = useState(false)
+  const [isSavingWeight, setIsSavingWeight] = useState(false)
   const [customMeal, setCustomMeal] = useState({ name: '', quantity: '', unit: '', calories: '', protein: '', carbs: '', fat: '' })
   const [showMealModal, setShowMealModal] = useState(false)
   const [isEstimating, setIsEstimating] = useState(false)
@@ -248,64 +249,71 @@ export default function Dashboard() {
     setTimeout(() => setToastMessage(''), 2600)
   }
 
-  // --- Water Handler (Persisted to MongoDB) ---
+  // --- Water Handler ---
   const handleWaterChange = async (newVal) => {
     const clamped = Math.max(0, Math.min(maxWater, newVal))
     setWater(clamped)
-    const existingHistory = Array.isArray(userFitness.water?.history) ? userFitness.water.history : []
-    const nextFitness = {
-      ...userFitness,
-      water: {
-        glasses: clamped,
-        maxGlasses: maxWater,
-        lastUpdatedDate: todayStr,
-        history: [
-          ...existingHistory.filter(h => h.date !== todayStr && getLocalDateString(h.date) !== todayStr),
-          { date: todayStr, glasses: clamped }
-        ]
+    try {
+      const existingHistory = Array.isArray(userFitness.water?.history) ? userFitness.water.history : []
+      await updateUser({
+        fitnessStats: {
+          water: {
+            glasses: clamped,
+            maxGlasses: maxWater,
+            lastUpdatedDate: todayStr,
+            history: [
+              ...existingHistory.filter(h => h.date !== todayStr && getLocalDateString(h.date) !== todayStr),
+              { date: todayStr, glasses: clamped }
+            ]
+          }
+        }
+      })
+      if (clamped >= maxWater) {
+        showToast('Hydration Goal Achieved! (2.5L) 💧')
       }
-    }
-    await updateUser({ fitnessStats: nextFitness })
-    if (clamped >= maxWater) {
-      showToast('Hydration Goal Achieved! (2.5L) 💧')
+    } catch (err) {
+      console.warn('[Water Update Error]:', err)
     }
   }
 
   // --- Profile Save & Recalculate Handler ---
   const handleProfileSave = async (e) => {
     e.preventDefault()
-    const updatedStarting = Number(profileForm.startingWeight) || userStartingWeight
-    const updatedCurrent = Number(profileForm.currentWeight) || userCurrentWeight
-    const updatedTarget = Number(profileForm.targetWeight) || userTargetWeight
+    try {
+      const updatedStarting = Number(profileForm.startingWeight) || userStartingWeight
+      const updatedCurrent = Number(profileForm.currentWeight) || userCurrentWeight
+      const updatedTarget = Number(profileForm.targetWeight) || userTargetWeight
 
-    let updatedHistory = [...weightHistory]
-    if (updatedCurrent !== userCurrentWeight) {
-      updatedHistory = [...updatedHistory.filter((_, idx) => idx < 6), { weight: updatedCurrent, date: todayStr }]
+      const existingHistory = Array.isArray(userFitness.weightHistory) ? userFitness.weightHistory : []
+      let updatedHistory = [...existingHistory]
+      if (updatedCurrent !== userCurrentWeight) {
+        updatedHistory = [...existingHistory.filter(h => h.date !== todayStr), { weight: updatedCurrent, date: todayStr }]
+      }
+
+      await updateUser({
+        name: profileForm.name?.trim() || user?.name,
+        goal: profileForm.goal,
+        age: Number(profileForm.age),
+        gender: profileForm.gender,
+        height: Number(profileForm.height),
+        activityLevel: profileForm.activityLevel,
+        startingWeight: updatedStarting,
+        currentWeight: updatedCurrent,
+        targetWeight: updatedTarget,
+        fitnessStats: {
+          startingWeight: updatedStarting,
+          currentWeight: updatedCurrent,
+          targetWeight: updatedTarget,
+          weightHistory: updatedHistory
+        }
+      })
+
+      setShowProfileModal(false)
+      showToast('Plan & metabolic targets recalculated! 🎯')
+    } catch (err) {
+      console.error('[Profile Save Error]:', err)
+      showToast('Could not update profile. Please try again.')
     }
-
-    const nextFitness = {
-      ...userFitness,
-      startingWeight: updatedStarting,
-      currentWeight: updatedCurrent,
-      targetWeight: updatedTarget,
-      weightHistory: updatedHistory
-    }
-
-    await updateUser({
-      name: profileForm.name?.trim() || user?.name,
-      goal: profileForm.goal,
-      age: Number(profileForm.age),
-      gender: profileForm.gender,
-      height: Number(profileForm.height),
-      activityLevel: profileForm.activityLevel,
-      startingWeight: updatedStarting,
-      currentWeight: updatedCurrent,
-      targetWeight: updatedTarget,
-      fitnessStats: nextFitness
-    })
-
-    setShowProfileModal(false)
-    showToast('Plan & metabolic targets recalculated! 🎯')
   }
 
   // --- Weight Logging Handler ---
@@ -317,22 +325,31 @@ export default function Dashboard() {
       return
     }
 
-    const updatedHistory = [...weightHistory.filter((_, idx) => idx < 6), { weight: val, date: todayStr }]
+    setIsSavingWeight(true)
+    try {
+      const existingHistory = Array.isArray(userFitness.weightHistory) ? userFitness.weightHistory : []
+      const updatedHistory = [
+        ...existingHistory.filter(h => h.date !== todayStr),
+        { weight: val, date: todayStr }
+      ]
 
-    const nextFitness = {
-      ...userFitness,
-      currentWeight: val,
-      weightHistory: updatedHistory
+      await updateUser({
+        currentWeight: val,
+        fitnessStats: {
+          currentWeight: val,
+          weightHistory: updatedHistory
+        }
+      })
+
+      setWeightInput('')
+      setShowWeightModal(false)
+      showToast(`Weight recorded: ${val} kg ⚖️`)
+    } catch (err) {
+      console.error('[Record Weight Error]:', err)
+      showToast('Could not record weight. Please try again.')
+    } finally {
+      setIsSavingWeight(false)
     }
-
-    await updateUser({
-      currentWeight: val,
-      fitnessStats: nextFitness
-    })
-
-    setWeightInput('')
-    setShowWeightModal(false)
-    showToast(`Weight recorded: ${val} kg ⚖️`)
   }
 
   // --- Meal Add Handler ---
@@ -766,7 +783,7 @@ export default function Dashboard() {
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="btn-ghost text-xs py-2.5 px-3.5 flex items-center gap-2 border border-fit-border hover:border-fit-primary/50 text-fit-muted hover:text-fit-primary rounded-xl transition-all"
-              title="Sync latest tracker and workout data with MongoDB cloud across all your devices"
+              title="Sync latest tracker and workout data across all your devices"
             >
               <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-fit-primary' : ''} />
               <span>{isRefreshing ? 'Syncing...' : 'Sync Cloud'}</span>
@@ -1590,8 +1607,12 @@ export default function Dashboard() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary text-xs py-2 px-5 shadow-glow">
-                    Save to MongoDB
+                  <button
+                    type="submit"
+                    disabled={isSavingWeight}
+                    className="btn-primary text-xs py-2 px-5 shadow-glow disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {isSavingWeight ? 'Saving...' : 'Save Weight'}
                   </button>
                 </div>
               </form>

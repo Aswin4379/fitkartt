@@ -212,7 +212,7 @@ export default function AdminDashboard() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-fit-muted">
             <Loader2 className="animate-spin mb-3 text-fit-primary" size={32} />
-            <p className="text-xs">Connecting to MongoDB &amp; fetching analytics...</p>
+            <p className="text-xs">Connecting to secure database &amp; fetching analytics...</p>
           </div>
         ) : (
           <>

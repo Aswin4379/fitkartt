@@ -131,7 +131,7 @@ export default function Profile() {
           <p className="font-bold text-fit-primary mb-2 uppercase">System Sync Diagnostics</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div><span className="opacity-70">Email:</span> {user.email}</div>
-            <div><span className="opacity-70">MongoDB ID:</span> {user._id || user.id || 'N/A'}</div>
+            <div><span className="opacity-70">Account ID:</span> {user._id || user.id || 'N/A'}</div>
             <div className="sm:col-span-2"><span className="opacity-70">API URL:</span> {import.meta.env?.VITE_API_URL || 'https://fitkartt.onrender.com/api'}</div>
             <div><span className="opacity-70">Weight (Current/Target):</span> {user.currentWeight}kg / {user.targetWeight}kg</div>
             <div><span className="opacity-70">Height / Age:</span> {user.height}cm / {user.age}</div>
