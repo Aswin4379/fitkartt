@@ -54,7 +54,7 @@ export default function ExerciseVideoPlayer({ videoUrl, imageUrl, image2Url, gif
   const hasVideo = !!embedUrl
   const ytThumbnail = getThumbnailUrl(videoUrl)
   const primaryImg = imageUrl || ytThumbnail
-  const peakImg = image2Url || imageUrl
+  const peakImg = image2Url || imageUrl || ytThumbnail
 
   return (
     <div className="space-y-3">
@@ -144,34 +144,50 @@ export default function ExerciseVideoPlayer({ videoUrl, imageUrl, image2Url, gif
         {/* TAB 2: DYNAMIC 2-PHASE MOTION GUIDE */}
         {activeTab === 'gif' && (
           <div className="absolute inset-0 w-full h-full bg-fit-surface2 flex items-center justify-center relative overflow-hidden">
+            {/* Phase 1: Starting Pose */}
             <img
-              src={motionFrame === 0 ? primaryImg : peakImg}
-              alt={`${name} phase ${motionFrame + 1}`}
-              className="w-full h-full object-cover transition-opacity duration-300"
-              onError={() => {
-                if (motionFrame === 1) setMotionFrame(0)
+              src={primaryImg}
+              alt={`${name} Phase 1: Starting Pose`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+                motionFrame === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+              onError={(e) => {
+                if (peakImg && e.target.src !== peakImg) e.target.src = peakImg
+                else if (ytThumbnail) e.target.src = ytThumbnail
+              }}
+            />
+            {/* Phase 2: Peak Contraction */}
+            <img
+              src={peakImg}
+              alt={`${name} Phase 2: Peak Contraction`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+                motionFrame === 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+              onError={(e) => {
+                if (primaryImg && e.target.src !== primaryImg) e.target.src = primaryImg
+                else if (ytThumbnail) e.target.src = ytThumbnail
               }}
             />
             
             {/* Overlay indicators */}
-            <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-fit-bg/85 backdrop-blur-sm border border-fit-primary/30 px-2.5 py-1 rounded-lg">
+            <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 bg-fit-bg/90 backdrop-blur-md border border-fit-primary/40 px-2.5 py-1 rounded-lg shadow-sm">
               <span className="w-2 h-2 rounded-full bg-fit-primary animate-ping" />
               <span className="text-[10px] font-black text-fit-primary uppercase tracking-wider">
                 {motionFrame === 0 ? 'Phase 1: Starting Pose' : 'Phase 2: Peak Contraction'}
               </span>
             </div>
 
-            <div className="absolute bottom-2 right-2 flex items-center gap-2">
+            <div className="absolute bottom-2 right-2 z-20 flex items-center gap-2">
               <button
                 onClick={() => setIsMotionPlaying(!isMotionPlaying)}
-                className="bg-fit-bg/85 hover:bg-fit-bg text-fit-text text-[10px] font-bold px-2.5 py-1 rounded-lg border border-fit-border shadow-sm flex items-center gap-1 backdrop-blur-sm"
+                className="bg-fit-bg/90 hover:bg-fit-bg text-fit-text text-[10px] font-bold px-2.5 py-1 rounded-lg border border-fit-border shadow-sm flex items-center gap-1 backdrop-blur-md transition-colors"
               >
                 {isMotionPlaying ? 'Pause Loop' : 'Play Loop'}
               </button>
             </div>
 
             {/* Bottom Progress Bar */}
-            <div className="absolute bottom-0 inset-x-0 h-1 bg-fit-border">
+            <div className="absolute bottom-0 inset-x-0 h-1 bg-fit-border z-20">
               <div
                 className="h-full bg-fit-primary transition-all duration-300"
                 style={{ width: motionFrame === 0 ? '50%' : '100%' }}
@@ -188,6 +204,10 @@ export default function ExerciseVideoPlayer({ videoUrl, imageUrl, image2Url, gif
                 src={primaryImg}
                 alt={`${name} Start Pose`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  if (peakImg && e.target.src !== peakImg) e.target.src = peakImg
+                  else if (ytThumbnail) e.target.src = ytThumbnail
+                }}
               />
               <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase bg-fit-bg/90 backdrop-blur-sm text-fit-primary px-2 py-0.5 rounded border border-fit-primary/40 shadow-sm">
                 1. Start Pose
@@ -198,6 +218,10 @@ export default function ExerciseVideoPlayer({ videoUrl, imageUrl, image2Url, gif
                 src={peakImg}
                 alt={`${name} Peak Form`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  if (primaryImg && e.target.src !== primaryImg) e.target.src = primaryImg
+                  else if (ytThumbnail) e.target.src = ytThumbnail
+                }}
               />
               <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase bg-fit-bg/90 backdrop-blur-sm text-fit-accent px-2 py-0.5 rounded border border-fit-accent/40 shadow-sm">
                 2. Peak Form

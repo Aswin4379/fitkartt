@@ -83,7 +83,21 @@ export default function FitnessLibrary() {
               >
                 <div className="h-32 bg-fit-surface2 relative">
                   {ex.imageUrl ? (
-                    <img src={ex.imageUrl} alt={ex.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <img 
+                      src={ex.imageUrl} 
+                      alt={ex.name} 
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                      onError={(e) => {
+                        if (ex.image2Url && e.target.src !== ex.image2Url) {
+                          e.target.src = ex.image2Url
+                        } else {
+                          const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1]
+                          if (ytId && !e.target.src.includes('img.youtube.com')) {
+                            e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+                          }
+                        }
+                      }}
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-fit-muted">
                       <Dumbbell size={32} />

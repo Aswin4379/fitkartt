@@ -943,7 +943,16 @@ export default function Workouts() {
                       alt={ex.name}
                       className="absolute inset-0 w-full h-full object-cover z-10 transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {
-                        e.target.style.display = 'none'
+                        if (ex.image2Url && e.target.src !== ex.image2Url) {
+                          e.target.src = ex.image2Url
+                        } else {
+                          const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1]
+                          if (ytId && !e.target.src.includes('img.youtube.com')) {
+                            e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+                          } else {
+                            e.target.style.display = 'none'
+                          }
+                        }
                       }}
                     />
                     <Dumbbell size={22} className="text-fit-muted/40" />
