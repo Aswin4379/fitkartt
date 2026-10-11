@@ -251,7 +251,7 @@ export default function Dashboard() {
 
   // --- Water Handler ---
   const handleWaterChange = async (newVal) => {
-    const clamped = Math.max(0, Math.min(maxWater, newVal))
+    const clamped = Math.max(0, Math.min(30, newVal))
     setWater(clamped)
     try {
       const existingHistory = Array.isArray(userFitness.water?.history) ? userFitness.water.history : []
@@ -268,8 +268,10 @@ export default function Dashboard() {
           }
         }
       })
-      if (clamped >= maxWater) {
-        showToast('Hydration Goal Achieved! (2.5L) 💧')
+      if (clamped === maxWater) {
+        showToast(`Hydration Goal Hit! ${maxWater} cups (${(maxWater * 0.25).toFixed(2)}L) 💧`)
+      } else if (clamped > maxWater) {
+        showToast(`Extra Hydration! ${clamped} cups (${(clamped * 0.25).toFixed(2)}L) 🌊`)
       }
     } catch (err) {
       console.warn('[Water Update Error]:', err)
@@ -587,7 +589,7 @@ export default function Dashboard() {
     if (water < maxWater * 0.5) {
       return {
         title: 'Hydration Check',
-        text: `You are ${remainingWater} glasses away from your optimal 2.5L hydration goal. Keep sipping!`,
+        text: `You are ${remainingWater} cups (${(remainingWater * 0.25).toFixed(2)}L) away from your ${(maxWater * 0.25).toFixed(1)}L daily hydration goal. Keep sipping!`,
         icon: '💧',
         type: 'info'
       }
@@ -670,9 +672,9 @@ export default function Dashboard() {
       id: 'hydration_champ',
       icon: '💧',
       label: 'Hydro Master',
-      desc: 'Reach your daily 2.5L water target',
+      desc: `Reach your daily ${(maxWater * 0.25).toFixed(1)}L water target`,
       unlocked: water >= maxWater,
-      progress: `${water}/${maxWater} Glasses`
+      progress: `${water}/${maxWater} Cups (${(water * 0.25).toFixed(2)}L)`
     },
     {
       id: 'protein_crusher',
@@ -973,13 +975,32 @@ export default function Dashboard() {
                   <Droplet size={16} className="text-cyan-400" />
                   <span>Water</span>
                 </div>
-                <span className="text-xs font-mono font-bold text-fit-text">
-                  {water} / {maxWater} cups
-                </span>
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold text-fit-text">
+                    {water} / {maxWater} cups
+                  </span>
+                  <span className="text-[10px] text-cyan-400/90 block font-mono font-semibold">
+                    {(water * 0.25).toFixed(2)}L / {(maxWater * 0.25).toFixed(2)}L
+                  </span>
+                </div>
               </div>
               <div>
-                <p className="text-2xl font-black text-fit-text font-mono">
-                  {remainingWater} <span className="text-xs font-sans text-fit-muted">cups left</span>
+                <p className="text-2xl font-black text-fit-text font-mono flex items-baseline gap-1.5">
+                  {water >= maxWater ? (
+                    <>
+                      <span>{(water * 0.25).toFixed(2)}</span>
+                      <span className="text-xs font-sans text-cyan-400 font-bold">
+                        L {water === maxWater ? '• Goal Hit! 🎉' : `• +${water - maxWater} cups extra 🌊`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{remainingWater}</span>
+                      <span className="text-xs font-sans text-fit-muted">
+                        cups left ({((maxWater - water) * 0.25).toFixed(2)}L to go)
+                      </span>
+                    </>
+                  )}
                 </p>
                 <div className="h-2 w-full bg-fit-surface2 rounded-full overflow-hidden mt-2 border border-fit-border">
                   <div
@@ -988,20 +1009,28 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
+              <div className="flex items-center justify-between text-[11px] text-fit-muted">
+                <span>1 cup = 250ml (0.25L)</span>
+                <span className={water >= maxWater ? "text-cyan-400 font-semibold" : ""}>
+                  {Math.round((water / maxWater) * 100)}% of daily target
+                </span>
+              </div>
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={() => handleWaterChange(water - 1)}
                   disabled={water <= 0}
                   className="icon-btn w-7 h-7 text-xs disabled:opacity-40"
+                  title="Remove 1 Cup (-250ml)"
                 >
                   <Minus size={12} />
                 </button>
                 <button
                   onClick={() => handleWaterChange(water + 1)}
-                  disabled={water >= maxWater}
+                  disabled={water >= 30}
                   className="btn-primary text-xs py-1 px-3 flex-1 flex items-center justify-center gap-1 shadow-glow"
+                  title="Add 1 Cup (+250ml / +0.25L)"
                 >
-                  <Plus size={12} /> +1 Cup
+                  <Plus size={12} /> +1 Cup (250ml)
                 </button>
               </div>
             </div>
