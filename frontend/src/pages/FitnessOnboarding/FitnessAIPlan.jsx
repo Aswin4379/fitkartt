@@ -104,7 +104,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold text-fit-text flex items-center gap-2">
             <CalendarIcon size={20} className="text-[#2196f3]" />
             Your 30-Day Plan
           </h3>
@@ -124,8 +124,8 @@ export default function FitnessAIPlan({ fitnessPlan }) {
             onClick={() => handleStartDay(currentDayData)}
             className={`px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg ${
               isCurrentDayActive
-                ? 'bg-fit-primary text-black shadow-[0_0_20px_rgba(34,197,94,0.35)] animate-pulse'
-                : 'bg-[#2196f3] text-black shadow-[0_0_15px_rgba(33,150,243,0.3)]'
+                ? 'bg-fit-primary text-white shadow-glow animate-pulse'
+                : 'bg-[#2196f3] text-white shadow-md'
             }`}
           >
             {isCurrentDayActive ? `Resume Day ${currentDay}` : `Start Day ${currentDay}`} <Play size={14} fill="currentColor" />
@@ -152,20 +152,20 @@ export default function FitnessAIPlan({ fitnessPlan }) {
             <div 
               key={day.day}
               onClick={() => canView && handleStartDay(day)}
-              className={`snap-start flex-shrink-0 w-64 rounded-2xl p-5 border flex flex-col transition-all relative overflow-hidden ${
+              className={`snap-start flex-shrink-0 w-64 rounded-2xl p-5 border flex flex-col transition-all relative overflow-hidden shadow-card ${
                 canView ? 'cursor-pointer hover:scale-[1.02] hover:shadow-lg' : ''
               } ${
                 isThisDayActive
-                  ? 'bg-gradient-to-b from-fit-primary/15 to-zinc-900/90 border-fit-primary shadow-[0_0_20px_rgba(34,197,94,0.25)]'
+                  ? 'bg-gradient-to-b from-fit-primary/15 to-fit-surface border-fit-primary shadow-glow'
                   : day.isCompleted
-                  ? 'bg-zinc-900/90 border-emerald-500/40 hover:border-emerald-500/70 shadow-[0_0_15px_rgba(16,185,129,0.06)]'
+                  ? 'bg-fit-surface border-emerald-500/40 hover:border-emerald-500/70 shadow-sm'
                   : isToday && !isRest
-                  ? 'bg-gradient-to-b from-[#2196f3]/15 to-zinc-900/90 border-[#2196f3] shadow-[0_0_20px_rgba(33,150,243,0.15)]'
+                  ? 'bg-gradient-to-b from-[#2196f3]/15 to-fit-surface border-[#2196f3]'
                   : isPast && !isRest
-                  ? 'bg-zinc-900/80 border-amber-500/30 hover:border-amber-500/50'
+                  ? 'bg-fit-surface border-amber-500/30 hover:border-amber-500/50'
                   : isRest
-                  ? 'bg-zinc-900/40 border-zinc-800/80 opacity-60'
-                  : 'bg-zinc-900/30 border-zinc-800/50 opacity-80'
+                  ? 'bg-fit-surface2/60 border-fit-border/60 opacity-70'
+                  : 'bg-fit-surface/80 border-fit-border opacity-90'
               }`}
             >
               {isThisDayActive ? (
@@ -173,53 +173,53 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                   <Activity size={12} /> IN PROGRESS
                 </div>
               ) : day.isCompleted ? (
-                <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-400 text-[10px] font-bold">
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-500 text-[10px] font-bold">
                   <CheckCircle2 size={12} /> COMPLETED
                 </div>
               ) : isPast && !day.isCompleted && !isRest ? (
-                <div className="absolute top-4 right-4 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                <div className="absolute top-4 right-4 text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                   MISSED
                 </div>
               ) : isFuture ? (
-                <div className="absolute top-4 right-4 text-[10px] font-semibold text-zinc-500">
+                <div className="absolute top-4 right-4 text-[10px] font-semibold text-fit-muted">
                   DAY {day.day}
                 </div>
               ) : null}
 
               <div className="mb-4">
                 <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${
-                  isThisDayActive ? 'text-fit-primary' : day.isCompleted ? 'text-emerald-400' : isToday ? 'text-[#2196f3]' : 'text-zinc-500'
+                  isThisDayActive ? 'text-fit-primary' : day.isCompleted ? 'text-emerald-500' : isToday ? 'text-[#2196f3]' : 'text-fit-muted'
                 }`}>
                   Day {day.day}
                 </div>
-                <h4 className="text-lg font-extrabold text-white leading-tight">
+                <h4 className="text-lg font-extrabold text-fit-text leading-tight">
                   {day.focus}
                 </h4>
               </div>
 
               <div className="mt-auto">
-                <div className="text-sm text-zinc-400 mb-4">
+                <div className="text-sm text-fit-muted mb-4">
                   {isRest ? 'Take a break and recover.' : `${day.exercises.length} Exercises`}
                 </div>
 
                 {isRest ? (
                   <button 
                     disabled 
-                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-zinc-800/40 text-zinc-500 cursor-default"
+                    className="w-full py-2.5 rounded-xl font-bold text-sm bg-fit-surface2/70 text-fit-muted border border-fit-border/40 cursor-default"
                   >
                     Rest Day
                   </button>
                 ) : isThisDayActive ? (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
-                    className="w-full py-2.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-1.5 bg-fit-primary text-black shadow-[0_0_15px_rgba(34,197,94,0.3)] animate-pulse hover:scale-[1.02] transition-all"
+                    className="w-full py-2.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-1.5 bg-fit-primary text-white shadow-glow animate-pulse hover:scale-[1.02] transition-all"
                   >
                     <Play size={14} fill="currentColor" /> Resume Workout
                   </button>
                 ) : day.isCompleted ? (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all shadow-sm"
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all shadow-sm"
                   >
                     <CheckCircle2 size={14} /> View Completed
                   </button>
@@ -233,7 +233,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                 ) : (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-fit-surface2 hover:bg-fit-border text-fit-text border border-fit-border transition-colors"
                   >
                     <Info size={14} /> View Workout
                   </button>

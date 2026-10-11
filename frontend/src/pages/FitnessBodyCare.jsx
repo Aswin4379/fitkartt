@@ -183,21 +183,21 @@ export default function FitnessBodyCare() {
     <AppLayout showFooter>
       {/* Top Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-fit-border">
           <div>
             <button
               onClick={() => navigate('/fitness')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white mb-2 transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-bold text-fit-muted hover:text-fit-text mb-2 transition-colors"
             >
               <ArrowLeft size={16} /> Back to Fitness Gym
             </button>
-            <h1 className="text-2xl sm:text-4xl font-black text-white flex items-center gap-3">
+            <h1 className="text-2xl sm:text-4xl font-black text-fit-text flex items-center gap-3">
               BodyCare AI
               <span className="px-3 py-1 rounded-full bg-gradient-to-r from-fit-primary/20 to-teal-500/20 border border-fit-primary/30 text-xs font-bold text-fit-primary flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.15)]">
                 <Sparkles size={13} /> Dynamic Groq AI
               </span>
             </h1>
-            <p className="text-zinc-400 text-sm mt-1 max-w-2xl">
+            <p className="text-fit-muted text-sm mt-1 max-w-2xl">
               Select an area of discomfort, describe your symptoms, and receive personalized recovery routines, thermal therapy advice, and medical safety guidance.
             </p>
           </div>
@@ -206,9 +206,9 @@ export default function FitnessBodyCare() {
             <button
               type="button"
               onClick={() => setHistoryOpen(true)}
-              className="px-4 py-2.5 rounded-2xl bg-zinc-900 border border-white/10 hover:border-zinc-600 text-xs sm:text-sm font-bold text-white transition-all flex items-center gap-2 hover:bg-zinc-800 shadow-md"
+              className="px-4 py-2.5 rounded-2xl bg-fit-surface border border-fit-border hover:border-fit-primary/40 text-xs sm:text-sm font-bold text-fit-text transition-all flex items-center gap-2 hover:bg-fit-surface2 shadow-card"
             >
-              <History size={16} className="text-teal-400" />
+              <History size={16} className="text-teal-500" />
               <span>Assessment History</span>
             </button>
 
@@ -216,7 +216,7 @@ export default function FitnessBodyCare() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2.5 rounded-2xl bg-zinc-900 border border-white/10 hover:border-red-500/40 text-xs sm:text-sm font-bold text-zinc-300 hover:text-red-400 transition-all flex items-center gap-2"
+                className="px-4 py-2.5 rounded-2xl bg-fit-surface border border-fit-border hover:border-red-500/40 text-xs sm:text-sm font-bold text-fit-muted hover:text-red-500 transition-all flex items-center gap-2"
                 title="Start fresh assessment"
               >
                 <RotateCcw size={16} />
@@ -234,11 +234,11 @@ export default function FitnessBodyCare() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Interactive Full-Body SVG Selector */}
-          <div className="lg:col-span-5 bg-zinc-900/60 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center sticky top-24">
+          <div className="lg:col-span-5 bg-fit-surface border border-fit-border rounded-3xl p-6 sm:p-8 shadow-card flex flex-col items-center sticky top-24">
             <div className="w-full flex items-center justify-between mb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-fit-primary">Step 1</span>
-                <h2 className="text-lg font-black text-white">Target Discomfort Zone</h2>
+                <h2 className="text-lg font-black text-fit-text">Target Discomfort Zone</h2>
               </div>
               {selectedPart && (
                 <span className="px-3 py-1 rounded-full bg-fit-primary/10 border border-fit-primary/30 text-xs font-bold text-fit-primary flex items-center gap-1.5 animate-in fade-in">
@@ -289,18 +289,18 @@ export default function FitnessBodyCare() {
 
         {/* SECTION 2: AI Results & Guidance Cards */}
         {guidance && (
-          <div id="bodycare-results-section" className="pt-6 space-y-10 border-t border-zinc-800">
+          <div id="bodycare-results-section" className="pt-6 space-y-10 border-t border-fit-border">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-fit-primary">Personalized AI Evaluation</span>
-                <h2 className="text-2xl sm:text-3xl font-black text-white">
+                <h2 className="text-2xl sm:text-3xl font-black text-fit-text">
                   Recovery Blueprint for {activePartMetadata?.name || selectedPart}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-bold text-zinc-300 flex items-center gap-2 transition-all"
+                className="px-4 py-2 rounded-xl bg-fit-surface hover:bg-fit-surface2 border border-fit-border text-xs font-bold text-fit-text flex items-center gap-2 transition-all shadow-card"
               >
                 <RotateCcw size={14} /> New Assessment
               </button>
@@ -331,32 +331,32 @@ export default function FitnessBodyCare() {
 
       {/* Assessment History Slide-over Drawer */}
       {historyOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-zinc-900 border-l border-white/10 h-full p-6 flex flex-col shadow-2xl overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-fit-surface border-l border-fit-border h-full p-6 flex flex-col shadow-2xl overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-fit-border">
               <div className="flex items-center gap-2">
-                <History className="text-teal-400" size={20} />
-                <h3 className="text-lg font-black text-white">Saved Assessments</h3>
+                <History className="text-teal-500" size={20} />
+                <h3 className="text-lg font-black text-fit-text">Saved Assessments</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setHistoryOpen(false)}
-                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                className="p-2 rounded-xl text-fit-muted hover:text-fit-text hover:bg-fit-surface2 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400 mt-2 mb-4">
+            <p className="text-xs text-fit-muted mt-2 mb-4">
               Assessments you consented to save on FitKart. Click any record to review recommendations or ask follow-up questions.
             </p>
 
             {loadingHistory ? (
-              <div className="py-12 text-center text-zinc-400 text-sm">
+              <div className="py-12 text-center text-fit-muted text-sm">
                 Loading history...
               </div>
             ) : historyItems.length === 0 ? (
-              <div className="py-12 text-center text-zinc-500 text-sm">
+              <div className="py-12 text-center text-fit-muted text-sm">
                 No saved assessments found.
               </div>
             ) : (
@@ -372,24 +372,24 @@ export default function FitnessBodyCare() {
                     <div
                       key={item._id}
                       onClick={() => handleSelectHistoryItem(item)}
-                      className="p-4 rounded-2xl bg-zinc-950/80 hover:bg-zinc-800/80 border border-white/5 hover:border-fit-primary/40 transition-all cursor-pointer group relative"
+                      className="p-4 rounded-2xl bg-fit-surface2 hover:bg-fit-surface border border-fit-border hover:border-fit-primary/40 transition-all cursor-pointer group relative shadow-card"
                     >
                       <div className="flex items-start justify-between">
                         <div>
                           <span className="text-[10px] uppercase font-bold text-fit-primary tracking-wider">
                             {item.bodySide} view
                           </span>
-                          <h4 className="text-sm font-bold text-white group-hover:text-fit-primary transition-colors capitalize">
+                          <h4 className="text-sm font-bold text-fit-text group-hover:text-fit-primary transition-colors capitalize">
                             {item.bodyPart.replace('-', ' ')}
                           </h4>
-                          <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+                          <p className="text-xs text-fit-muted mt-0.5 line-clamp-1">
                             {item.symptoms?.painType || 'Discomfort'} • Severity {item.symptoms?.severity}/10
                           </p>
-                          <div className="flex items-center gap-2 mt-2 text-[11px] text-zinc-500">
+                          <div className="flex items-center gap-2 mt-2 text-[11px] text-fit-muted">
                             <Clock size={12} />
                             <span>{dateStr}</span>
                             {item.followUpChat?.length > 0 && (
-                              <span className="px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-600 dark:text-teal-300 text-[10px] font-bold">
                                 {item.followUpChat.length} follow-up(s)
                               </span>
                             )}
@@ -399,7 +399,7 @@ export default function FitnessBodyCare() {
                         <button
                           type="button"
                           onClick={(e) => handleDeleteHistory(item._id, e)}
-                          className="p-2 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-70 group-hover:opacity-100"
+                          className="p-2 rounded-xl text-fit-muted hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-70 group-hover:opacity-100"
                           title="Delete assessment"
                         >
                           <Trash2 size={16} />

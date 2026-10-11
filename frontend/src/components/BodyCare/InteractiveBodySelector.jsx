@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RotateCw, CheckCircle2, Info } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext.jsx';
 
 export const BODY_PARTS_METADATA = {
   // Front View
@@ -29,6 +30,8 @@ export const BODY_PARTS_METADATA = {
 
 export default function InteractiveBodySelector({ selectedPart, onSelectPart, view, onViewChange }) {
   const [hoveredPart, setHoveredPart] = useState(null);
+  const themeContext = useTheme();
+  const isDark = themeContext ? themeContext.theme !== 'light' : true;
 
   const activeMetadata = selectedPart ? BODY_PARTS_METADATA[selectedPart] : null;
 
@@ -41,26 +44,26 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
   const getPartFill = (id) => {
     if (isSelected(id)) return 'rgba(34, 197, 94, 0.75)'; // vibrant fit-primary
     if (isHovered(id)) return 'rgba(45, 212, 191, 0.55)'; // glowing teal
-    return 'rgba(255, 255, 255, 0.08)'; // subtle dark glass
+    return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)';
   };
 
   const getPartStroke = (id) => {
     if (isSelected(id)) return '#22c55e';
     if (isHovered(id)) return '#2dd4bf';
-    return 'rgba(255, 255, 255, 0.22)';
+    return isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(15, 23, 42, 0.22)';
   };
 
   return (
     <div className="flex flex-col items-center w-full">
       {/* View Switcher Controls */}
-      <div className="flex items-center justify-between w-full max-w-md mb-4 bg-zinc-900/90 border border-white/10 rounded-2xl p-1.5 shadow-xl backdrop-blur-md">
+      <div className="flex items-center justify-between w-full max-w-md mb-4 bg-fit-surface2 border border-fit-border rounded-2xl p-1.5 shadow-sm">
         <button
           type="button"
           onClick={() => onViewChange('front')}
           className={`flex-1 py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
             view === 'front'
-              ? 'bg-gradient-to-r from-fit-primary to-emerald-400 text-black shadow-lg shadow-fit-primary/25'
-              : 'text-zinc-400 hover:text-white'
+              ? 'bg-fit-primary text-white shadow-md shadow-fit-primary/25'
+              : 'text-fit-muted hover:text-fit-text'
           }`}
         >
           Anterior (Front View)
@@ -70,8 +73,8 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
           onClick={() => onViewChange('back')}
           className={`flex-1 py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
             view === 'back'
-              ? 'bg-gradient-to-r from-teal-400 to-cyan-400 text-black shadow-lg shadow-teal-400/25'
-              : 'text-zinc-400 hover:text-white'
+              ? 'bg-teal-500 text-white shadow-md shadow-teal-500/25'
+              : 'text-fit-muted hover:text-fit-text'
           }`}
         >
           Posterior (Back View)
@@ -79,19 +82,19 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
       </div>
 
       {/* SVG Canvas Container */}
-      <div className="relative w-full max-w-sm aspect-[1/1.65] bg-gradient-to-b from-zinc-900/80 via-black/90 to-zinc-950 rounded-3xl border border-white/10 shadow-2xl p-4 flex items-center justify-center overflow-hidden">
+      <div className="relative w-full max-w-sm aspect-[1/1.65] bg-fit-surface2/60 rounded-3xl border border-fit-border shadow-inner p-4 flex items-center justify-center overflow-hidden">
         {/* Background glow effects */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-fit-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 translate-y-1/2 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Hover/Selection Live Indicator Badge */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-xs pointer-events-none z-10">
-          <span className="text-[11px] font-bold tracking-widest uppercase text-zinc-400 flex items-center gap-1.5">
+          <span className="text-[11px] font-bold tracking-widest uppercase text-fit-muted flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-fit-primary animate-ping" />
             {view === 'front' ? 'FRONT VIEW' : 'BACK VIEW'}
           </span>
           {(hoveredPart || selectedPart) && (
-            <span className="px-2.5 py-1 rounded-full bg-zinc-800/90 border border-white/15 text-fit-primary font-black text-xs shadow-md">
+            <span className="px-2.5 py-1 rounded-full bg-fit-surface border border-fit-border text-fit-primary font-black text-xs shadow-md">
               {BODY_PARTS_METADATA[hoveredPart || selectedPart]?.name}
             </span>
           )}
@@ -100,7 +103,7 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
         {/* The Vector Body Illustration SVG */}
         <svg
           viewBox="0 0 300 480"
-          className="w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] select-none"
+          className="w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.15)] select-none"
         >
           <defs>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -110,7 +113,7 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
           </defs>
 
           {/* Background Anatomical Silhouette Reference */}
-          <g opacity="0.15" stroke="#ffffff" strokeWidth="1" fill="none">
+          <g opacity={isDark ? "0.2" : "0.35"} stroke={isDark ? "#ffffff" : "#0f172a"} strokeWidth="1" fill="none">
             {/* Spine reference axis */}
             <line x1="150" y1="50" x2="150" y2="280" strokeDasharray="3 3" />
             {/* Shoulder axis */}
@@ -124,8 +127,8 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
           {/* HEAD & CRANIAL BASE */}
           <path
             d="M 132 20 C 132 10, 168 10, 168 20 C 172 35, 165 52, 150 56 C 135 52, 128 35, 132 20 Z"
-            fill="rgba(255,255,255,0.06)"
-            stroke="rgba(255,255,255,0.2)"
+            fill={isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)"}
+            stroke={isDark ? "rgba(255,255,255,0.2)" : "rgba(15,23,42,0.2)"}
             strokeWidth="1.5"
           />
 
@@ -418,9 +421,9 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
 
       {/* Quick Select Accessibility Pills (for mobile/one-tap navigation) */}
       <div className="w-full mt-4">
-        <div className="flex items-center justify-between mb-2 px-1 text-xs text-zinc-400 font-bold uppercase tracking-wider">
+        <div className="flex items-center justify-between mb-2 px-1 text-xs text-fit-muted font-bold uppercase tracking-wider">
           <span>Tap Area or Select Below</span>
-          <span className="text-zinc-500 font-normal">({view === 'front' ? 'Front body' : 'Back body'})</span>
+          <span className="text-fit-muted/80 font-normal">({view === 'front' ? 'Front body' : 'Back body'})</span>
         </div>
         <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {currentViewParts.map((part) => {
@@ -432,11 +435,11 @@ export default function InteractiveBodySelector({ selectedPart, onSelectPart, vi
                 onClick={() => onSelectPart(part.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                   active
-                    ? 'bg-fit-primary text-black shadow-md shadow-fit-primary/25 scale-[1.02]'
-                    : 'bg-zinc-900/90 text-zinc-300 hover:text-white border border-white/5 hover:border-white/20'
+                    ? 'bg-fit-primary text-white shadow-md shadow-fit-primary/25 scale-[1.02]'
+                    : 'bg-fit-surface text-fit-text hover:bg-fit-surface2 border border-fit-border hover:border-fit-primary/40'
                 }`}
               >
-                {active && <CheckCircle2 size={13} className="text-black" />}
+                {active && <CheckCircle2 size={13} className="text-white" />}
                 {part.name.split('(')[0].trim()}
               </button>
             );

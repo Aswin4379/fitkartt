@@ -65,24 +65,24 @@ export default function FitnessDayModal({ dayData, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-sm transition-opacity">
-      <div className="bg-[#121212] border border-zinc-800 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative animate-in slide-in-from-bottom-8 duration-300">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-sm transition-opacity">
+      <div className="bg-fit-surface border border-fit-border rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative animate-in slide-in-from-bottom-8 duration-300">
         
         {/* Header */}
-        <div className="p-6 border-b border-zinc-800 sticky top-0 bg-[#121212] z-10 rounded-t-3xl sm:rounded-t-3xl">
-          <button onClick={onClose} className="absolute top-6 right-6 text-zinc-500 hover:text-white bg-zinc-900 p-2 rounded-full transition-colors">
+        <div className="p-6 border-b border-fit-border sticky top-0 bg-fit-surface z-10 rounded-t-3xl sm:rounded-t-3xl">
+          <button onClick={onClose} className="absolute top-6 right-6 text-fit-muted hover:text-fit-text bg-fit-surface2 border border-fit-border p-2 rounded-full transition-colors">
             <X size={20} />
           </button>
           
           <div className="text-[#2196f3] font-bold text-xs uppercase tracking-widest mb-1">Day {dayData.day}</div>
-          <h2 className="text-3xl font-extrabold text-white mb-4 pr-12">{dayData.focus}</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-fit-text mb-4 pr-12">{dayData.focus}</h2>
           
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-zinc-300 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
+          <div className="flex flex-wrap gap-3 text-sm">
+            <div className="flex items-center gap-1.5 text-fit-text bg-fit-surface2 px-3 py-1.5 rounded-lg border border-fit-border">
               <Clock size={16} className="text-amber-500" />
               <span className="font-bold">{dayData.estimatedDuration || 45} mins</span>
             </div>
-            <div className="flex items-center gap-1.5 text-zinc-300 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
+            <div className="flex items-center gap-1.5 text-fit-text bg-fit-surface2 px-3 py-1.5 rounded-lg border border-fit-border">
               <Dumbbell size={16} className="text-blue-500" />
               <span className="font-bold">{dayData.exercises.length} Exercises</span>
             </div>
@@ -93,7 +93,7 @@ export default function FitnessDayModal({ dayData, onClose }) {
               </div>
             )}
             {dayData.isCompleted && (
-              <div className="flex items-center gap-1.5 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
+              <div className="flex items-center gap-1.5 text-emerald-500 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
                 <CheckCircle2 size={16} />
                 <span className="font-bold">Completed</span>
               </div>
@@ -118,30 +118,30 @@ export default function FitnessDayModal({ dayData, onClose }) {
             return (
               <div key={type} className="space-y-4">
                 <h3 className={`text-lg font-bold flex items-center gap-2 ${color}`}>
-                  {icon} <span className="text-white capitalize">{title}</span>
+                  {icon} <span className="text-fit-text capitalize">{title}</span>
                 </h3>
                 
                 <div className="space-y-3">
                   {exercises.map((ex, i) => (
-                    <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 transition-colors hover:border-zinc-700">
+                    <div key={i} className="bg-fit-surface2/60 border border-fit-border rounded-2xl p-4 transition-colors hover:border-fit-primary/40 shadow-sm">
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-extrabold text-white text-lg">{ex.name}</h4>
-                        <div className="text-xs font-bold px-2 py-1 bg-black rounded-md text-zinc-400 border border-zinc-800">
+                        <h4 className="font-extrabold text-fit-text text-base sm:text-lg">{ex.name}</h4>
+                        <div className="text-xs font-bold px-2 py-1 bg-fit-surface rounded-md text-fit-muted border border-fit-border">
                           {ex.sets} × {ex.reps}
                         </div>
                       </div>
                       
-                      <p className="text-sm text-zinc-400 mb-3">{ex.reason}</p>
+                      <p className="text-sm text-fit-muted mb-3">{ex.reason}</p>
                       
                       <div className="flex flex-wrap gap-2 text-xs font-semibold">
                         {ex.targetMuscles?.map(m => (
-                          <span key={m} className="px-2 py-0.5 rounded text-rose-400 bg-rose-400/10">{m}</span>
+                          <span key={m} className="px-2 py-0.5 rounded text-rose-500 bg-rose-500/10 border border-rose-500/20">{m}</span>
                         ))}
                         {ex.equipment && (
-                          <span className="px-2 py-0.5 rounded text-blue-400 bg-blue-400/10">{ex.equipment}</span>
+                          <span className="px-2 py-0.5 rounded text-blue-500 bg-blue-500/10 border border-blue-500/20">{ex.equipment}</span>
                         )}
-                        <span className="px-2 py-0.5 rounded text-amber-400 bg-amber-400/10">Rest: {ex.restTime}s</span>
-                        <span className="px-2 py-0.5 rounded text-emerald-400 bg-emerald-400/10">Wt: {ex.recommendedWeight}</span>
+                        <span className="px-2 py-0.5 rounded text-amber-500 bg-amber-500/10 border border-amber-500/20">Rest: {ex.restTime}s</span>
+                        <span className="px-2 py-0.5 rounded text-emerald-500 bg-emerald-500/10 border border-emerald-500/20">Wt: {ex.recommendedWeight}</span>
                       </div>
                     </div>
                   ))}
@@ -152,15 +152,15 @@ export default function FitnessDayModal({ dayData, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-zinc-800 bg-[#121212] rounded-b-3xl">
+        <div className="p-6 border-t border-fit-border bg-fit-surface rounded-b-3xl">
           <button 
             onClick={handleStart}
-            className={`w-full py-4 rounded-xl font-extrabold text-lg flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-4 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-md ${
               isThisWorkoutActive
-                ? 'bg-fit-primary text-black hover:scale-[1.02] shadow-[0_0_25px_rgba(34,197,94,0.4)] animate-pulse'
+                ? 'bg-fit-primary text-white hover:scale-[1.02] shadow-glow animate-pulse'
                 : dayData.isCompleted 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
-                : 'bg-[#2196f3] text-black hover:scale-[1.02] hover:bg-[#1976d2] shadow-[0_0_20px_rgba(33,150,243,0.3)]'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25'
+                : 'bg-[#2196f3] text-white hover:scale-[1.02] hover:bg-[#1976d2]'
             }`}
           >
             {isThisWorkoutActive ? (

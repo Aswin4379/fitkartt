@@ -48,7 +48,7 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
     : '';
 
   return (
-    <div className="bg-zinc-950/80 border border-white/10 hover:border-fit-primary/40 rounded-3xl p-5 sm:p-6 shadow-xl transition-all duration-300 flex flex-col justify-between group">
+    <div className="bg-fit-surface border border-fit-border hover:border-fit-primary/40 rounded-3xl p-5 sm:p-6 shadow-card transition-all duration-300 flex flex-col justify-between group">
       
       {/* 1. Header: Exercise Index, Title, and Media Badge */}
       <div>
@@ -58,11 +58,11 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
               {index + 1}
             </span>
             <div>
-              <h4 className="text-base sm:text-lg font-black text-white group-hover:text-fit-primary transition-colors leading-snug">
+              <h4 className="text-base sm:text-lg font-black text-fit-text group-hover:text-fit-primary transition-colors leading-snug">
                 {name}
               </h4>
               {repsOrDuration && (
-                <span className="text-[11px] font-bold text-teal-400 flex items-center gap-1 mt-0.5">
+                <span className="text-[11px] font-bold text-teal-500 flex items-center gap-1 mt-0.5">
                   <Repeat size={11} /> {repsOrDuration}
                 </span>
               )}
@@ -71,18 +71,18 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
 
           {/* Media Availability Badge */}
           {hasDirectVideo || hasAnimation ? (
-            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-wider shrink-0 flex items-center gap-1 shadow-sm">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider shrink-0 flex items-center gap-1 shadow-sm">
               <Play size={10} fill="currentColor" /> Verified Demo
             </span>
           ) : (
-            <span className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-[10px] font-black text-blue-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
               <ExternalLink size={10} /> Video Guide
             </span>
           )}
         </div>
 
         {/* 2. Visual Demonstration Player / Card */}
-        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 my-3 shadow-inner">
+        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-fit-border my-3 shadow-inner">
           {hasDirectVideo ? (
             isPlaying ? (
               <div className="relative w-full h-full bg-black">
@@ -128,19 +128,19 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800 flex items-center justify-center" />
+                  <div className="w-full h-full bg-fit-surface2 flex items-center justify-center" />
                 )}
 
                 {/* Dark Gradient Veil */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40 flex items-center justify-center">
-                  <div className="w-14 h-14 rounded-2xl bg-fit-primary text-black flex items-center justify-center shadow-[0_0_25px_rgba(34,197,94,0.6)] group-hover/thumb:scale-110 transition-transform">
-                    <Play size={24} fill="black" className="ml-0.5" />
+                  <div className="w-14 h-14 rounded-2xl bg-fit-primary text-white flex items-center justify-center shadow-glow group-hover/thumb:scale-110 transition-transform">
+                    <Play size={24} fill="currentColor" className="ml-0.5" />
                   </div>
                 </div>
 
                 {/* Duration & Quality Chip */}
                 {durationText && (
-                  <div className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 border border-white/10 text-[10px] font-bold text-zinc-300 backdrop-blur-sm">
+                  <div className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 border border-white/10 text-[10px] font-bold text-white backdrop-blur-sm">
                     {durationText}
                   </div>
                 )}
@@ -162,12 +162,12 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
             </div>
           ) : (
             // Fallback: Direct YouTube Search Player Card
-            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-zinc-900 to-black">
-              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mb-2 shadow-lg">
+            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-fit-surface2">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center mb-2 shadow-lg">
                 <Play size={20} fill="currentColor" />
               </div>
-              <h5 className="text-xs sm:text-sm font-bold text-white mb-1 line-clamp-1">{name}</h5>
-              <p className="text-[11px] text-zinc-400 max-w-xs mb-3">
+              <h5 className="text-xs sm:text-sm font-bold text-fit-text mb-1 line-clamp-1">{name}</h5>
+              <p className="text-[11px] text-fit-muted max-w-xs mb-3">
                 Watch verified clinical form and physical therapist demonstration.
               </p>
               <a
@@ -185,9 +185,9 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
 
         {/* 3. Action Link if Video Available */}
         {(hasDirectVideo || hasAnimation) && (
-          <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1 mb-3">
-            <span className="flex items-center gap-1 text-zinc-400">
-              <Info size={12} className="text-teal-400" /> Physical therapy reference form
+          <div className="flex items-center justify-between text-[11px] text-fit-muted px-1 mb-3">
+            <span className="flex items-center gap-1 text-fit-muted">
+              <Info size={12} className="text-teal-500" /> Physical therapy reference form
             </span>
             <a
               href={youtubeSearchUrl}
@@ -203,20 +203,20 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
         {/* 4. Core Movement Execution Guide (Starting Position & Direction) */}
         <div className="space-y-2 mt-2">
           {startingPosition && (
-            <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs text-zinc-300">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1 mb-0.5">
+            <div className="p-2.5 rounded-xl bg-fit-surface2/60 border border-fit-border text-xs text-fit-text/90">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-teal-500 flex items-center gap-1 mb-0.5">
                 <Compass size={11} /> Starting Position
               </div>
-              <p className="text-zinc-300 text-xs leading-relaxed">{startingPosition}</p>
+              <p className="text-fit-text/90 text-xs leading-relaxed">{startingPosition}</p>
             </div>
           )}
 
           {movementDirection && (
-            <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs text-zinc-300">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1 mb-0.5">
+            <div className="p-2.5 rounded-xl bg-fit-surface2/60 border border-fit-border text-xs text-fit-text/90">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-fit-primary flex items-center gap-1 mb-0.5">
                 <CheckCircle2 size={11} /> Movement Direction
               </div>
-              <p className="text-zinc-300 text-xs leading-relaxed">{movementDirection}</p>
+              <p className="text-fit-text/90 text-xs leading-relaxed">{movementDirection}</p>
             </div>
           )}
         </div>
@@ -224,20 +224,20 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
         {/* 5. Breathing & Warning Cues */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
           {breathingGuidance && (
-            <div className="p-2 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] text-cyan-200">
-              <span className="font-bold flex items-center gap-1 text-cyan-300 mb-0.5">
+            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[11px] text-cyan-600 dark:text-cyan-200">
+              <span className="font-bold flex items-center gap-1 text-cyan-600 dark:text-cyan-300 mb-0.5">
                 <Wind size={11} /> Breathing
               </span>
-              <p className="leading-tight text-cyan-200/90">{breathingGuidance}</p>
+              <p className="leading-tight text-cyan-700 dark:text-cyan-200/90">{breathingGuidance}</p>
             </div>
           )}
 
           {stopSigns && (
-            <div className="p-2 rounded-xl bg-red-950/20 border border-red-500/20 text-[11px] text-red-200">
-              <span className="font-bold flex items-center gap-1 text-red-400 mb-0.5">
+            <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-[11px] text-red-600 dark:text-red-200">
+              <span className="font-bold flex items-center gap-1 text-red-500 mb-0.5">
                 <AlertTriangle size={11} /> Stop If
               </span>
-              <p className="leading-tight text-red-200/90">{stopSigns}</p>
+              <p className="leading-tight text-red-700 dark:text-red-200/90">{stopSigns}</p>
             </div>
           )}
         </div>
@@ -248,7 +248,7 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
             <button
               type="button"
               onClick={() => setShowFullDetails(!showFullDetails)}
-              className="w-full py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-white/5 text-xs font-bold text-zinc-300 hover:text-white flex items-center justify-between transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-fit-surface2 hover:bg-fit-surface border border-fit-border text-xs font-bold text-fit-text flex items-center justify-between transition-colors shadow-sm"
             >
               <span>{showFullDetails ? 'Hide Step-by-Step Instructions' : 'View Step-by-Step Instructions'}</span>
               <span className="text-[10px] text-fit-primary">
@@ -257,10 +257,10 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
             </button>
 
             {showFullDetails && (
-              <div className="mt-2.5 p-3 rounded-2xl bg-black/60 border border-white/5 space-y-1.5 animate-in fade-in duration-200">
+              <div className="mt-2.5 p-3 rounded-2xl bg-fit-surface2/60 border border-fit-border space-y-1.5 animate-in fade-in duration-200">
                 {instructions.map((step, sIdx) => (
-                  <div key={sIdx} className="flex items-start gap-2 text-xs text-zinc-300">
-                    <span className="w-4 h-4 rounded-full bg-zinc-800 text-fit-primary font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                  <div key={sIdx} className="flex items-start gap-2 text-xs text-fit-text/90">
+                    <span className="w-4 h-4 rounded-full bg-fit-surface border border-fit-border text-fit-primary font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
                       {sIdx + 1}
                     </span>
                     <span className="leading-relaxed">{step}</span>
@@ -268,7 +268,7 @@ export default function ExerciseDemonstrationPlayer({ exercise, index = 0 }) {
                 ))}
 
                 {precautions && (
-                  <div className="pt-2 mt-2 border-t border-white/5 text-[11px] text-amber-400 font-semibold flex items-start gap-1.5">
+                  <div className="pt-2 mt-2 border-t border-fit-border text-[11px] text-amber-500 font-semibold flex items-start gap-1.5">
                     <AlertTriangle size={12} className="shrink-0 mt-0.5" />
                     <span>{precautions}</span>
                   </div>

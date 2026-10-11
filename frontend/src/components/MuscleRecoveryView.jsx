@@ -28,7 +28,7 @@ export default function MuscleRecoveryView({ recoveryData }) {
   ];
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl relative overflow-hidden group">
+    <div className="bg-fit-surface border border-fit-border rounded-3xl p-6 shadow-card relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-64 h-64 bg-fit-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
       
       <div className="flex items-center gap-3 mb-6 relative z-10">
@@ -36,8 +36,8 @@ export default function MuscleRecoveryView({ recoveryData }) {
           <Activity className="text-fit-primary" size={20} />
         </div>
         <div>
-          <h3 className="text-xl font-extrabold text-white">Muscle Recovery</h3>
-          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Real-time status</p>
+          <h3 className="text-xl font-extrabold text-fit-text">Muscle Recovery</h3>
+          <p className="text-xs font-bold text-fit-muted uppercase tracking-widest">Real-time status</p>
         </div>
       </div>
 
@@ -46,15 +46,15 @@ export default function MuscleRecoveryView({ recoveryData }) {
           const val = safeData[muscle] ?? 100; // Default 100%
           
           return (
-            <div key={muscle} className="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 transition-colors hover:border-white/10">
+            <div key={muscle} className="bg-fit-surface2/70 border border-fit-border rounded-2xl p-4 flex flex-col gap-2 transition-colors hover:border-fit-primary/40">
               <div className="flex justify-between items-center">
-                <span className="text-white font-bold capitalize text-sm">{muscle}</span>
+                <span className="text-fit-text font-bold capitalize text-sm">{muscle}</span>
                 <span className={`text-xs font-extrabold flex items-center gap-1 ${getTextColor(val)}`}>
                   {getBatteryIcon(val)} {val}%
                 </span>
               </div>
               
-              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-fit-border rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-1000 ${getStatusColor(val)}`}
                   style={{ width: `${val}%` }}

@@ -103,30 +103,30 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
 
   if (showSummary && completedSession) {
     return (
-      <div className="min-h-screen bg-black w-full">
+      <div className="min-h-screen bg-fit-bg text-fit-text w-full">
         <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 max-w-lg mx-auto">
           <div className="w-24 h-24 bg-fit-primary/20 rounded-full flex items-center justify-center mb-6 animate-bounce">
             <CheckCircle size={48} className="text-fit-primary" />
           </div>
-          <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tight text-center">Workout Complete!</h2>
-          <p className="text-zinc-400 mb-8 text-center text-lg">Great job! Here is your summary.</p>
+          <h2 className="text-4xl font-black text-fit-text mb-2 uppercase tracking-tight text-center">Workout Complete!</h2>
+          <p className="text-fit-muted mb-8 text-center text-lg">Great job! Here is your summary.</p>
           
-          <div className="bg-zinc-900 rounded-3xl p-6 w-full mb-8 border border-zinc-800 shadow-2xl">
+          <div className="bg-fit-surface rounded-3xl p-6 w-full mb-8 border border-fit-border shadow-card">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-black/50 p-4 rounded-2xl text-center">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Duration</div>
-                <div className="text-2xl font-black text-white">{Math.round((completedSession.durationSeconds || 0)/60)} min</div>
+              <div className="bg-fit-surface2 p-4 rounded-2xl text-center border border-fit-border">
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest mb-1">Duration</div>
+                <div className="text-2xl font-black text-fit-text">{Math.round((completedSession.durationSeconds || 0)/60)} min</div>
               </div>
-              <div className="bg-black/50 p-4 rounded-2xl text-center">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Volume</div>
-                <div className="text-2xl font-black text-white">{(completedSession.totalVolume || 0).toLocaleString()} kg</div>
+              <div className="bg-fit-surface2 p-4 rounded-2xl text-center border border-fit-border">
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest mb-1">Volume</div>
+                <div className="text-2xl font-black text-fit-text">{(completedSession.totalVolume || 0).toLocaleString()} kg</div>
               </div>
-              <div className="bg-black/50 p-4 rounded-2xl text-center">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Exercises</div>
-                <div className="text-2xl font-black text-white">{completedSession.exercises?.length || 0}</div>
+              <div className="bg-fit-surface2 p-4 rounded-2xl text-center border border-fit-border">
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest mb-1">Exercises</div>
+                <div className="text-2xl font-black text-fit-text">{completedSession.exercises?.length || 0}</div>
               </div>
-              <div className="bg-black/50 p-4 rounded-2xl text-center">
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Calories</div>
+              <div className="bg-fit-surface2 p-4 rounded-2xl text-center border border-fit-border">
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest mb-1">Calories</div>
                 <div className="text-2xl font-black text-amber-500">{completedSession.caloriesBurned || 0}</div>
               </div>
             </div>
@@ -136,14 +136,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                 <div className="text-fit-primary text-xs font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
                   🎉 New Personal Records
                 </div>
-                <div className="text-white font-bold text-sm">
+                <div className="text-fit-text font-bold text-sm">
                   {completedSession.prsHit.join(', ')}
                 </div>
               </div>
             )}
           </div>
           
-          <button onClick={() => navigate('/fitness')} className="w-full bg-white text-black py-4 rounded-2xl font-extrabold text-lg hover:bg-zinc-200 transition-colors shadow-lg">
+          <button onClick={() => navigate('/fitness')} className="w-full bg-fit-primary text-white py-4 rounded-2xl font-extrabold text-lg hover:brightness-105 transition-all shadow-glow">
             Back to Fitness
           </button>
         </div>
@@ -153,14 +153,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
 
   if (!activeWorkout) {
     return (
-      <div className="min-h-screen bg-black w-full">
+      <div className="min-h-screen bg-fit-bg text-fit-text w-full">
         <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-          <div className="w-24 h-24 bg-gradient-to-tr from-zinc-800 to-zinc-900 rounded-full flex items-center justify-center mb-6 shadow-2xl border border-zinc-800/50">
-            <StopCircle size={48} className="text-zinc-500" />
+          <div className="w-24 h-24 bg-fit-surface2 rounded-full flex items-center justify-center mb-6 shadow-card border border-fit-border">
+            <StopCircle size={48} className="text-fit-muted" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">No Active Workout</h2>
-          <p className="text-zinc-400 mb-8 max-w-sm text-lg">Pick a routine from the library to begin tracking.</p>
-          <button onClick={() => navigate('/fitness')} className="bg-gradient-to-r from-fit-primary to-emerald-400 text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+          <h2 className="text-3xl font-bold text-fit-text mb-3 tracking-tight">No Active Workout</h2>
+          <p className="text-fit-muted mb-8 max-w-sm text-lg">Pick a routine from the library to begin tracking.</p>
+          <button onClick={() => navigate('/fitness')} className="bg-fit-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-glow">
             Go to Gym Dashboard
           </button>
         </div>
@@ -170,10 +170,10 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
 
   if (!activeWorkout.exercises || activeWorkout.exercises.length === 0) {
     return (
-      <div className="min-h-screen bg-black w-full flex items-center justify-center text-zinc-400">
+      <div className="min-h-screen bg-fit-bg text-fit-muted w-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-fit-primary border-t-transparent rounded-full animate-spin" />
-          <p className="font-bold">Preparing Workout Exercises...</p>
+          <p className="font-bold text-fit-text">Preparing Workout Exercises...</p>
         </div>
       </div>
     );
@@ -352,51 +352,51 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
 
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-fit-bg text-fit-text flex flex-col relative overflow-hidden">
       
       {/* Background */}
       <div 
-        className="fixed inset-0 w-full h-full pointer-events-none -z-20 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 w-full h-full pointer-events-none -z-20 bg-cover bg-center bg-no-repeat opacity-20 dark:opacity-40"
         style={{ backgroundImage: `url('/fitkartt/workout-bg.jpg')` }}
       />
-      <div className="fixed inset-0 w-full h-full bg-black/80 backdrop-blur-[2px] pointer-events-none -z-10" />
+      <div className="fixed inset-0 w-full h-full bg-fit-bg/85 backdrop-blur-[2px] pointer-events-none -z-10" />
       <div className="fixed top-0 left-0 w-full h-96 bg-fit-primary/10 blur-[120px] pointer-events-none -z-10 mix-blend-screen" />
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/5 shadow-sm">
+      <div className="sticky top-0 z-40 bg-fit-surface/90 backdrop-blur-xl border-b border-fit-border shadow-sm">
         <div className="px-4 py-3 sm:py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-10 h-10 rounded-full bg-zinc-900 flex-shrink-0 flex items-center justify-center border border-white/10">
+            <div className="w-10 h-10 rounded-full bg-fit-surface2 flex-shrink-0 flex items-center justify-center border border-fit-border">
               <Activity className="text-fit-primary animate-pulseSlow" size={20} />
             </div>
             <div className="min-w-0">
-              <h1 className="font-extrabold text-base sm:text-lg tracking-tight leading-snug text-white line-clamp-2">{activeWorkout.name}</h1>
+              <h1 className="font-extrabold text-base sm:text-lg tracking-tight leading-snug text-fit-text line-clamp-2">{activeWorkout.name}</h1>
               <div className="text-fit-primary font-mono text-xs sm:text-sm flex items-center gap-1.5 opacity-90 mt-0.5">
                 <Clock size={13} /> {formatTime(duration)}
-                <span className="text-zinc-500 mx-1">|</span>
-                <span className="text-amber-400">{progressPercent}%</span>
+                <span className="text-fit-muted mx-1">|</span>
+                <span className="text-amber-500 font-bold">{progressPercent}%</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <button 
               onClick={() => setShowDiscardConfirm(true)} 
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-white/10"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-fit-surface2 flex items-center justify-center text-fit-muted hover:text-red-500 hover:bg-red-500/10 transition-colors border border-fit-border"
               title="Discard Workout"
             >
               <X size={18} />
             </button>
-            <button onClick={onSwitchTheme} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10" title="Switch Theme">
+            <button onClick={onSwitchTheme} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-fit-surface2 flex items-center justify-center text-fit-muted hover:text-fit-text hover:bg-fit-surface transition-colors border border-fit-border" title="Switch Theme">
               <Smartphone size={18} />
             </button>
-            <button onClick={handleFinish} className="bg-white text-black px-4 sm:px-5 py-2 rounded-full font-extrabold text-xs sm:text-sm hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+            <button onClick={handleFinish} className="bg-fit-primary text-white px-4 sm:px-5 py-2 rounded-full font-extrabold text-xs sm:text-sm hover:scale-105 transition-transform shadow-glow">
               Finish
             </button>
           </div>
         </div>
 
         {/* Pinned Bottom Progress Bar */}
-        <div className="w-full h-1 bg-zinc-900 overflow-hidden">
+        <div className="w-full h-1 bg-fit-surface2 overflow-hidden">
           <div className="h-full bg-fit-primary transition-all duration-500" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
@@ -419,9 +419,9 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
             const currentWatchUrl = getWatchUrl(currentExercise, currentEmbedUrl);
 
             return (
-              <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-5 border border-white/10 flex flex-col gap-4 shadow-xl">
+              <div className="bg-fit-surface border border-fit-border rounded-3xl p-5 flex flex-col gap-4 shadow-card">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-zinc-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                  <h3 className="text-fit-muted font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                     <Play size={14} className="text-fit-primary" /> Video Demonstration
                   </h3>
                   <a 
@@ -434,7 +434,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   </a>
                 </div>
                 
-                <div className="w-full aspect-video rounded-2xl overflow-hidden relative bg-black border border-white/5 flex items-center justify-center">
+                <div className="w-full aspect-video rounded-2xl overflow-hidden relative bg-black/90 border border-fit-border flex items-center justify-center">
                   {currentEmbedUrl ? (
                     <iframe
                       key={currentEmbedUrl}
@@ -446,10 +446,10 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center p-6 text-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                      <div className="w-12 h-12 rounded-full bg-fit-surface2 flex items-center justify-center text-fit-muted">
                         <Play size={24} className="opacity-40" />
                       </div>
-                      <p className="text-zinc-400 text-sm font-medium">Video demonstration unavailable</p>
+                      <p className="text-fit-muted text-sm font-medium">Video demonstration unavailable</p>
                       <a
                         href={currentWatchUrl}
                         target="_blank"
@@ -463,14 +463,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                 </div>
 
                 <div className="flex items-center justify-between px-1 text-xs">
-                  <span className="text-zinc-400">
-                    Exercise: <span className="text-white font-bold">{currentExercise.name}</span>
+                  <span className="text-fit-muted">
+                    Exercise: <span className="text-fit-text font-bold">{currentExercise.name}</span>
                   </span>
                   <a
                     href={currentWatchUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                    className="text-fit-muted hover:text-fit-text transition-colors flex items-center gap-1"
                   >
                     Open in YouTube <ExternalLink size={11} />
                   </a>
@@ -480,41 +480,41 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
           })()}
           
           {/* Exercise Details */}
-          <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-5 border border-white/10 text-sm">
-            <h3 className="text-white font-bold mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
+          <div className="bg-fit-surface border border-fit-border rounded-3xl p-5 text-sm shadow-card">
+            <h3 className="text-fit-text font-bold mb-4 flex items-center gap-2 border-b border-fit-border pb-3">
               <Info size={16} className="text-fit-primary" /> Details & Instructions
             </h3>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Equipment</div>
-                <div className="text-white font-semibold">{currentExercise.equipment || 'Bodyweight'}</div>
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest">Equipment</div>
+                <div className="text-fit-text font-semibold">{currentExercise.equipment || 'Bodyweight'}</div>
               </div>
               <div>
-                <div className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Difficulty</div>
-                <div className="text-white font-semibold">{currentExercise.level || currentExercise.difficulty || 'Intermediate'}</div>
+                <div className="text-fit-muted text-xs font-bold uppercase tracking-widest">Difficulty</div>
+                <div className="text-fit-text font-semibold">{currentExercise.level || currentExercise.difficulty || 'Intermediate'}</div>
               </div>
             </div>
             
             {currentExercise.instructions && currentExercise.instructions.length > 0 && (
               <div>
                 {Array.isArray(currentExercise.instructions) ? (
-                  <ol className="list-decimal pl-4 space-y-2 text-zinc-300">
+                  <ol className="list-decimal pl-4 space-y-2 text-fit-text/90">
                     {currentExercise.instructions.map((inst, i) => (
                       <li key={i} className="leading-relaxed">{inst}</li>
                     ))}
                   </ol>
                 ) : (
-                  <p className="text-zinc-300 leading-relaxed">{currentExercise.instructions}</p>
+                  <p className="text-fit-text/90 leading-relaxed">{currentExercise.instructions}</p>
                 )}
               </div>
             )}
             
             {currentExercise.commonMistakes && (
-              <div className="mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
-                <div className="text-red-400 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1">
+              <div className="mt-6 bg-red-500/10 border border-red-500/30 p-4 rounded-2xl">
+                <div className="text-red-500 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1">
                   <AlertTriangle size={14} /> Common Mistakes
                 </div>
-                <p className="text-red-300/80 leading-relaxed">{currentExercise.commonMistakes}</p>
+                <p className="text-red-500/90 leading-relaxed text-xs">{currentExercise.commonMistakes}</p>
               </div>
             )}
           </div>
@@ -533,31 +533,31 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   onClick={() => handleSelectExercise(idx)}
                   className={`flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                     isCurrent
-                      ? 'bg-fit-primary text-black shadow-lg shadow-fit-primary/25 scale-[1.02]'
+                      ? 'bg-fit-primary text-white shadow-md shadow-fit-primary/25 scale-[1.02]'
                       : isAllDone
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
-                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5 hover:border-white/10'
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                      : 'bg-fit-surface text-fit-muted hover:text-fit-text border border-fit-border hover:border-fit-primary/40'
                   }`}
                 >
                   <span className="opacity-70">{idx + 1}.</span>
                   <span className="max-w-[120px] truncate">{ex.name}</span>
-                  {isAllDone && <Check size={12} strokeWidth={3} className={isCurrent ? 'text-black' : 'text-emerald-400'} />}
+                  {isAllDone && <Check size={12} strokeWidth={3} className={isCurrent ? 'text-white' : 'text-emerald-500'} />}
                 </button>
               );
             })}
           </div>
 
-          <div className="flex justify-between items-start bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 border border-white/10">
+          <div className="flex justify-between items-start bg-fit-surface border border-fit-border rounded-3xl p-6 shadow-card">
             <div>
               <div className="text-fit-primary font-bold text-sm uppercase tracking-widest mb-2 flex items-center gap-2">
                 Exercise {currentExerciseIndex + 1} of {activeWorkout.exercises.length}
                 {currentExercise.type && (
-                  <span className={`px-2 py-0.5 rounded text-[10px] ${currentExercise.type === 'warm-up' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${currentExercise.type === 'warm-up' ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
                     {currentExercise.type}
                   </span>
                 )}
               </div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-fit-text leading-tight">
                 <a 
                   href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentExercise.name + ' exercise tutorial')}`}
                   target="_blank"
@@ -571,14 +571,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   </div>
                 </a>
               </div>
-              {currentExercise.reason && <p className="text-zinc-400 text-sm mt-3 border-l-2 border-fit-primary pl-3">{currentExercise.reason}</p>}
+              {currentExercise.reason && <p className="text-fit-muted text-sm mt-3 border-l-2 border-fit-primary pl-3">{currentExercise.reason}</p>}
             </div>
           </div>
 
           {/* Sets Tracker */}
-          <div className="bg-zinc-900/60 backdrop-blur-md rounded-3xl p-6 border border-white/10 flex-1">
+          <div className="bg-fit-surface border border-fit-border rounded-3xl p-6 flex-1 shadow-card">
             
-            <div className={`grid ${getExerciseType(currentExercise) === 'weighted' ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 text-[11px] font-bold text-zinc-500 uppercase tracking-widest text-center px-2 mb-4`}>
+            <div className={`grid ${getExerciseType(currentExercise) === 'weighted' ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 text-[11px] font-bold text-fit-muted uppercase tracking-widest text-center px-2 mb-4`}>
               <div>Set</div>
               <div>Prev</div>
               {getExerciseType(currentExercise) === 'weighted' && <div>KG</div>}
@@ -587,9 +587,6 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
               <div><Check size={14} className="mx-auto" /></div>
             </div>
 
-
-
-            
             <div className="space-y-3">
               {currentExercise.sets.map((set, setIndex) => {
                 const type = getExerciseType(currentExercise);
@@ -602,13 +599,13 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                                     isBodyweight ? (set.reps > 0) : true;
                 
                 return (
-                  <div key={setIndex} className={`grid ${isWeighted ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 items-center text-center p-3 rounded-2xl transition-all duration-300 ${set.isCompleted ? 'bg-fit-primary/10 border border-fit-primary/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-black/50 border border-white/5'}`}>
+                  <div key={setIndex} className={`grid ${isWeighted ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 items-center text-center p-3 rounded-2xl transition-all duration-300 ${set.isCompleted ? 'bg-fit-primary/10 border border-fit-primary/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-fit-surface2/60 border border-fit-border'}`}>
                     
-                    <div className={`font-bold ${set.isCompleted ? 'text-fit-primary' : 'text-zinc-500'}`}>
+                    <div className={`font-bold ${set.isCompleted ? 'text-fit-primary' : 'text-fit-muted'}`}>
                       {setIndex + 1}
                     </div>
                     
-                    <div className="text-zinc-500 text-xs font-semibold">
+                    <div className="text-fit-muted text-xs font-semibold">
                       {getPrevString(currentExercise.name, setIndex, type)}
                     </div>
                     
@@ -620,8 +617,8 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                         placeholder="KG"
                         onChange={(e) => updateSet(currentExerciseIndex, setIndex, 'weight', Number(e.target.value))}
                         disabled={set.isCompleted}
-                        className={`w-full bg-zinc-800/80 border rounded-xl py-3 text-center font-mono text-white text-lg font-bold transition-colors outline-none
-                          ${set.isCompleted ? 'border-transparent text-white/80 bg-transparent' : 'border-zinc-700 focus:border-fit-primary focus:bg-black'}
+                        className={`w-full bg-fit-surface border rounded-xl py-3 text-center font-mono text-fit-text text-lg font-bold transition-colors outline-none
+                          ${set.isCompleted ? 'border-transparent text-fit-text/80 bg-transparent' : 'border-fit-border focus:border-fit-primary focus:bg-fit-surface2'}
                         `}
                       />
                     </div>
@@ -635,8 +632,8 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                         placeholder="Reps"
                         onChange={(e) => updateSet(currentExerciseIndex, setIndex, 'reps', Number(e.target.value))}
                         disabled={set.isCompleted}
-                        className={`w-full bg-zinc-800/80 border rounded-xl py-3 text-center font-mono text-white text-lg font-bold transition-colors outline-none
-                          ${set.isCompleted ? 'border-transparent text-white/80 bg-transparent' : 'border-zinc-700 focus:border-fit-primary focus:bg-black'}
+                        className={`w-full bg-fit-surface border rounded-xl py-3 text-center font-mono text-fit-text text-lg font-bold transition-colors outline-none
+                          ${set.isCompleted ? 'border-transparent text-fit-text/80 bg-transparent' : 'border-fit-border focus:border-fit-primary focus:bg-fit-surface2'}
                         `}
                       />
                     </div>
@@ -650,8 +647,8 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                         placeholder="Sec"
                         onChange={(e) => updateSet(currentExerciseIndex, setIndex, 'duration', Number(e.target.value))}
                         disabled={set.isCompleted}
-                        className={`w-full bg-zinc-800/80 border rounded-xl py-3 text-center font-mono text-white text-lg font-bold transition-colors outline-none
-                          ${set.isCompleted ? 'border-transparent text-white/80 bg-transparent' : 'border-zinc-700 focus:border-fit-primary focus:bg-black'}
+                        className={`w-full bg-fit-surface border rounded-xl py-3 text-center font-mono text-fit-text text-lg font-bold transition-colors outline-none
+                          ${set.isCompleted ? 'border-transparent text-fit-text/80 bg-transparent' : 'border-fit-border focus:border-fit-primary focus:bg-fit-surface2'}
                         `}
                       />
                     </div>
@@ -662,10 +659,10 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                       disabled={!canComplete && !set.isCompleted}
                       className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${
                         set.isCompleted 
-                          ? 'bg-fit-primary text-black shadow-[0_0_20px_rgba(34,197,94,0.4)]' 
+                          ? 'bg-fit-primary text-white shadow-glow' 
                           : canComplete 
-                            ? 'bg-zinc-700 text-white hover:bg-zinc-600'
-                            : 'bg-zinc-900/50 text-zinc-600 cursor-not-allowed opacity-50'
+                            ? 'bg-fit-surface2 text-fit-text hover:bg-fit-surface border border-fit-border shadow-sm'
+                            : 'bg-fit-surface2/40 text-fit-muted/40 cursor-not-allowed border border-transparent'
                       }`}
                     >
                       {set.isCompleted ? <Check size={24} strokeWidth={3} /> : <CheckCircle size={24} />}
@@ -677,18 +674,18 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
             
             <button 
               onClick={() => addSetToActive(currentExerciseIndex)}
-              className="mt-4 w-full border border-dashed border-white/20 py-3 rounded-2xl text-zinc-400 font-bold hover:bg-white/5 hover:text-white transition-colors flex items-center justify-center gap-2 mb-8"
+              className="mt-4 w-full border border-dashed border-fit-border py-3 rounded-2xl text-fit-muted font-bold hover:bg-fit-surface2 hover:text-fit-text transition-colors flex items-center justify-center gap-2 mb-8"
             >
               <Plus size={16} /> Add Set
             </button>
             
-{/* Navigation inside tracker to keep it close */}
-            <div className="flex gap-4 mt-8 pt-6 border-t border-white/5">
+            {/* Navigation inside tracker to keep it close */}
+            <div className="flex gap-4 mt-8 pt-6 border-t border-fit-border">
               <button 
                 onClick={handlePrevExercise}
                 disabled={currentExerciseIndex === 0}
                 className={`flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
-                  currentExerciseIndex === 0 ? 'bg-zinc-900/50 text-zinc-600 opacity-50' : 'bg-zinc-800 text-white hover:bg-zinc-700'
+                  currentExerciseIndex === 0 ? 'bg-fit-surface2/40 text-fit-muted/40 cursor-not-allowed' : 'bg-fit-surface2 text-fit-text hover:bg-fit-surface border border-fit-border'
                 }`}
               >
                 <ChevronLeft size={20} /> Prev
@@ -699,7 +696,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   onClick={handleFinish}
                   disabled={!allSetsCompleted}
                   className={`flex-[2] py-4 rounded-2xl font-extrabold flex items-center justify-center gap-2 transition-all ${
-                    !allSetsCompleted ? 'bg-zinc-900/50 text-zinc-600 border border-white/5' : 'bg-fit-primary text-black shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:scale-[1.02]'
+                    !allSetsCompleted ? 'bg-fit-surface2/40 text-fit-muted/40 border border-fit-border' : 'bg-fit-primary text-white shadow-glow hover:scale-[1.02]'
                   }`}
                 >
                   Review Workout <CheckCircle size={20} />
@@ -709,7 +706,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   onClick={handleNextExercise}
                   disabled={!allSetsCompleted}
                   className={`flex-[2] py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
-                    !allSetsCompleted ? 'bg-zinc-900/50 text-zinc-600 border border-white/5' : 'bg-[#2196f3] text-white shadow-[0_0_20px_rgba(33,150,243,0.3)] hover:bg-[#1976d2] hover:scale-[1.02]'
+                    !allSetsCompleted ? 'bg-fit-surface2/40 text-fit-muted/40 border border-fit-border' : 'bg-[#2196f3] text-white shadow-[0_0_20px_rgba(33,150,243,0.3)] hover:bg-[#1976d2] hover:scale-[1.02]'
                   }`}
                 >
                   Next Exercise <ChevronRight size={20} />
@@ -719,10 +716,10 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
             
             {!allSetsCompleted && currentExerciseIndex !== activeWorkout.exercises.length - 1 && (
               <div className="flex items-center justify-between mt-4 px-2">
-                <div className="text-xs font-bold text-amber-500/70 flex items-center gap-1.5">
+                <div className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
                   <AlertTriangle size={12} /> Complete all sets to continue
                 </div>
-                <button onClick={handleNextExercise} className="text-xs font-bold text-zinc-500 hover:text-white transition-colors flex items-center gap-1">
+                <button onClick={handleNextExercise} className="text-xs font-bold text-fit-muted hover:text-fit-text transition-colors flex items-center gap-1">
                   Skip <SkipForward size={12} />
                 </button>
               </div>
@@ -757,13 +754,13 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
             <div className="flex gap-4 w-full">
               <button 
                 onClick={() => setIsTimerPaused(!isTimerPaused)} 
-                className="flex-1 bg-zinc-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-zinc-700 transition-colors"
+                className="flex-1 bg-fit-surface2 border border-fit-border text-fit-text py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-fit-border transition-colors"
               >
                 {isTimerPaused ? <><Play size={18} /> Resume</> : <><Pause size={18} /> Pause</>}
               </button>
               <button 
                 onClick={() => setIsResting(false)} 
-                className="flex-1 bg-zinc-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-zinc-700 transition-colors"
+                className="flex-1 bg-fit-surface2 border border-fit-border text-fit-text py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-fit-border transition-colors"
               >
                 Skip <SkipForward size={18} />
               </button>
@@ -771,7 +768,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
             
             <button 
               onClick={() => setRestTimer(prev => prev + 30)} 
-              className="mt-4 text-zinc-400 font-bold text-sm hover:text-white transition-colors"
+              className="mt-4 text-fit-muted font-bold text-sm hover:text-fit-text transition-colors"
             >
               +30s
             </button>
@@ -779,45 +776,45 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
         </div>
       )}
 
-      {/* Finish Confirmation Modal (Custom In-App Modal) */}
+      {/* Finish Confirmation Modal */}
       {showFinishConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowFinishConfirm(false)} />
-          <div className="bg-zinc-900 border border-white/10 p-6 sm:p-8 rounded-3xl relative z-10 max-w-md w-full text-center shadow-2xl">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowFinishConfirm(false)} />
+          <div className="bg-fit-surface border border-fit-border p-6 sm:p-8 rounded-3xl relative z-10 max-w-md w-full text-center shadow-2xl">
             <div className="w-16 h-16 bg-amber-500/20 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <StopCircle size={32} className="text-amber-400" />
+              <StopCircle size={32} className="text-amber-500" />
             </div>
             
-            <h3 className="text-2xl font-black text-white mb-2">Finish Workout Early?</h3>
-            <p className="text-zinc-400 text-sm mb-5 leading-relaxed">
+            <h3 className="text-2xl font-black text-fit-text mb-2">Finish Workout Early?</h3>
+            <p className="text-fit-muted text-sm mb-5 leading-relaxed">
               You still have incomplete sets. You can save your completed exercises now, or continue your workout.
             </p>
             
-            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 mb-6 text-left text-xs text-zinc-400 space-y-2">
-              <div className="flex justify-between text-zinc-300 font-semibold">
+            <div className="bg-fit-surface2 border border-fit-border rounded-2xl p-4 mb-6 text-left text-xs text-fit-muted space-y-2">
+              <div className="flex justify-between text-fit-text font-semibold">
                 <span>Completed Sets:</span>
                 <span className="text-fit-primary font-bold">{totalCompletedSets} / {totalSets} sets</span>
               </div>
-              <div className="flex justify-between text-zinc-300 font-semibold">
+              <div className="flex justify-between text-fit-text font-semibold">
                 <span>Elapsed Time:</span>
-                <span className="text-white font-mono">{formatTime(duration)}</span>
+                <span className="text-fit-text font-mono">{formatTime(duration)}</span>
               </div>
-              <div className="flex justify-between text-zinc-300 font-semibold">
+              <div className="flex justify-between text-fit-text font-semibold">
                 <span>Workout Progress:</span>
-                <span className="text-amber-400 font-bold">{progressPercent}%</span>
+                <span className="text-amber-500 font-bold">{progressPercent}%</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
               <button 
                 onClick={executeFinish} 
-                className="w-full bg-gradient-to-r from-fit-primary to-emerald-400 text-black py-3.5 rounded-xl font-black text-sm hover:opacity-95 transition-all shadow-lg shadow-fit-primary/20 flex items-center justify-center gap-2"
+                className="w-full bg-fit-primary text-white py-3.5 rounded-xl font-black text-sm hover:opacity-95 transition-all shadow-glow flex items-center justify-center gap-2"
               >
                 <CheckCircle size={18} /> Yes, Finish & Save Workout
               </button>
               <button 
                 onClick={() => setShowFinishConfirm(false)} 
-                className="w-full bg-zinc-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
+                className="w-full bg-fit-surface2 text-fit-text border border-fit-border py-3.5 rounded-xl font-bold text-sm hover:bg-fit-border transition-colors"
               >
                 Resume Workout
               </button>
@@ -826,7 +823,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                   setShowFinishConfirm(false);
                   setShowDiscardConfirm(true);
                 }} 
-                className="w-full text-zinc-500 hover:text-red-400 py-2 font-semibold text-xs transition-colors"
+                className="w-full text-fit-muted hover:text-red-500 py-2 font-semibold text-xs transition-colors"
               >
                 Discard Workout Without Saving
               </button>
@@ -835,16 +832,16 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
         </div>
       )}
 
-      {/* Discard Confirmation Modal (Custom In-App Modal) */}
+      {/* Discard Confirmation Modal */}
       {showDiscardConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowDiscardConfirm(false)} />
-          <div className="bg-zinc-900 border border-red-500/20 p-6 sm:p-8 rounded-3xl relative z-10 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-400">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowDiscardConfirm(false)} />
+          <div className="bg-fit-surface border border-red-500/20 p-6 sm:p-8 rounded-3xl relative z-10 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-500">
               <Trash2 size={32} />
             </div>
-            <h3 className="text-2xl font-black text-white mb-2">Discard Workout?</h3>
-            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+            <h3 className="text-2xl font-black text-fit-text mb-2">Discard Workout?</h3>
+            <p className="text-fit-muted text-sm mb-6 leading-relaxed">
               Are you sure you want to cancel this workout? Unsaved sets and timer records will be lost.
             </p>
             <div className="flex flex-col gap-3">
@@ -860,7 +857,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
               </button>
               <button 
                 onClick={() => setShowDiscardConfirm(false)} 
-                className="w-full bg-zinc-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
+                className="w-full bg-fit-surface2 text-fit-text border border-fit-border py-3.5 rounded-xl font-bold text-sm hover:bg-fit-border transition-colors"
               >
                 Continue Training
               </button>

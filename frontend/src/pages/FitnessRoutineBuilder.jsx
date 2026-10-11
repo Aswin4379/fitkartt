@@ -87,53 +87,53 @@ export default function FitnessRoutineBuilder() {
         )}
 
         {/* Name Input */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <label className="block text-sm font-bold text-zinc-400 mb-2 uppercase">Routine Name</label>
+        <div className="bg-fit-surface border border-fit-border rounded-2xl p-6 shadow-card">
+          <label className="block text-sm font-bold text-fit-muted mb-2 uppercase">Routine Name</label>
           <input 
             type="text" 
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Push Day Heavy"
-            className="w-full bg-black border border-zinc-700 rounded-xl p-4 text-white text-lg font-bold focus:border-fit-primary outline-none"
+            className="w-full bg-fit-surface2 border border-fit-border rounded-xl p-4 text-fit-text text-lg font-bold focus:border-fit-primary outline-none"
           />
         </div>
 
         {/* Exercises List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Exercises</h2>
-            <span className="text-sm text-zinc-400 font-bold bg-zinc-900 px-3 py-1 rounded-full">{selectedExercises.length}</span>
+            <h2 className="text-xl font-bold text-fit-text">Exercises</h2>
+            <span className="text-sm text-fit-muted font-bold bg-fit-surface2 border border-fit-border px-3 py-1 rounded-full">{selectedExercises.length}</span>
           </div>
 
           {selectedExercises.length === 0 ? (
-            <div className="border-2 border-dashed border-zinc-800 rounded-2xl p-10 text-center flex flex-col items-center">
-              <Dumbbell className="text-zinc-600 mb-4" size={40} />
-              <p className="text-zinc-400 font-medium mb-4">No exercises added yet.</p>
+            <div className="border border-fit-border border-dashed rounded-2xl p-10 text-center flex flex-col items-center bg-fit-surface shadow-card">
+              <Dumbbell className="text-fit-muted mb-4 opacity-50" size={40} />
+              <p className="text-fit-muted font-medium mb-4">No exercises added yet.</p>
             </div>
           ) : (
             selectedExercises.map((ex, index) => (
-              <div key={index} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 relative group">
+              <div key={index} className="bg-fit-surface border border-fit-border rounded-xl p-4 relative group shadow-card">
                 <button 
                   onClick={() => handleRemove(index)}
-                  className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors"
+                  className="absolute top-4 right-4 text-fit-muted hover:text-red-500 transition-colors"
                 >
                   <Trash2 size={18} />
                 </button>
                 <h3 className="font-bold text-lg text-fit-primary pr-8">{ex.name}</h3>
-                <p className="text-xs text-zinc-500 uppercase font-bold mb-4">{ex.target}</p>
+                <p className="text-xs text-fit-muted uppercase font-bold mb-4">{ex.target}</p>
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Sets</label>
-                    <input type="number" value={ex.defaultSets} onChange={e => handleUpdate(index, 'defaultSets', e.target.value)} className="w-full bg-black border border-zinc-700 rounded-lg p-2 text-center text-white focus:border-fit-primary font-mono" />
+                    <label className="block text-[10px] text-fit-muted uppercase font-bold mb-1">Sets</label>
+                    <input type="number" value={ex.defaultSets} onChange={e => handleUpdate(index, 'defaultSets', e.target.value)} className="w-full bg-fit-surface2 border border-fit-border rounded-lg p-2 text-center text-fit-text focus:border-fit-primary font-mono" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Reps</label>
-                    <input type="number" value={ex.defaultReps} onChange={e => handleUpdate(index, 'defaultReps', e.target.value)} className="w-full bg-black border border-zinc-700 rounded-lg p-2 text-center text-white focus:border-fit-primary font-mono" />
+                    <label className="block text-[10px] text-fit-muted uppercase font-bold mb-1">Reps</label>
+                    <input type="number" value={ex.defaultReps} onChange={e => handleUpdate(index, 'defaultReps', e.target.value)} className="w-full bg-fit-surface2 border border-fit-border rounded-lg p-2 text-center text-fit-text focus:border-fit-primary font-mono" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Weight (kg)</label>
-                    <input type="number" value={ex.defaultWeight} onChange={e => handleUpdate(index, 'defaultWeight', e.target.value)} className="w-full bg-black border border-zinc-700 rounded-lg p-2 text-center text-white focus:border-fit-primary font-mono" />
+                    <label className="block text-[10px] text-fit-muted uppercase font-bold mb-1">Weight (kg)</label>
+                    <input type="number" value={ex.defaultWeight} onChange={e => handleUpdate(index, 'defaultWeight', e.target.value)} className="w-full bg-fit-surface2 border border-fit-border rounded-lg p-2 text-center text-fit-text focus:border-fit-primary font-mono" />
                   </div>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function FitnessRoutineBuilder() {
 
           <button 
             onClick={() => setShowAddModal(true)}
-            className="w-full py-4 bg-black border-2 border-dashed border-fit-primary/30 text-fit-primary rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-fit-primary/10 transition-colors"
+            className="w-full py-4 bg-fit-surface border-2 border-dashed border-fit-primary/40 text-fit-primary rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-fit-primary/10 transition-colors shadow-sm"
           >
             <Plus size={20} /> Add Exercise
           </button>
@@ -151,7 +151,7 @@ export default function FitnessRoutineBuilder() {
         <button 
           onClick={handleSave}
           disabled={isSaving}
-          className="w-full bg-fit-primary text-black font-black text-lg py-4 rounded-full flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform disabled:opacity-50"
+          className="w-full bg-fit-primary text-white font-black text-lg py-4 rounded-full flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-glow disabled:opacity-50"
         >
           {isSaving ? 'Saving...' : 'Save Routine'} <Save size={20} />
         </button>
@@ -160,17 +160,17 @@ export default function FitnessRoutineBuilder() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex flex-col p-4 pt-10">
-          <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex flex-col p-4 pt-10">
+          <div className="flex items-center justify-between mb-6 max-w-xl mx-auto w-full">
             <h2 className="text-2xl font-black text-white">Select Exercise</h2>
-            <button onClick={() => setShowAddModal(false)} className="p-2 bg-zinc-800 rounded-full text-white"><X size={20}/></button>
+            <button onClick={() => setShowAddModal(false)} className="p-2 bg-fit-surface2 rounded-full text-fit-text hover:bg-fit-border"><X size={20}/></button>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 pb-20">
+          <div className="flex-1 overflow-y-auto space-y-2 pb-20 max-w-xl mx-auto w-full">
             {exercisesDb.map(ex => (
-              <div key={ex._id} onClick={() => handleAddExercise(ex)} className="p-4 bg-zinc-900 rounded-xl flex justify-between items-center cursor-pointer hover:border-fit-primary border border-transparent transition-colors">
+              <div key={ex._id} onClick={() => handleAddExercise(ex)} className="p-4 bg-fit-surface border border-fit-border rounded-xl flex justify-between items-center cursor-pointer hover:border-fit-primary transition-colors shadow-sm">
                 <div>
-                  <h4 className="font-bold text-white text-lg">{ex.name}</h4>
-                  <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">{ex.target}</p>
+                  <h4 className="font-bold text-fit-text text-lg">{ex.name}</h4>
+                  <p className="text-xs text-fit-muted uppercase font-bold tracking-wider">{ex.target}</p>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-fit-primary/20 flex items-center justify-center">
                   <Plus className="text-fit-primary" size={16} />

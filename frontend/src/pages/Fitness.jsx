@@ -107,13 +107,13 @@ export default function Fitness() {
                 navigate('/fitness/active');
               }
             }}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-fit-primary transition-colors group relative overflow-hidden"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden shadow-card"
           >
-            <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
+            <div className="absolute -right-10 -top-10 text-fit-muted/10 group-hover:text-fit-primary/20 group-hover:rotate-12 transition-all">
               <Activity size={120} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Quick Start</h3>
-            <p className="text-zinc-400 text-sm mb-4">Start an empty workout and track as you go.</p>
+            <h3 className="text-xl font-bold text-fit-text mb-2">Quick Start</h3>
+            <p className="text-fit-muted text-sm mb-4">Start an empty workout and track as you go.</p>
             <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
               Start Freely <Play size={16} className="ml-2" />
             </div>
@@ -121,13 +121,13 @@ export default function Fitness() {
 
           <button 
             onClick={() => navigate('/fitness/routines')}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-blue-500 transition-colors group relative overflow-hidden flex flex-col"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-blue-500 transition-all group relative overflow-hidden flex flex-col shadow-card"
           >
-            <div className="absolute -right-10 -top-10 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all">
+            <div className="absolute -right-10 -top-10 text-fit-muted/10 group-hover:text-blue-500/20 group-hover:rotate-12 transition-all">
               <Calendar size={120} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Routines</h3>
-            <p className="text-zinc-400 text-sm mb-4">Select a pre-built plan or your custom routine.</p>
+            <h3 className="text-xl font-bold text-fit-text mb-2">Routines</h3>
+            <p className="text-fit-muted text-sm mb-4">Select a pre-built plan or your custom routine.</p>
             <div className="flex items-center text-blue-500 font-semibold text-sm mt-auto">
               Browse Plans <Plus size={16} className="ml-2" />
             </div>
@@ -135,18 +135,18 @@ export default function Fitness() {
 
           <button 
             onClick={() => navigate('/fitness/bodycare')}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden flex flex-col shadow-lg hover:shadow-[0_0_25px_rgba(34,197,94,0.15)]"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden flex flex-col shadow-card hover:shadow-glow"
           >
-            <div className="absolute -right-8 -top-8 opacity-10 group-hover:opacity-25 group-hover:scale-110 transition-all text-fit-primary">
+            <div className="absolute -right-8 -top-8 text-fit-primary/10 group-hover:text-fit-primary/25 group-hover:scale-110 transition-all">
               <HeartPulse size={120} />
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-bold text-white">BodyCare AI</h3>
+              <h3 className="text-xl font-bold text-fit-text">BodyCare AI</h3>
               <span className="px-2 py-0.5 rounded-full bg-fit-primary/20 border border-fit-primary/30 text-[10px] font-black text-fit-primary uppercase tracking-wider flex items-center gap-1">
                 <Sparkles size={10} /> AI Powered
               </span>
             </div>
-            <p className="text-zinc-400 text-sm mb-4">Interactive pain assessment & dynamic recovery guidance.</p>
+            <p className="text-fit-muted text-sm mb-4">Interactive pain assessment & dynamic recovery guidance.</p>
             <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
               Assess Body <Sparkles size={16} className="ml-2" />
             </div>
@@ -160,23 +160,23 @@ export default function Fitness() {
         </div>
 
         {/* Analytics Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+        <div className="bg-fit-surface border border-fit-border rounded-2xl p-6 shadow-card">
+          <h3 className="text-lg font-bold text-fit-text mb-6 flex items-center gap-2">
             <TrendingUp className="text-fit-primary" /> 
             Weekly Analytics
           </h3>
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-black/50 p-4 rounded-xl border border-zinc-800 text-center">
-              <div className="text-2xl sm:text-3xl font-black text-white">{thisWeekSessions.length}</div>
-              <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-1">Workouts</div>
+            <div className="bg-fit-surface2 border border-fit-border p-4 rounded-xl text-center">
+              <div className="text-2xl sm:text-3xl font-black text-fit-text">{thisWeekSessions.length}</div>
+              <div className="text-xs text-fit-muted font-semibold uppercase tracking-wider mt-1">Workouts</div>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-zinc-800 text-center">
+            <div className="bg-fit-surface2 border border-fit-border p-4 rounded-xl text-center">
               <div className="text-2xl sm:text-3xl font-black text-blue-500">{totalCaloriesThisWeek}</div>
-              <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-1">Kcal Burned</div>
+              <div className="text-xs text-fit-muted font-semibold uppercase tracking-wider mt-1">Kcal Burned</div>
             </div>
-            <div className="bg-black/50 p-4 rounded-xl border border-zinc-800 text-center">
+            <div className="bg-fit-surface2 border border-fit-border p-4 rounded-xl text-center">
               <div className="text-2xl sm:text-3xl font-black text-amber-500">{Math.round(totalDurationThisWeek / 60)}</div>
-              <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-1">Minutes</div>
+              <div className="text-xs text-fit-muted font-semibold uppercase tracking-wider mt-1">Minutes</div>
             </div>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function Fitness() {
         {/* Recent History */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Recent History</h3>
+            <h3 className="text-lg font-bold text-fit-text">Recent History</h3>
             <button onClick={() => navigate('/fitness/history')} className="text-sm font-medium text-fit-primary hover:underline">
               View All
             </button>
@@ -192,22 +192,22 @@ export default function Fitness() {
           
           <div className="space-y-3">
             {loading ? (
-              <div className="text-zinc-500 text-center py-4">Loading history...</div>
+              <div className="text-fit-muted text-center py-4">Loading history...</div>
             ) : sessions.length === 0 ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
-                <p className="text-zinc-400 mb-2">No workouts recorded yet.</p>
+              <div className="bg-fit-surface border border-fit-border rounded-xl p-6 text-center">
+                <p className="text-fit-muted mb-2">No workouts recorded yet.</p>
                 <button onClick={() => navigate('/fitness/routines')} className="text-sm text-fit-primary font-medium">Find a routine to get started</button>
               </div>
             ) : (
               sessions.slice(0, 3).map((session, idx) => (
-                <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 cursor-pointer transition-colors" onClick={() => navigate(`/fitness/history/${session._id}`)}>
+                <div key={idx} className="bg-fit-surface border border-fit-border rounded-xl p-4 flex items-center justify-between hover:bg-fit-surface2 cursor-pointer transition-colors" onClick={() => navigate(`/fitness/history/${session._id}`)}>
                   <div className="flex items-center gap-4">
-                    <div className="bg-zinc-800 p-3 rounded-lg">
+                    <div className="bg-fit-surface2 p-3 rounded-lg border border-fit-border">
                       <CheckCircle className="text-fit-primary" size={24} />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white">{session.name}</h4>
-                      <p className="text-xs text-zinc-400 flex items-center gap-2 mt-1">
+                      <h4 className="font-bold text-fit-text">{session.name}</h4>
+                      <p className="text-xs text-fit-muted flex items-center gap-2 mt-1">
                         <span>{new Date(session.startTime).toLocaleDateString()}</span>
                         &bull;
                         <span>{Math.round(session.durationSeconds / 60)} min</span>
@@ -217,8 +217,8 @@ export default function Fitness() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-white">{session.caloriesBurned}</div>
-                    <div className="text-xs text-zinc-500">kcal</div>
+                    <div className="text-sm font-bold text-fit-text">{session.caloriesBurned}</div>
+                    <div className="text-xs text-fit-muted">kcal</div>
                   </div>
                 </div>
               ))

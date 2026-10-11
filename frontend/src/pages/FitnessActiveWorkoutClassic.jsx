@@ -92,27 +92,27 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
 
   if (!activeWorkout) {
     return (
-      <div className="min-h-screen bg-[#121212] flex items-center justify-center text-zinc-400 font-sans">
+      <div className="min-h-screen bg-fit-bg flex items-center justify-center text-fit-muted font-sans">
         No active workout.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white pb-24 font-sans">
+    <div className="min-h-screen bg-fit-bg text-fit-text pb-24 font-sans">
       {/* Top App Bar */}
-      <div className="sticky top-0 z-40 bg-[#1e1e1e] border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm">
+      <div className="sticky top-0 z-40 bg-fit-surface border-b border-fit-border px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <Activity className="text-[#2196f3]" size={22} />
           <div>
-            <h1 className="font-bold text-lg text-white leading-tight">{activeWorkout.name}</h1>
+            <h1 className="font-bold text-lg text-fit-text leading-tight">{activeWorkout.name}</h1>
             <div className="text-[#2196f3] text-sm flex items-center gap-1.5 font-medium">
               <Clock size={14} /> {formatTime(duration)}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onSwitchTheme} className="text-zinc-400 hover:text-white p-2">
+          <button onClick={onSwitchTheme} className="text-fit-muted hover:text-fit-text p-2">
             <Smartphone size={20} />
           </button>
           <button 
@@ -126,9 +126,9 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
 
       {/* Error Toast */}
       {saveError && (
-        <div className="mx-4 mt-4 p-3 bg-red-900/50 border border-red-500 rounded flex items-center justify-between">
-          <p className="text-red-200 text-sm">{saveError}</p>
-          <button onClick={() => setSaveError('')} className="text-red-300">
+        <div className="mx-4 mt-4 p-3 bg-red-900/20 border border-red-500 rounded flex items-center justify-between">
+          <p className="text-red-500 text-sm">{saveError}</p>
+          <button onClick={() => setSaveError('')} className="text-red-400">
             <X size={18} />
           </button>
         </div>
@@ -137,27 +137,27 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
       {/* Exercises List */}
       <div className="p-4 space-y-4">
         {activeWorkout.exercises.map((ex, exIndex) => (
-          <div key={`${ex.exerciseId}-${exIndex}`} className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-zinc-800 shadow-md">
+          <div key={`${ex.exerciseId}-${exIndex}`} className="bg-fit-surface rounded-lg overflow-hidden border border-fit-border shadow-card">
             
             {/* Exercise Header */}
-            <div className="flex items-center justify-between p-3 border-b border-zinc-800">
+            <div className="flex items-center justify-between p-3 border-b border-fit-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <div className="w-10 h-10 rounded bg-fit-surface2 flex items-center justify-center text-fit-muted">
                   <Dumbbell size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-white leading-tight">{ex.name}</h3>
+                  <h3 className="font-bold text-base text-fit-text leading-tight">{ex.name}</h3>
                   <span className="text-[#2196f3] text-xs font-bold uppercase mt-0.5 block">{ex.target}</span>
                 </div>
               </div>
-              <button onClick={() => removeExerciseFromActive(exIndex)} className="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+              <button onClick={() => removeExerciseFromActive(exIndex)} className="p-2 text-fit-muted hover:text-red-500 transition-colors">
                 <Trash2 size={18} />
               </button>
             </div>
 
             {/* Sets Table */}
             <div className="p-0">
-              <div className="grid grid-cols-4 gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider px-4 py-2 border-b border-zinc-800/50 bg-[#161616]">
+              <div className="grid grid-cols-4 gap-2 text-[11px] font-bold text-fit-muted uppercase tracking-wider px-4 py-2 border-b border-fit-border bg-fit-surface2">
                 <div className="text-center">Set</div>
                 <div className="text-center">KG</div>
                 <div className="text-center">Reps</div>
@@ -167,9 +167,9 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
               {ex.sets.map((set, setIndex) => (
                 <div 
                   key={setIndex} 
-                  className={`grid grid-cols-4 gap-2 items-center px-4 py-2 border-b border-zinc-800/50 transition-colors ${set.isCompleted ? 'bg-[#2196f3]/10' : ''}`}
+                  className={`grid grid-cols-4 gap-2 items-center px-4 py-2 border-b border-fit-border transition-colors ${set.isCompleted ? 'bg-[#2196f3]/10' : ''}`}
                 >
-                  <div className="text-center font-bold text-zinc-400">
+                  <div className="text-center font-bold text-fit-muted">
                     {setIndex + 1}
                   </div>
                   <div className="text-center">
@@ -177,7 +177,7 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
                       type="number"
                       value={set.weight || ''}
                       onChange={(e) => updateSet(exIndex, setIndex, 'weight', Number(e.target.value))}
-                      className="w-full bg-zinc-800 text-white text-center rounded py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#2196f3]"
+                      className="w-full bg-fit-surface2 text-fit-text text-center rounded py-1.5 text-sm border border-fit-border focus:outline-none focus:ring-1 focus:ring-[#2196f3]"
                       placeholder="0"
                     />
                   </div>
@@ -186,7 +186,7 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
                       type="number"
                       value={set.reps || ''}
                       onChange={(e) => updateSet(exIndex, setIndex, 'reps', Number(e.target.value))}
-                      className="w-full bg-zinc-800 text-white text-center rounded py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#2196f3]"
+                      className="w-full bg-fit-surface2 text-fit-text text-center rounded py-1.5 text-sm border border-fit-border focus:outline-none focus:ring-1 focus:ring-[#2196f3]"
                       placeholder="0"
                     />
                   </div>
@@ -194,7 +194,7 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
                     <button
                       onClick={() => handleCompleteSet(exIndex, setIndex)}
                       className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-                        set.isCompleted ? 'bg-[#2196f3] text-white' : 'bg-zinc-700 text-zinc-400'
+                        set.isCompleted ? 'bg-[#2196f3] text-white' : 'bg-fit-surface2 text-fit-muted hover:text-fit-text border border-fit-border'
                       }`}
                     >
                       <Check size={18} strokeWidth={set.isCompleted ? 3 : 2} />
@@ -221,7 +221,7 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
 
         <button
           onClick={() => setShowAddExercise(true)}
-          className="w-full bg-[#1e1e1e] border border-[#2196f3]/30 text-[#2196f3] rounded-lg py-3 font-bold flex items-center justify-center gap-2 hover:bg-[#2196f3]/10 transition-colors shadow-sm"
+          className="w-full bg-fit-surface border border-[#2196f3]/30 text-[#2196f3] rounded-lg py-3 font-bold flex items-center justify-center gap-2 hover:bg-[#2196f3]/10 transition-colors shadow-sm"
         >
           <Plus size={18} /> Add Exercise
         </button>
@@ -249,21 +249,21 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
       {/* Modals */}
       {showFinishConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-[#1e1e1e] w-full max-w-sm rounded-lg overflow-hidden shadow-2xl">
+          <div className="bg-fit-surface border border-fit-border w-full max-w-sm rounded-lg overflow-hidden shadow-2xl">
             <div className="p-5">
-              <h3 className="text-xl font-bold text-white mb-2">Incomplete Workout</h3>
-              <p className="text-zinc-400 text-sm">You have some incomplete sets. Are you sure you want to finish this workout anyway?</p>
+              <h3 className="text-xl font-bold text-fit-text mb-2">Incomplete Workout</h3>
+              <p className="text-fit-muted text-sm">You have some incomplete sets. Are you sure you want to finish this workout anyway?</p>
             </div>
-            <div className="flex border-t border-zinc-800">
+            <div className="flex border-t border-fit-border">
               <button 
                 onClick={() => setShowFinishConfirm(false)} 
-                className="flex-1 py-3 text-zinc-400 font-bold border-r border-zinc-800 hover:bg-zinc-800/50 transition-colors"
+                className="flex-1 py-3 text-fit-muted font-bold border-r border-fit-border hover:bg-fit-surface2 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={executeFinish} 
-                className="flex-1 py-3 text-[#2196f3] font-bold hover:bg-zinc-800/50 transition-colors"
+                className="flex-1 py-3 text-[#2196f3] font-bold hover:bg-fit-surface2 transition-colors"
               >
                 Finish Anyway
               </button>
@@ -273,10 +273,10 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
       )}
 
       {showAddExercise && (
-        <div className="fixed inset-0 z-50 bg-[#121212] flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3 bg-[#1e1e1e] border-b border-zinc-800">
-            <h2 className="text-lg font-bold text-white">Select Exercise</h2>
-            <button onClick={() => setShowAddExercise(false)} className="text-zinc-400">
+        <div className="fixed inset-0 z-50 bg-fit-bg flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 bg-fit-surface border-b border-fit-border">
+            <h2 className="text-lg font-bold text-fit-text">Select Exercise</h2>
+            <button onClick={() => setShowAddExercise(false)} className="text-fit-muted hover:text-fit-text">
               <X size={24} />
             </button>
           </div>
@@ -289,24 +289,24 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
                   addExerciseToActive(ex);
                   setShowAddExercise(false);
                 }}
-                className="flex items-center gap-3 p-3 border-b border-zinc-800/50 active:bg-zinc-800/50 cursor-pointer hover:bg-[#1e1e1e]"
+                className="flex items-center gap-3 p-3 border-b border-fit-border active:bg-fit-surface2 cursor-pointer hover:bg-fit-surface"
               >
-                <div className="w-12 h-12 rounded bg-zinc-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                <div className="w-12 h-12 rounded bg-fit-surface2 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   {ex.imageUrl ? (
                     <img src={ex.imageUrl} alt={ex.name} className="w-full h-full object-cover" />
                   ) : (
-                    <Dumbbell size={20} className="text-zinc-500" />
+                    <Dumbbell size={20} className="text-fit-muted" />
                   )}
                 </div>
                 <div>
-                  <h4 className="text-white font-medium">{ex.name}</h4>
+                  <h4 className="text-fit-text font-medium">{ex.name}</h4>
                   <p className="text-[#2196f3] text-xs font-bold uppercase mt-0.5">{ex.target}</p>
                 </div>
               </div>
             ))}
 
             {exercisesDb.length === 0 && (
-              <div className="text-center py-20 text-zinc-500">
+              <div className="text-center py-20 text-fit-muted">
                 <Dumbbell size={40} className="mx-auto mb-4 opacity-50" />
                 <p>Loading exercises...</p>
               </div>
