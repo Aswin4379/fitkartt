@@ -133,31 +133,26 @@ export default function PaymentPage() {
       customerPhone: user?.phone || '',
     }
 
-    let finalOrder = {
-      id: localOrderId,
-      orderId: localOrderId,
-      ...orderPayload,
-      status: 'Order Confirmed',
-      placedAt: new Date().toISOString()
-    }
-
     try {
       const res = await orderApi.createOrder(orderPayload)
       if (res?.order) {
-        finalOrder = {
+        const confirmedOrder = {
           ...res.order,
           id: res.order.orderId || res.order.id || localOrderId,
           orderId: res.order.orderId || localOrderId
         }
+        addOrder(confirmedOrder)
+        clearCart()
+        setProcessing(false)
+        navigate('/order-success', { state: { order: confirmedOrder } })
+      } else {
+        throw new Error(res?.message || 'Database could not confirm order creation. Please try again.')
       }
     } catch (err) {
-      console.warn('[Backend order creation fallback to local]:', err.message)
+      console.error('[Backend order creation failed]:', err.message)
+      setProcessing(false)
+      alert(err.message || 'Failed to place order. Your cart is preserved. Please try again.')
     }
-
-    addOrder(finalOrder)
-    clearCart()
-    setProcessing(false)
-    navigate('/order-success', { state: { order: finalOrder } })
   }
 
   return (

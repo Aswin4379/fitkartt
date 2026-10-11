@@ -4,6 +4,8 @@ import AppLayout from '../components/AppLayout.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import { useUser } from '../context/UserContext.jsx'
 
+import { authApi } from '../services/api.js'
+
 const redeemOptions = [
   { id: 1, label: '₹25 off coupon', cost: 100 },
   { id: 2, label: '₹60 off coupon', cost: 220 },
@@ -12,14 +14,26 @@ const redeemOptions = [
 ]
 
 export default function Rewards() {
-  const { user, updateUser } = useUser()
+  const { user, setUser } = useUser()
   const [redeemed, setRedeemed] = useState([])
+  const [loadingId, setLoadingId] = useState(null)
   const coins = user?.fitCoins || 0
 
-  const redeem = (opt) => {
+  const redeem = async (opt) => {
     if (coins < opt.cost) return
-    updateUser({ fitCoins: coins - opt.cost })
-    setRedeemed((r) => [...r, opt.id])
+    setLoadingId(opt.id)
+    try {
+      const res = await authApi.redeemReward(opt.id)
+      if (res?.user && setUser) {
+        setUser(res.user)
+      }
+      setRedeemed((r) => [...r, opt.id])
+      alert(res?.message || 'Reward redeemed successfully!')
+    } catch (err) {
+      alert(err.message || 'Failed to redeem reward. Please try again.')
+    } finally {
+      setLoadingId(null)
+    }
   }
 
   return (

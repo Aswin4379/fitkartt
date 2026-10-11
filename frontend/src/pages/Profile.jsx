@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Package, Heart, MapPin, Target, Coins, Crown, LogOut, ChevronRight, Settings, ShieldCheck, Dumbbell, Sparkles, Edit3, X, Check, User
+  Package, Heart, MapPin, Target, Coins, Crown, LogOut, ChevronRight, Settings, ShieldCheck, Dumbbell, Sparkles, Edit3, X, Check, User, Clock, Activity, Loader2
 } from 'lucide-react'
 import AppLayout from '../components/AppLayout.jsx'
 import { useUser } from '../context/UserContext.jsx'
+import { authApi } from '../services/api.js'
 
 export default function Profile() {
   const navigate = useNavigate()
@@ -68,6 +69,23 @@ export default function Profile() {
     }
   }
 
+  const [showActivityModal, setShowActivityModal] = useState(false)
+  const [activityLogs, setActivityLogs] = useState([])
+  const [loadingActivity, setLoadingActivity] = useState(false)
+
+  const openActivityModal = async () => {
+    setShowActivityModal(true)
+    setLoadingActivity(true)
+    try {
+      const logs = await authApi.getActivityLog()
+      setActivityLogs(Array.isArray(logs) ? logs : [])
+    } catch (err) {
+      console.warn('Failed to fetch activity logs:', err)
+    } finally {
+      setLoadingActivity(false)
+    }
+  }
+
   const menu = [
     { icon: Package, label: 'My Orders', desc: `${user.orders?.length || 0} orders placed`, to: '/profile/orders' },
     { icon: Heart, label: 'Wishlist & Favorites', desc: `${user.wishlist?.length || 0} saved items`, to: '/profile/wishlist' },
@@ -75,6 +93,7 @@ export default function Profile() {
     { icon: Target, label: 'Fitness Goal & Plan', desc: user.goal || 'Weight Loss', to: '/ai-recommendation' },
     { icon: Coins, label: 'FitCoins & Rewards', desc: `${user.fitCoins || 120} Coins available`, to: '/rewards' },
     { icon: Crown, label: 'FitKart VIP Pro', desc: user.isPremium ? 'Active Pro Tier' : 'Upgrade for 0 delivery fees', to: '/subscription' },
+    { icon: ShieldCheck, label: 'Activity History & Audit Log', desc: 'Verified database event trail', action: openActivityModal },
   ]
 
   const displayName = user.name || (user.email ? user.email.split('@')[0] : 'Athlete')
@@ -169,10 +188,10 @@ export default function Profile() {
 
         {/* Menu Options */}
         <div className="card border-fit-border bg-fit-surface divide-y divide-fit-border overflow-hidden shadow-card">
-          {menu.map(({ icon: Icon, label, desc, to }) => (
+          {menu.map(({ icon: Icon, label, desc, to, action }) => (
             <button
               key={label}
-              onClick={() => navigate(to)}
+              onClick={() => action ? action() : navigate(to)}
               className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-fit-surface2/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-fit-surface2 flex items-center justify-center text-fit-primary shrink-0">
@@ -187,8 +206,8 @@ export default function Profile() {
           ))}
         </div>
 
-        {/* Admin and Developer Links - Owner Only */}
-        {user?.email === 'aswinsp.2006@gmail.com' && (
+        {/* Admin and Developer Links - Owner & Admin Only */}
+        {(user?.role === 'admin' || user?.email === 'aswinsp.2006@gmail.com') && (
           <div className="card border-fit-border bg-fit-surface divide-y divide-fit-border overflow-hidden shadow-card">
             <button
               onClick={() => navigate('/admin')}
@@ -379,6 +398,104 @@ export default function Profile() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Activity History & Audit Log Modal */}
+      {showActivityModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="card w-full max-w-lg max-h-[85vh] flex flex-col border-fit-border bg-fit-surface shadow-2xl p-0 overflow-hidden">
+            <div className="p-4 border-b border-fit-border flex items-center justify-between bg-fit-surface2/50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-fit-primary/10 flex items-center justify-center text-fit-primary">
+                  <ShieldCheck size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-fit-text">Account Activity & Audit Log</h3>
+                  <p className="text-[11px] text-fit-muted">Verified database event history</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowActivityModal(false)}
+                className="w-8 h-8 rounded-lg hover:bg-fit-surface2 flex items-center justify-center text-fit-muted hover:text-fit-text transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1 space-y-3">
+              {loadingActivity ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <Loader2 size={32} className="animate-spin text-fit-primary mb-2" />
+                  <p className="text-xs text-fit-muted">Fetching audit records from MongoDB...</p>
+                </div>
+              ) : activityLogs.length === 0 ? (
+                <div className="py-12 text-center text-fit-muted space-y-2">
+                  <Clock size={32} className="mx-auto opacity-40" />
+                  <p className="text-xs">No recent activity events recorded yet.</p>
+                </div>
+              ) : (
+                activityLogs.map((log) => {
+                  const actionColor = {
+                    LOGIN_SUCCESS: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+                    ORDER_CREATED: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+                    ORDER_CANCELLED: 'text-rose-400 bg-rose-400/10 border-rose-400/20',
+                    WORKOUT_COMPLETED: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+                    PROFILE_UPDATED: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+                    TRACKER_UPDATED: 'text-teal-400 bg-teal-400/10 border-teal-400/20',
+                    REWARD_REDEEMED: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+                    SUBSCRIPTION_ACTIVATED: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
+                    ADDRESS_ADDED: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
+                    ADDRESS_DELETED: 'text-slate-400 bg-slate-400/10 border-slate-400/20',
+                    REVIEW_SUBMITTED: 'text-amber-300 bg-amber-300/10 border-amber-300/20'
+                  }[log.action] || 'text-fit-muted bg-fit-surface2 border-fit-border';
+
+                  return (
+                    <div
+                      key={log._id || log.id || `${log.action}_${log.createdAt}`}
+                      className="p-3 rounded-xl border border-fit-border bg-fit-surface2/30 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${actionColor}`}>
+                          {log.action?.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-[10px] text-fit-muted font-mono">
+                          {log.createdAt ? new Date(log.createdAt).toLocaleString() : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-fit-text">
+                          {log.entityType} {log.entityId ? `#${log.entityId}` : ''}
+                        </span>
+                        {log.metadata?.total && (
+                          <span className="font-mono font-bold text-fit-primary">₹{log.metadata.total}</span>
+                        )}
+                        {log.metadata?.cost && (
+                          <span className="font-mono font-bold text-amber-400">-{log.metadata.cost} Coins</span>
+                        )}
+                        {log.metadata?.durationMinutes && (
+                          <span className="font-mono text-cyan-400">{log.metadata.durationMinutes} mins</span>
+                        )}
+                      </div>
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <p className="text-[11px] text-fit-muted truncate">
+                          {log.metadata.label || log.metadata.name || log.metadata.description || (log.metadata.fields ? `Updated: ${log.metadata.fields.join(', ')}` : '')}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="p-3 border-t border-fit-border bg-fit-surface2/30 text-right">
+              <button
+                onClick={() => setShowActivityModal(false)}
+                className="btn-secondary text-xs py-1.5 px-4"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -62,33 +62,34 @@ export const seedDatabase = async () => {
 
     console.log('[Seeding]: Populating products, workouts, and exercises collections...');
 
-    const validExercises = exerciseLibrary.filter(Boolean);
-    console.log(`[Seeding]: Inserting ${validExercises.length} exercises into MongoDB...`);
-    try {
-      await mongoose.connection.collection('exercises').drop();
-    } catch (e) {}
-
-    const exerciseDocs = validExercises.map((e) => ({
-      id: e.id,
-      name: e.name,
-      target: e.target,
-      categories: e.categories || [e.target],
-      secondary: e.secondary || '',
-      equipment: e.equipment || 'Bodyweight',
-      level: e.level || 'Beginner',
-      videoUrl: e.videoUrl || '',
-      gifUrl: e.gifUrl || '',
-      imageUrl: e.imageUrl || '',
-      image2Url: e.image2Url || '',
-      instructions: e.instructions || [],
-      formTips: e.formTips || '',
-      commonMistakes: e.commonMistakes || '',
-      defaultSets: e.defaultSets || 3,
-      defaultReps: e.defaultReps || 12,
-      defaultWeight: e.defaultWeight || 0
-    }));
-    await Exercise.insertMany(exerciseDocs);
-    console.log(`[Seeding]: ✓ Successfully stored ${exerciseDocs.length} exercises in MongoDB.`);
+    const existingExercises = await Exercise.countDocuments();
+    if (existingExercises === 0) {
+      const validExercises = exerciseLibrary.filter(Boolean);
+      console.log(`[Seeding]: Inserting ${validExercises.length} exercises into MongoDB...`);
+      const exerciseDocs = validExercises.map((e) => ({
+        id: e.id,
+        name: e.name,
+        target: e.target,
+        categories: e.categories || [e.target],
+        secondary: e.secondary || '',
+        equipment: e.equipment || 'Bodyweight',
+        level: e.level || 'Beginner',
+        videoUrl: e.videoUrl || '',
+        gifUrl: e.gifUrl || '',
+        imageUrl: e.imageUrl || '',
+        image2Url: e.image2Url || '',
+        instructions: e.instructions || [],
+        formTips: e.formTips || '',
+        commonMistakes: e.commonMistakes || '',
+        defaultSets: e.defaultSets || 3,
+        defaultReps: e.defaultReps || 12,
+        defaultWeight: e.defaultWeight || 0
+      }));
+      await Exercise.insertMany(exerciseDocs);
+      console.log(`[Seeding]: ✓ Successfully stored ${exerciseDocs.length} exercises in MongoDB.`);
+    } else {
+      console.log(`[Seeding]: Exercises already present (${existingExercises} records). Preserving collection.`);
+    }
 
     // 2. Seed products if needed
     const existingProducts = await Product.countDocuments();

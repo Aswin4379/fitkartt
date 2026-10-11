@@ -1,8 +1,8 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
   productId: { type: String, required: true, index: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   author: { type: String, required: true },
   avatar: { type: String, default: '' },
   rating: { type: Number, required: true, min: 1, max: 5 },
@@ -13,6 +13,9 @@ const reviewSchema = new mongoose.Schema({
   votedUsers: [{ type: String }],
   date: { type: String, default: () => new Date().toISOString().split('T')[0] }
 }, { timestamps: true });
+
+// Prevent duplicate review submissions by the same user for the same product
+reviewSchema.index({ productId: 1, user: 1 }, { unique: true });
 
 const Review = mongoose.model('Review', reviewSchema);
 export default Review;

@@ -10,7 +10,10 @@ import {
   updateProfile,
   addAddress,
   deleteAddress,
-  toggleWishlist
+  toggleWishlist,
+  redeemReward,
+  subscribePremium,
+  getUserActivityLog
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -30,5 +33,9 @@ router.post('/addresses', protect, addAddress);
 router.delete('/addresses/:id', protect, deleteAddress);
 
 router.post('/wishlist/toggle', protect, toggleWishlist);
+
+router.post('/redeem-reward', protect, redeemReward);
+router.post('/subscribe', protect, subscribePremium);
+router.get('/activity-log', protect, getUserActivityLog);
 
 export default router;

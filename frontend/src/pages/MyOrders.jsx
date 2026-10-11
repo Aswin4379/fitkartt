@@ -17,18 +17,21 @@ export default function MyOrders() {
     const fetchOrders = async () => {
       try {
         const res = await orderApi.getMyOrders()
-        if (isMounted && Array.isArray(res) && res.length > 0) {
-          setOrders(res.map(o => ({ ...o, id: o.orderId || o.id || o._id })))
+        if (isMounted) {
+          if (Array.isArray(res)) {
+            setOrders(res.map(o => ({ ...o, id: o.orderId || o.id || o._id })))
+          } else {
+            setOrders([])
+          }
           setLoading(false)
           return
         }
       } catch (err) {
-        console.warn('[Fetch MyOrders backend fallback]:', err.message)
-      }
-
-      if (isMounted) {
-        setOrders(user?.orders || [])
-        setLoading(false)
+        console.warn('[Fetch MyOrders backend notice]:', err.message)
+        if (isMounted) {
+          setOrders([])
+          setLoading(false)
+        }
       }
     }
 

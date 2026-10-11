@@ -3,6 +3,9 @@ import AppLayout from '../components/AppLayout.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import { useUser } from '../context/UserContext.jsx'
 
+import { useState } from 'react'
+import { authApi } from '../services/api.js'
+
 const benefits = [
   { icon: Truck, title: 'Free delivery', desc: 'On every order, no minimum spend' },
   { icon: Sparkles, title: 'AI diet plans', desc: 'Unlimited personalized recommendations' },
@@ -16,9 +19,23 @@ const plans = [
 ]
 
 export default function Subscription() {
-  const { user, updateUser } = useUser()
+  const { user, setUser } = useUser()
+  const [subscribing, setSubscribing] = useState(false)
 
-  const subscribe = () => updateUser({ isPremium: true })
+  const subscribe = async (planId = 'monthly') => {
+    setSubscribing(true)
+    try {
+      const res = await authApi.subscribe(planId)
+      if (res?.user && setUser) {
+        setUser(res.user)
+      }
+      alert(res?.message || 'Premium activated successfully!')
+    } catch (err) {
+      alert(err.message || 'Failed to activate subscription. Please try again.')
+    } finally {
+      setSubscribing(false)
+    }
+  }
 
   return (
     <AppLayout>

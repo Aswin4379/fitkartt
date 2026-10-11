@@ -1,0 +1,154 @@
+{
+  "timestamp": "2026-10-11T10:37:21.085Z",
+  "backupFile": "C:\\Users\\91861\\OneDrive\\Desktop\\FitKart (4)\\FitKart\\backend\\backup\\test_data_backup_before_cleanup_1791715040980.json",
+  "beforeCounts": {
+    "users": 30,
+    "orders": 13,
+    "reviews": 17,
+    "products": 416,
+    "exercises": 134,
+    "workoutSessions": 13,
+    "customRoutines": 2
+  },
+  "afterCounts": {
+    "users": 16,
+    "orders": 7,
+    "reviews": 10,
+    "products": 416,
+    "exercises": 134,
+    "workoutSessions": 13,
+    "customRoutines": 2
+  },
+  "deletedTestUsersCount": 14,
+  "preservedRealUsersCount": 16,
+  "deletedOrdersCount": 6,
+  "preservedOrdersCount": 7,
+  "deletedDuplicateReviewsCount": 7,
+  "preservedReviewsCount": 10,
+  "realUsersList": [
+    {
+      "id": "6a93002c2e0f78e1b74825d9",
+      "email": "admin@fitkart.com",
+      "name": "Admin FitKart"
+    },
+    {
+      "id": "6aa02895a688780c68ee433b",
+      "email": "user@fitkart.com",
+      "name": "Aswin R"
+    },
+    {
+      "id": "6aa7976fc29fefa3c1a62c1a",
+      "email": "m.harine97531@gmail.com",
+      "name": "M Harine"
+    },
+    {
+      "id": "6aa7977ac29fefa3c1a62c1e",
+      "email": "aswinsp.2006@gmail.com",
+      "name": "Aswin SP"
+    },
+    {
+      "id": "6ab63546e5047787c7f64197",
+      "email": "iamaravind69@gmail.com",
+      "name": "Ruin Prince"
+    },
+    {
+      "id": "6ab63611e5047787c7f641ac",
+      "email": "egdmadhankumar@gmail.com",
+      "name": "Aswin S P"
+    },
+    {
+      "id": "6ab66f9512846a21f3fcc43f",
+      "email": "divakar7tech@gmail.com",
+      "name": "divakar"
+    },
+    {
+      "id": "6ab67417239c80cbac89aff9",
+      "email": "muthudivakar01022006@gmail.com",
+      "name": "Muthudivakar"
+    },
+    {
+      "id": "6ab8bcd5fe7cf823499158d4",
+      "email": "aswinaswinaswin08@gmail.com",
+      "name": "ash"
+    },
+    {
+      "id": "6ab8cf71fe7cf82349915b6c",
+      "email": "admin@fitkart.app",
+      "name": "Admin"
+    },
+    {
+      "id": "6ab8d51ffe7cf82349915b74",
+      "email": "spaswin2006@gmail.com",
+      "name": "Spaswin"
+    },
+    {
+      "id": "6abb7bbc6ae09137810a9593",
+      "email": "faridtech847@gmail.com",
+      "name": "farid"
+    },
+    {
+      "id": "6abb7c196ae09137810a95a4",
+      "email": "gowshik4525@gmail.com",
+      "name": "gowshik"
+    },
+    {
+      "id": "6abb7da76ae09137810a95ab",
+      "email": "spaswin750@gmail.com",
+      "name": "Spaswin"
+    },
+    {
+      "id": "6abb97376ae09137810a9d33",
+      "email": "pekka2418@gmail.com",
+      "name": "gowshik"
+    },
+    {
+      "id": "6abcb14d6d724b2598381e34",
+      "email": "ashh30232864@gmail.com",
+      "name": "Aswin"
+    }
+  ],
+  "realOrdersList": [
+    {
+      "id": "6a930c5b49563d844bcab816",
+      "orderId": "FK21851065",
+      "customerName": "Aswin S P",
+      "total": 268
+    },
+    {
+      "id": "6a9437610e4d18d1ec461b0f",
+      "orderId": "FK98401244",
+      "customerName": "Aswin S P",
+      "total": 188
+    },
+    {
+      "id": "6a9527c9269ad8eebc2dda53",
+      "orderId": "FK59945249",
+      "customerName": "Aswin S P",
+      "total": 78
+    },
+    {
+      "id": "6aa02971322f01d84727003e",
+      "orderId": "FK81265398",
+      "customerName": "Aswin R",
+      "total": 948
+    },
+    {
+      "id": "6aae1df3c0f1e797ae3daf6d",
+      "orderId": "FK95827512",
+      "customerName": "Aswin SP",
+      "total": 288
+    },
+    {
+      "id": "6ab63767e5047787c7f64201",
+      "orderId": "FK26631545",
+      "customerName": "Aswin S P",
+      "total": 467
+    },
+    {
+      "id": "6abe20ca5e9cb27a5836bd5a",
+      "orderId": "FK45130760",
+      "customerName": "divakar",
+      "total": 839
+    }
+  ]
+}

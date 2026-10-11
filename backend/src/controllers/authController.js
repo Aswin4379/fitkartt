@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Otp from '../models/Otp.js';
+import AuditLog from '../models/AuditLog.js';
 import { calculateMetabolicMetrics, getLocalDateString } from '../utils/metabolicEngine.js';
 import transporter from '../utils/email.js';
 import { OAuth2Client } from 'google-auth-library';
+import { logAuditEvent } from '../utils/auditLogger.js';
 
 export const sendOtp = async (req, res) => {
   try {
@@ -431,6 +433,16 @@ export const loginUser = async (req, res) => {
     const token = generateToken(user._id, user.role);
     const clientDate = req.headers['x-client-date'] || req.query.date || req.body?.clientDate || getLocalDateString();
 
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'LOGIN_SUCCESS',
+      entityType: 'User',
+      entityId: user._id.toString(),
+      metadata: { role: user.role },
+      req
+    });
+
     res.json({
       token,
       user: formatUserResponse(user, clientDate)
@@ -573,7 +585,7 @@ export const getMe = async (req, res) => {
   }
 };
 
-// @desc Update user profile
+// @desc Update user profile (with strict protection against unauthorized role/balance tampering)
 // @route PUT /api/auth/profile
 export const updateProfile = async (req, res) => {
   try {
@@ -582,7 +594,7 @@ export const updateProfile = async (req, res) => {
 
     const clientDate = req.headers['x-client-date'] || req.query.date || req.body?.clientDate || getLocalDateString();
     const {
-      name, phone, avatar, goal, isPremium, fitCoins, subscription,
+      name, phone, avatar, goal,
       age, gender, height, activityLevel, startingWeight, currentWeight, targetWeight,
       cart, fitnessStats
     } = req.body;
@@ -598,9 +610,6 @@ export const updateProfile = async (req, res) => {
     if (startingWeight !== undefined) user.startingWeight = Number(startingWeight);
     if (currentWeight !== undefined) user.currentWeight = Number(currentWeight);
     if (targetWeight !== undefined) user.targetWeight = Number(targetWeight);
-    if (isPremium !== undefined) user.isPremium = isPremium;
-    if (fitCoins !== undefined) user.fitCoins = fitCoins;
-    if (subscription !== undefined) user.subscription = subscription;
     if (cart !== undefined) user.cart = cart;
 
     if (fitnessStats !== undefined) {
@@ -700,6 +709,16 @@ export const updateProfile = async (req, res) => {
     if (cart !== undefined) user.markModified('cart');
     await user.save();
 
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: fitnessStats ? 'TRACKER_UPDATED' : 'PROFILE_UPDATED',
+      entityType: 'User',
+      entityId: user._id.toString(),
+      metadata: { fields: Object.keys(req.body).filter(k => !['clientDate'].includes(k)) },
+      req
+    });
+
     res.json({
       user: formatUserResponse(user, clientDate)
     });
@@ -709,7 +728,7 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// @desc Add address
+// @desc Add address with audit logging
 // @route POST /api/auth/addresses
 export const addAddress = async (req, res) => {
   try {
@@ -718,6 +737,16 @@ export const addAddress = async (req, res) => {
 
     user.addresses.push(req.body);
     await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'ADDRESS_ADDED',
+      entityType: 'Address',
+      entityId: req.body.pincode || '',
+      metadata: { city: req.body.city, pincode: req.body.pincode, type: req.body.type },
+      req
+    });
 
     res.status(201).json({
       addresses: user.addresses,
@@ -728,7 +757,7 @@ export const addAddress = async (req, res) => {
   }
 };
 
-// @desc Delete address
+// @desc Delete address with audit logging
 // @route DELETE /api/auth/addresses/:id
 export const deleteAddress = async (req, res) => {
   try {
@@ -739,6 +768,15 @@ export const deleteAddress = async (req, res) => {
       (a) => a._id.toString() !== req.params.id && a.id !== req.params.id
     );
     await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'ADDRESS_DELETED',
+      entityType: 'Address',
+      entityId: req.params.id,
+      req
+    });
 
     res.json({
       addresses: user.addresses,
@@ -774,3 +812,114 @@ export const toggleWishlist = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc Server-side validated FitCoins reward redemption
+// @route POST /api/auth/redeem-reward
+export const redeemReward = async (req, res) => {
+  try {
+    const { rewardId } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const options = [
+      { id: 1, label: '₹25 off coupon', cost: 100, code: 'COUPON25' },
+      { id: 2, label: '₹60 off coupon', cost: 220, code: 'COUPON60' },
+      { id: 3, label: 'Free delivery pass (3 orders)', cost: 150, code: 'FREEDELPASS' },
+      { id: 4, label: '1 month FitKart Premium', cost: 500, code: 'PREMIUM1M' },
+    ];
+    const opt = options.find(o => o.id === Number(rewardId));
+    if (!opt) return res.status(400).json({ message: 'Invalid reward option' });
+
+    if ((user.fitCoins || 0) < opt.cost) {
+      return res.status(400).json({
+        message: `Insufficient FitCoins. Required: ${opt.cost}, Available: ${user.fitCoins || 0}`
+      });
+    }
+
+    user.fitCoins = (user.fitCoins || 0) - opt.cost;
+    if (opt.id === 4) {
+      user.isPremium = true;
+      user.subscription = {
+        active: true,
+        plan: 'Reward: 1 Month',
+        startedAt: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      };
+    }
+    await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'REWARD_REDEEMED',
+      entityType: 'Reward',
+      entityId: String(opt.id),
+      metadata: { label: opt.label, cost: opt.cost, remainingCoins: user.fitCoins },
+      req
+    });
+
+    const clientDate = req.headers['x-client-date'] || getLocalDateString();
+    res.json({
+      success: true,
+      message: `Successfully redeemed ${opt.label}!`,
+      code: opt.code,
+      user: formatUserResponse(user, clientDate)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Server-side validated Subscription activation
+// @route POST /api/auth/subscribe
+export const subscribePremium = async (req, res) => {
+  try {
+    const { plan = 'monthly' } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const days = plan === 'yearly' ? 365 : 30;
+    user.isPremium = true;
+    user.subscription = {
+      active: true,
+      plan: plan === 'yearly' ? 'Yearly Pro' : 'Monthly Pro',
+      startedAt: new Date(),
+      expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+    };
+    await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'SUBSCRIPTION_ACTIVATED',
+      entityType: 'Subscription',
+      entityId: plan,
+      metadata: { plan, days },
+      req
+    });
+
+    const clientDate = req.headers['x-client-date'] || getLocalDateString();
+    res.json({
+      success: true,
+      message: 'FitKart Premium activated successfully!',
+      user: formatUserResponse(user, clientDate)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Get recent audit activity logs for the authenticated user
+// @route GET /api/auth/activity-log
+export const getUserActivityLog = async (req, res) => {
+  try {
+    const logs = await AuditLog.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

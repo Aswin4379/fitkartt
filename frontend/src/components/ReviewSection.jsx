@@ -8,6 +8,7 @@ import {
   markHelpful,
 } from '../data/reviews.js'
 import { reviewApi } from '../services/api.js'
+import { useUser } from '../context/UserContext.jsx'
 
 const SORT_OPTIONS = [
   { id: 'recent', label: 'Most Recent' },
@@ -113,26 +114,17 @@ export default function ReviewSection({ product, selectedVariantLabel, onStatsCh
     }
   }
 
+  const { user } = useUser()
+
   const submitReview = async (e) => {
     e.preventDefault()
+    if (!user) {
+      alert('Please sign in to submit a review.')
+      return
+    }
     if (!form.text.trim()) return
 
-    const authorName = form.name.trim() || 'Anonymous'
-    const newReview = {
-      id: `rev-${Date.now()}`,
-      name: authorName,
-      rating: form.rating,
-      text: form.text.trim(),
-      comment: form.text.trim(),
-      date: new Date().toISOString(),
-      verified: true,
-      helpful: 0,
-      variantLabel: selectedVariantLabel || '',
-    }
-
-    setReviews((prev) => [newReview, ...prev])
-    setForm({ name: '', rating: 5, text: '' })
-    setShowForm(false)
+    const authorName = user.name || form.name.trim() || 'FitKart Athlete'
 
     try {
       await reviewApi.createReview({
@@ -142,13 +134,27 @@ export default function ReviewSection({ product, selectedVariantLabel, onStatsCh
         title: `${form.rating}-Star Review`,
         comment: form.text.trim()
       })
-    } catch {
-      addReview(product, {
-        name: authorName,
-        rating: form.rating,
-        text: form.text.trim(),
-        variantLabel: selectedVariantLabel,
-      })
+
+      // Reload confirmed reviews from MongoDB
+      const res = await reviewApi.getProductReviews(productId)
+      if (Array.isArray(res)) {
+        const normalized = res.map((r) => ({
+          id: r._id || r.id,
+          name: r.author || r.name,
+          rating: r.rating,
+          text: r.comment || r.text,
+          date: r.date || r.createdAt,
+          verified: r.verifiedPurchase !== false,
+          helpful: r.helpfulVotes || r.helpful || 0,
+          variantLabel: r.variantLabel || ''
+        }))
+        setReviews(normalized)
+      }
+
+      setForm({ name: '', rating: 5, text: '' })
+      setShowForm(false)
+    } catch (err) {
+      alert(err.message || 'Failed to submit review. Please try again.')
     }
   }
 

@@ -64,6 +64,9 @@ export const authApi = {
   deleteAddress: (id) => customFetch(`/auth/addresses/${id}`, { method: 'DELETE' }),
   toggleWishlist: (productId) => customFetch('/auth/wishlist/toggle', { method: 'POST', body: JSON.stringify({ productId }) }),
   resetPassword: (data) => customFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+  redeemReward: (rewardId) => customFetch('/auth/redeem-reward', { method: 'POST', body: JSON.stringify({ rewardId }) }),
+  subscribe: (plan) => customFetch('/auth/subscribe', { method: 'POST', body: JSON.stringify({ plan }) }),
+  getActivityLog: () => customFetch('/auth/activity-log'),
 };
 
 // Product API
@@ -118,6 +121,10 @@ export const adminApi = {
   createProduct: (data) => customFetch('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id, data) => customFetch(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id) => customFetch(`/admin/products/${id}`, { method: 'DELETE' }),
+  getAuditLogs: (params = {}) => {
+    const sp = new URLSearchParams(params).toString();
+    return customFetch(`/admin/audit-logs${sp ? `?${sp}` : ''}`);
+  },
 };
 
 // Nutrition API (Open Food Facts Backend Fallback)

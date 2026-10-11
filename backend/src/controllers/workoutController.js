@@ -1,6 +1,7 @@
 import Workout from '../models/Workout.js';
 import WorkoutSession from '../models/WorkoutSession.js';
 import CustomRoutine from '../models/CustomRoutine.js';
+import { logAuditEvent } from '../utils/auditLogger.js';
 
 // @desc Get all workouts
 // @route GET /api/workouts
@@ -48,7 +49,14 @@ export const saveWorkoutSession = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) throw new Error('User not found');
     
-    // Initialize stats if missing
+    // Initialize stats safely if missing
+    if (!user.fitnessStats) user.fitnessStats = {};
+    if (!user.fitnessStats.streak) {
+      user.fitnessStats.streak = { current: 0, best: 0, lastActiveDate: '', history: [] };
+    }
+    if (!user.fitnessStats.workoutStats) {
+      user.fitnessStats.workoutStats = { completed: 0, time: 0, calories: 0, streak: 0, lastWorkoutDate: '' };
+    }
     if (!user.fitnessStats.workoutPRs) user.fitnessStats.workoutPRs = {};
     if (!user.fitnessStats.muscleRecovery) {
       user.fitnessStats.muscleRecovery = { chest: 100, back: 100, shoulders: 100, biceps: 100, triceps: 100, forearms: 100, abs: 100, glutes: 100, quads: 100, hamstrings: 100, calves: 100 };
@@ -138,6 +146,8 @@ export const saveWorkoutSession = async (req, res) => {
 
     // 3. Update Streak & Stats
     const todayStr = new Date().toISOString().split('T')[0];
+    const durationMinutes = Math.round(durationSeconds / 60);
+
     if (user.fitnessStats.streak.lastActiveDate !== todayStr) {
       user.fitnessStats.streak.current += 1;
       user.fitnessStats.streak.lastActiveDate = todayStr;
@@ -146,25 +156,83 @@ export const saveWorkoutSession = async (req, res) => {
       }
     }
     user.fitnessStats.workoutStats.completed += 1;
-    user.fitnessStats.workoutStats.time += Math.round(durationSeconds / 60);
-    user.fitnessStats.workoutStats.calories += caloriesBurned;
+    user.fitnessStats.workoutStats.time += durationMinutes;
+    user.fitnessStats.workoutStats.calories += (caloriesBurned || 0);
     user.fitnessStats.workoutStats.lastWorkoutDate = todayStr;
 
-    user.markModified('fitnessStats.workoutPRs');
-    user.markModified('fitnessStats.muscleRecovery');
-    user.markModified('fitnessStats.fitnessPlan');
-    await user.save();
+    // 4. Save Session document
+    const formattedExercises = (exercises || []).map((e, idx) => ({
+      ...e,
+      exerciseId: e.exerciseId || e.id || `ex-${idx}-${Date.now()}`,
+      name: e.name || 'Exercise'
+    }));
 
-    // 4. Save Session
     const session = new WorkoutSession({
       user: req.user._id,
       ...req.body,
+      exercises: formattedExercises,
       totalVolume,
       muscleGroups: Array.from(muscleGroups),
       prsHit
     });
     
     const savedSession = await session.save();
+
+    // 5. Synchronize with User fitnessStats workoutLogs & daily activity
+    if (!Array.isArray(user.fitnessStats.workoutLogs)) {
+      user.fitnessStats.workoutLogs = [];
+    }
+
+    let completedSetsCount = 0;
+    exercises?.forEach(ex => {
+      ex.sets?.forEach(s => {
+        if (s.isCompleted) completedSetsCount++;
+      });
+    });
+
+    user.fitnessStats.workoutLogs.unshift({
+      id: savedSession._id.toString(),
+      date: todayStr,
+      workoutName: name || 'Workout Session',
+      duration: durationMinutes,
+      calories: caloriesBurned || 0,
+      exercisesCount: exercises?.length || 0,
+      exerciseNames: exercises?.map(e => e.name).filter(Boolean) || [],
+      setsCompleted: completedSetsCount,
+      completedAt: new Date()
+    });
+
+    if (!user.fitnessStats.activity) {
+      user.fitnessStats.activity = { todayMinutes: 0, todayCaloriesBurned: 0, workoutsCompletedToday: 0, history: [] };
+    }
+    user.fitnessStats.activity.todayMinutes = (user.fitnessStats.activity.todayMinutes || 0) + durationMinutes;
+    user.fitnessStats.activity.todayCaloriesBurned = (user.fitnessStats.activity.todayCaloriesBurned || 0) + (caloriesBurned || 0);
+    user.fitnessStats.activity.workoutsCompletedToday = (user.fitnessStats.activity.workoutsCompletedToday || 0) + 1;
+    user.fitnessStats.activity.lastUpdatedDate = todayStr;
+
+    user.markModified('fitnessStats.workoutPRs');
+    user.markModified('fitnessStats.muscleRecovery');
+    user.markModified('fitnessStats.fitnessPlan');
+    user.markModified('fitnessStats.workoutLogs');
+    user.markModified('fitnessStats.activity');
+    await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'WORKOUT_COMPLETED',
+      entityType: 'WorkoutSession',
+      entityId: savedSession._id.toString(),
+      metadata: {
+        workoutName: name || 'Workout Session',
+        durationMinutes,
+        caloriesBurned: caloriesBurned || 0,
+        exercisesCount: exercises?.length || 0,
+        prsHit
+      },
+      req
+    });
+
     res.status(201).json(savedSession);
   } catch (error) {
     res.status(500).json({ message: error.message });

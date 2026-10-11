@@ -8,7 +8,7 @@ const setSchema = new mongoose.Schema({
 }, { _id: true });
 
 const exerciseRecordSchema = new mongoose.Schema({
-  exerciseId: { type: String, required: true },
+  exerciseId: { type: String, default: () => `ex-${Date.now()}` },
   name: { type: String, required: true },
   target: { type: String },
   sets: [setSchema]
