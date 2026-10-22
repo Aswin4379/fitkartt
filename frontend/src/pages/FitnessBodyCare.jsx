@@ -108,7 +108,7 @@ export default function FitnessBodyCare() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Submit assessment to backend Groq AI service
+  // Submit assessment to backend FitKart AI service
   const handleSubmitAssessment = async () => {
     if (!selectedPart) {
       setError('Please select a body part on the body selector above.');
@@ -194,7 +194,7 @@ export default function FitnessBodyCare() {
             <h1 className="text-2xl sm:text-4xl font-black text-fit-text flex items-center gap-3">
               BodyCare AI
               <span className="px-3 py-1 rounded-full bg-gradient-to-r from-fit-primary/20 to-teal-500/20 border border-fit-primary/30 text-xs font-bold text-fit-primary flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.15)]">
-                <Sparkles size={13} /> Dynamic Groq AI
+                <Sparkles size={13} /> FitKart Clinical AI
               </span>
             </h1>
             <p className="text-fit-muted text-sm mt-1 max-w-2xl">

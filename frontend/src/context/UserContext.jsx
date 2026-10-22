@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { authApi } from '../services/api.js'
+import { authApi, workoutApi } from '../services/api.js'
 
 const UserContext = createContext(null)
 
@@ -141,9 +141,9 @@ export function UserProvider({ children }) {
     else safeRemoveItem(STORAGE_KEY)
   }, [user])
 
-  const signup = async ({ name, email, password }) => {
+  const signup = async ({ name, email, password, phone }) => {
     try {
-      const res = await authApi.register({ name, email, password })
+      const res = await authApi.register({ name, email, password, phone })
       if (res?.token && res?.user) {
         safeSetItem(TOKEN_KEY, res.token)
         safeSetItem(STORAGE_KEY, res.user)
@@ -254,6 +254,24 @@ export function UserProvider({ children }) {
     }
   }
 
+  const updateAddress = async (addressId, addressData) => {
+    try {
+      const res = await authApi.updateAddress(addressId, addressData)
+      if (res?.addresses) {
+        setUser((prev) => {
+          if (!prev) return prev
+          const updated = { ...prev, addresses: res.addresses }
+          safeSetItem(STORAGE_KEY, updated)
+          return updated
+        })
+        return res.addresses
+      }
+    } catch (err) {
+      console.warn('[Update Address Error]:', err.message)
+      throw err
+    }
+  }
+
   const deleteAddress = async (addressId) => {
     try {
       const res = await authApi.deleteAddress(addressId)
@@ -282,6 +300,39 @@ export function UserProvider({ children }) {
     })
   }
 
+  const resetFitnessPlan = useCallback(async () => {
+    try {
+      const raw = safeGetItem(STORAGE_KEY)
+      if (raw) {
+        const local = JSON.parse(raw)
+        if (local && local.fitnessStats) {
+          local.fitnessStats.fitnessPlan = null
+        }
+        safeSetItem(STORAGE_KEY, local)
+      }
+
+      setUser((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          fitnessStats: {
+            ...(prev.fitnessStats || {}),
+            fitnessPlan: null,
+          },
+        }
+      })
+
+      await workoutApi.resetAIPlan().catch((err) => {
+        console.warn('[UserContext] Backend reset plan warning:', err)
+      })
+
+      return true
+    } catch (err) {
+      console.error('[UserContext] resetFitnessPlan error:', err)
+      return false
+    }
+  }, [])
+
   return (
     <UserContext.Provider
       value={{
@@ -295,8 +346,10 @@ export function UserProvider({ children }) {
         refreshUser,
         toggleWishlist,
         addAddress,
+        updateAddress,
         deleteAddress,
-        addOrder
+        addOrder,
+        resetFitnessPlan
       }}
     >
       {children}

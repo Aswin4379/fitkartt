@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, ArrowRight, ShieldCheck, Zap, Award } from 'lucide-react'
+import { Sparkles, ArrowRight, ShieldCheck, Truck } from 'lucide-react'
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1600&q=80'
@@ -32,8 +32,8 @@ export default function HeroBanner() {
           transition={{ duration: 0.4 }}
           className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fit-primary/10 border border-fit-primary/30 text-fit-primary text-xs font-bold tracking-wide uppercase self-start mb-3 shadow-glow"
         >
-          <Sparkles size={13} className="animate-spin text-fit-primary" />
-          <span>India&apos;s #1 Fitness &amp; Nutrition Hub</span>
+          <Sparkles size={13} className="text-fit-primary animate-pulse" />
+          <span>Authentic Nutrition &amp; AI Fitness Platform</span>
         </motion.div>
 
         {/* Heading */}
@@ -41,10 +41,10 @@ export default function HeroBanner() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-5xl lg:text-6xl font-black text-fit-text font-display leading-[1.1] max-w-2xl"
+          className="text-3xl sm:text-5xl lg:text-6xl font-black text-fit-text font-display leading-tight max-w-3xl"
         >
-          Fuel Your Body.{' '}
-          <span className="bg-gradient-to-r from-fit-primary via-emerald-500 to-fit-accent bg-clip-text text-transparent">
+          <span className="inline-block">Fuel Your Body.</span>{' '}
+          <span className="block mt-1 sm:mt-2 bg-gradient-to-r from-fit-primary via-emerald-400 to-fit-accent bg-clip-text text-transparent pb-1 tracking-tight">
             Crush Your Limits.
           </span>
         </motion.h1>
@@ -91,24 +91,24 @@ export default function HeroBanner() {
           className="grid grid-cols-3 sm:flex sm:items-center gap-4 sm:gap-8 mt-8 pt-6 border-t border-fit-border max-w-xl text-left"
         >
           <div>
-            <div className="flex items-center gap-1 text-base sm:text-lg font-black text-fit-text">
-              <Zap size={15} className="text-fit-primary" /> 12 Mins
+            <div className="flex items-center gap-1.5 text-base sm:text-lg font-black text-fit-text">
+              <Truck size={17} className="text-fit-primary" /> Free Shipping
             </div>
-            <p className="text-[11px] text-fit-muted">Ultra-fast delivery</p>
+            <p className="text-[11px] text-fit-muted">Orders above ₹499</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1 text-base sm:text-lg font-black text-fit-text">
-              <ShieldCheck size={15} className="text-fit-primary" /> 100%
+            <div className="flex items-center gap-1.5 text-base sm:text-lg font-black text-fit-text">
+              <ShieldCheck size={17} className="text-fit-primary" /> 100% Genuine
             </div>
-            <p className="text-[11px] text-fit-muted">Lab tested authentic</p>
+            <p className="text-[11px] text-fit-muted">Direct brand sourced</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1 text-base sm:text-lg font-black text-fit-text">
-              <Award size={15} className="text-fit-primary" /> 50K+
+            <div className="flex items-center gap-1.5 text-base sm:text-lg font-black text-fit-text">
+              <Sparkles size={17} className="text-fit-primary" /> AI Powered
             </div>
-            <p className="text-[11px] text-fit-muted">Happy athletes</p>
+            <p className="text-[11px] text-fit-muted">Custom macros &amp; recovery</p>
           </div>
         </motion.div>
       </div>

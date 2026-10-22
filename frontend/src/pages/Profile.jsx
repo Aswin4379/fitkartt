@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Package, Heart, MapPin, Target, Coins, Crown, LogOut, ChevronRight, Settings, ShieldCheck, Dumbbell, Sparkles, Edit3, X, Check, User, Clock, Activity, Loader2
+  Package, Heart, MapPin, Target, Coins, Crown, LogOut, ChevronRight, Settings, ShieldCheck, Dumbbell, Sparkles, Edit3, X, Check, User, Clock, Activity, Loader2, Phone
 } from 'lucide-react'
 import AppLayout from '../components/AppLayout.jsx'
 import { useUser } from '../context/UserContext.jsx'
@@ -22,6 +22,7 @@ export default function Profile() {
   const [editActivity, setEditActivity] = useState('moderate')
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  const [editError, setEditError] = useState('')
 
   if (!user) {
     navigate('/login')
@@ -38,16 +39,27 @@ export default function Profile() {
     setEditStartingWeight(String(user.startingWeight || 75))
     setEditTargetWeight(String(user.targetWeight || 65))
     setEditActivity(user.activityLevel || 'moderate')
+    setEditError('')
     setShowEditModal(true)
   }
 
   const handleSaveProfile = async (e) => {
     e.preventDefault()
+    const trimmedPhone = editPhone.trim()
+    let cleanPhone = ''
+    if (trimmedPhone) {
+      cleanPhone = trimmedPhone.replace(/\D/g, '').slice(-10)
+      if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+        setEditError('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).')
+        return
+      }
+    }
+    setEditError('')
     setSaving(true)
     try {
       await updateUser({
         name: editName.trim() || user.name,
-        phone: editPhone.trim(),
+        phone: cleanPhone,
         goal: editGoal,
         age: Number(editAge) || 24,
         height: Number(editHeight) || 175,
@@ -64,6 +76,7 @@ export default function Profile() {
       }, 1000)
     } catch (err) {
       console.error(err)
+      setEditError(err.message || 'Failed to update profile.')
     } finally {
       setSaving(false)
     }
@@ -125,7 +138,15 @@ export default function Profile() {
                 )}
               </div>
               <p className="text-xs text-fit-muted">{user.email}</p>
-              {user.phone && <p className="text-xs text-fit-muted">Phone: {user.phone}</p>}
+              {user.phone ? (
+                <p className="text-xs text-fit-muted flex items-center justify-center sm:justify-start gap-1">
+                  <span>📞 +91 {user.phone.length === 10 ? `${user.phone.slice(0, 5)} ${user.phone.slice(5)}` : user.phone}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-fit-muted/70 italic flex items-center justify-center sm:justify-start gap-1">
+                  <span>📞 No phone linked (click Edit to add)</span>
+                </p>
+              )}
               <p className="text-xs text-fit-primary font-semibold flex items-center justify-center sm:justify-start gap-1 pt-1">
                 <Sparkles size={12} /> Goal: {user.goal || 'Weight Loss'}
               </p>
@@ -282,15 +303,27 @@ export default function Profile() {
 
               <div>
                 <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">
-                  Phone Number
+                  Mobile Number <span className="text-[10px] text-fit-muted/70 font-normal lowercase">(India +91)</span>
                 </label>
-                <input
-                  type="tel"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  placeholder="+91 9876543210"
-                  className="input-field text-xs"
-                />
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-fit-muted pointer-events-none">
+                    <Phone size={14} />
+                    <span className="text-xs font-bold text-fit-text border-r border-fit-border pr-1.5 ml-0.5">+91</span>
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={editPhone}
+                    onChange={(e) => {
+                      setEditPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+                      if (editError) setEditError('')
+                    }}
+                    placeholder="98765 43210"
+                    maxLength={10}
+                    className="input-field text-xs pl-[72px]"
+                  />
+                </div>
+                {editError && <p className="text-red-400 text-[11px] font-semibold mt-1">{editError}</p>}
               </div>
 
               <div>

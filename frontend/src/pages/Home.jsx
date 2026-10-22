@@ -22,6 +22,7 @@ import OfferCarousel from '../components/OfferCarousel.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 import { useProducts } from '../context/ProductContext.jsx'
 import { getBestDiscountVariant } from '../utils/productVariants.js'
+import CategoryIcon from '../components/CategoryIcon.jsx'
 
 export default function Home() {
   const { products, categories, getTrending, getBestSellers, getNewArrivals, getRecommended } = useProducts()
@@ -64,36 +65,72 @@ export default function Home() {
         {/* Active Offers Carousel */}
         <OfferCarousel />
 
-        {/* AI Recommendation Teaser Banner */}
-        <Link to="/ai-recommendation" className="block">
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="card p-5 bg-gradient-to-r from-fit-primary/15 via-fit-surface to-fit-surface2 border-fit-primary/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-glow"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-fit-primary/20 border border-fit-primary/40 flex items-center justify-center shrink-0">
-                <Sparkles size={24} className="text-fit-primary animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="badge-new">NEW FEATURE</span>
-                  <h3 className="text-base font-black text-fit-text">
+        {/* AI Suite Banners: Diet Plan & BodyCare AI */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* AI Diet Planner */}
+          <Link to="/ai-recommendation" className="block group">
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="card p-5 bg-gradient-to-br from-fit-primary/15 via-fit-surface to-fit-surface2 border-fit-primary/40 h-full flex flex-col justify-between gap-4 shadow-glow group-hover:border-fit-primary transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-fit-primary/20 border border-fit-primary/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <Sparkles size={24} className="text-fit-primary animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="badge-new">AI NUTRITION</span>
+                    <span className="text-[10px] text-fit-primary font-bold">MACROS</span>
+                  </div>
+                  <h3 className="text-base font-black text-fit-text mt-1 group-hover:text-fit-primary transition-colors">
                     Smart AI Diet &amp; Nutrition Planner
                   </h3>
+                  <p className="text-xs text-fit-muted mt-1 leading-relaxed">
+                    Calculate exact BMR, calories &amp; personalized meal targets in 30 seconds.
+                  </p>
                 </div>
-                <p className="text-xs text-fit-muted mt-0.5">
-                  Calculate exact BMR, macro splits &amp; get personalized supplement stacks in 30 seconds.
-                </p>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-bold text-fit-primary bg-fit-primary/10 px-4 py-2 rounded-xl border border-fit-primary/30">
-              <span>Calculate Macros</span>
-              <ArrowRight size={14} />
-            </div>
-          </motion.div>
-        </Link>
+              <div className="flex items-center justify-between pt-2 border-t border-fit-border/40 text-xs font-bold text-fit-primary">
+                <span>Calculate Macros</span>
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+          </Link>
+
+          {/* BodyCare AI */}
+          <Link to="/fitness/bodycare" className="block group">
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="card p-5 bg-gradient-to-br from-teal-500/15 via-fit-surface to-fit-surface2 border-teal-500/40 h-full flex flex-col justify-between gap-4 shadow-card group-hover:border-teal-400 group-hover:shadow-glow transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center shrink-0 text-teal-400 group-hover:scale-105 transition-transform">
+                  <Activity size={24} className="text-teal-400 animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-teal-500/20 text-teal-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">RECOVERY</span>
+                    <span className="text-[10px] text-teal-400 font-bold">BODY MAP</span>
+                  </div>
+                  <h3 className="text-base font-black text-fit-text mt-1 group-hover:text-teal-400 transition-colors">
+                    BodyCare AI Recovery &amp; Joint Care
+                  </h3>
+                  <p className="text-xs text-fit-muted mt-1 leading-relaxed">
+                    Interactive body map, soreness relief &amp; targeted mobility guidance.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-fit-border/40 text-xs font-bold text-teal-400">
+                <span>Assess Body Recovery</span>
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+          </Link>
+        </div>
 
         {/* Browse by Fitness Goal / Featured Categories */}
         <section>
@@ -127,8 +164,8 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent pointer-events-none" />
 
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="w-8 h-8 rounded-xl bg-black/60 backdrop-blur border border-white/10 flex items-center justify-center text-sm shadow-sm">
-                    {cat.icon}
+                  <span className="w-8 h-8 rounded-xl bg-black/60 backdrop-blur border border-white/10 flex items-center justify-center text-fit-primary shadow-sm group-hover:scale-110 transition-transform">
+                    <CategoryIcon id={cat.id} size={16} />
                   </span>
                   <span className="text-[10px] text-fit-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
                     Explore →

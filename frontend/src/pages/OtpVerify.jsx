@@ -12,6 +12,7 @@ export default function OtpVerify() {
   const { signup } = useUser()
   const email = location.state?.email || ''
   const name = location.state?.name || ''
+  const phone = location.state?.phone || ''
   const password = location.state?.password || ''
   const next = location.state?.next || '/home'
   const intent = location.state?.intent || 'signup'
@@ -67,7 +68,7 @@ export default function OtpVerify() {
       }
 
       // 2. Register User now that OTP is verified
-      const signupRes = await signup({ name, email, password })
+      const signupRes = await signup({ name, email, password, phone })
       if (signupRes.success) {
         navigate(next, { replace: true })
       } else {

@@ -1,5 +1,5 @@
 import express from 'express';
-// Trigger nodemon restart 2
+// Trigger nodemon reload for phone support updates
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';

@@ -6,7 +6,7 @@ export const categories = [
   {
     "id": "weight-loss",
     "name": "Weight Loss",
-    "icon": "🥗",
+    "icon": "Flame",
     "color": "#39FF6A",
     "image": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Low-cal meals & detox"
@@ -14,7 +14,7 @@ export const categories = [
   {
     "id": "weight-gain",
     "name": "Weight Gain",
-    "icon": "💪",
+    "icon": "Dumbbell",
     "color": "#B6FF3C",
     "image": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=600&q=80",
     "subtitle": "High calorie & protein"
@@ -22,7 +22,7 @@ export const categories = [
   {
     "id": "fitness-maintenance",
     "name": "Fitness Maintenance",
-    "icon": "⚖️",
+    "icon": "Activity",
     "color": "#39FF6A",
     "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Balanced daily nutrition"
@@ -30,7 +30,7 @@ export const categories = [
   {
     "id": "protein-supplements",
     "name": "Protein Supplements",
-    "icon": "🥤",
+    "icon": "Zap",
     "color": "#B6FF3C",
     "image": "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Whey, plant & BCAAs"
@@ -38,7 +38,7 @@ export const categories = [
   {
     "id": "healthy-snacks",
     "name": "Healthy Snacks",
-    "icon": "🍿",
+    "icon": "Leaf",
     "color": "#39FF6A",
     "image": "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Clean bites & bars"
@@ -46,7 +46,7 @@ export const categories = [
   {
     "id": "diet-meals",
     "name": "Diet Meals",
-    "icon": "🍱",
+    "icon": "UtensilsCrossed",
     "color": "#B6FF3C",
     "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Macro-counted bowls"
@@ -54,7 +54,7 @@ export const categories = [
   {
     "id": "fruits",
     "name": "Fruits",
-    "icon": "🍎",
+    "icon": "Apple",
     "color": "#39FF6A",
     "image": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Fresh seasonal produce"
@@ -62,7 +62,7 @@ export const categories = [
   {
     "id": "workout-products",
     "name": "Workout Products",
-    "icon": "🏋️",
+    "icon": "Dumbbell",
     "color": "#B6FF3C",
     "image": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
     "subtitle": "Gears & gym essentials"

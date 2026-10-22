@@ -9,6 +9,7 @@ import {
   getMe,
   updateProfile,
   addAddress,
+  updateAddress,
   deleteAddress,
   toggleWishlist,
   redeemReward,
@@ -30,6 +31,7 @@ router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 
 router.post('/addresses', protect, addAddress);
+router.put('/addresses/:id', protect, updateAddress);
 router.delete('/addresses/:id', protect, deleteAddress);
 
 router.post('/wishlist/toggle', protect, toggleWishlist);

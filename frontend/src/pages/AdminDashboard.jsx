@@ -389,7 +389,7 @@ export default function AdminDashboard() {
                         <div>
                           <p className="font-mono font-bold text-sm text-fit-text">#{key}</p>
                           <p className="text-xs text-fit-muted mt-0.5">
-                            Customer: {o.customerName || 'FitKart User'} · {o.customerPhone || 'Verified'}
+                            Customer: {o.customerName || 'FitKart User'} · Contact: {(o.customerPhone || o.deliveryAddress?.phone) ? `+91 ${o.customerPhone || o.deliveryAddress.phone}` : 'No phone provided'}
                           </p>
                         </div>
                         <div className="flex items-center gap-3 self-end sm:self-auto">

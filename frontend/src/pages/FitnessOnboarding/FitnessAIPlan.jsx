@@ -1,42 +1,53 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info, Activity } from 'lucide-react';
+import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info, Activity, RotateCcw, AlertTriangle, X } from 'lucide-react';
 import { useWorkout } from '../../context/WorkoutContext.jsx';
+import { useUser } from '../../context/UserContext.jsx';
 import FitnessDayModal from './FitnessDayModal.jsx';
 
 export default function FitnessAIPlan({ fitnessPlan }) {
   const [selectedDay, setSelectedDay] = useState(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
-  const { startWorkout, activeWorkout } = useWorkout();
+  const { startWorkout, activeWorkout, cancelWorkout } = useWorkout();
+  const { resetFitnessPlan } = useUser();
 
   if (!fitnessPlan || !fitnessPlan.onboarded) {
     return (
-      <div className="bg-gradient-to-br from-zinc-900 to-[#121212] border border-zinc-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
-        <div className="absolute -right-20 -top-20 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Sparkles size={200} className="text-[#2196f3]" />
+      <div className="bg-gradient-to-br from-fit-surface via-fit-surface to-fit-surface2 border border-fit-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group shadow-card">
+        <div className="absolute -right-20 -top-20 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+          <Sparkles size={200} className="text-fit-primary" />
         </div>
         
         <div className="relative z-10 max-w-lg">
           <div className="flex items-center gap-2 mb-3">
-            <span className="bg-[#2196f3] text-black text-xs font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">New</span>
-            <h3 className="text-2xl font-extrabold text-white">AI 30-Day Program</h3>
+            <span className="bg-blue-600 text-white dark:bg-[#2196f3] dark:text-black text-xs font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-sm">New</span>
+            <h3 className="text-2xl font-extrabold text-fit-text">AI 30-Day Program</h3>
           </div>
-          <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+          <p className="text-fit-muted text-sm leading-relaxed mb-6">
             Generate a hyper-personalized 30-day workout calendar tailored exactly to your body type, goals, and target muscle groups.
           </p>
           <button 
             onClick={() => navigate('/fitness/onboarding')}
-            className="bg-white text-black px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+            className="bg-fit-primary hover:bg-fit-primary-dark text-white font-extrabold px-6 py-3 rounded-full hover:scale-105 transition-all flex items-center gap-2 shadow-md hover:shadow-glow cursor-pointer"
           >
             <Sparkles size={18} />
             Generate My Plan
           </button>
         </div>
 
-        <div className="relative z-10 w-full md:w-auto flex-shrink-0 grid grid-cols-3 gap-2 opacity-80 pointer-events-none">
+        <div className="relative z-10 w-full md:w-auto flex-shrink-0 grid grid-cols-3 gap-2 opacity-90 pointer-events-none">
           {[1,2,3,4,5,6,7,8,9].map(i => (
-            <div key={i} className={`w-12 h-12 rounded-lg border flex items-center justify-center ${i === 5 ? 'border-[#2196f3] bg-[#2196f3]/10 text-[#2196f3]' : 'border-zinc-800 bg-zinc-900/50 text-zinc-600'}`}>
-              <span className="text-xs font-bold">{i}</span>
+            <div 
+              key={i} 
+              className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${
+                i === 5 
+                  ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-400 font-black shadow-sm ring-2 ring-blue-500/20' 
+                  : 'border-fit-border bg-fit-surface2/80 text-fit-muted font-bold'
+              }`}
+            >
+              <span className="text-xs">{i}</span>
             </div>
           ))}
         </div>
@@ -118,19 +129,30 @@ export default function FitnessAIPlan({ fitnessPlan }) {
           )}
         </div>
         
-        {/* Quick Continue Button */}
-        {currentDayData && currentDayData.exercises.length > 0 && (
-          <button 
-            onClick={() => handleStartDay(currentDayData)}
-            className={`px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg ${
-              isCurrentDayActive
-                ? 'bg-fit-primary text-white shadow-glow animate-pulse'
-                : 'bg-[#2196f3] text-white shadow-md'
-            }`}
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="px-3 py-2 rounded-full text-xs font-bold border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/60 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            title="Cancel or reset this 30-day plan"
           >
-            {isCurrentDayActive ? `Resume Day ${currentDay}` : `Start Day ${currentDay}`} <Play size={14} fill="currentColor" />
+            <RotateCcw size={13} />
+            <span>Cancel Plan</span>
           </button>
-        )}
+
+          {currentDayData && currentDayData.exercises.length > 0 && (
+            <button 
+              onClick={() => handleStartDay(currentDayData)}
+              className={`px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg ${
+                isCurrentDayActive
+                  ? 'bg-fit-primary text-white shadow-glow animate-pulse'
+                  : 'bg-[#2196f3] text-white shadow-md'
+              }`}
+            >
+              {isCurrentDayActive ? `Resume Day ${currentDay}` : `Start Day ${currentDay}`} <Play size={14} fill="currentColor" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Horizontal Scroll Calendar */}
@@ -249,6 +271,84 @@ export default function FitnessAIPlan({ fitnessPlan }) {
           dayData={selectedDay} 
           onClose={() => setSelectedDay(null)} 
         />
+      )}
+
+      {/* Cancel Plan Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-fit-surface border border-fit-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-fit-text space-y-5">
+            <button
+              onClick={() => !isResetting && setShowResetConfirm(false)}
+              className="absolute top-4 right-4 text-fit-muted hover:text-fit-text p-1.5 rounded-lg hover:bg-fit-surface2 transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <h4 className="text-lg font-extrabold text-fit-text">Cancel 30-Day Plan?</h4>
+                <p className="text-xs text-fit-muted">Reset current schedule and start fresh</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-fit-muted leading-relaxed">
+              Are you sure you want to cancel your current 30-day program? You can immediately generate a fresh AI plan customized to your exact schedule (e.g. 5 days/week), split, and equipment.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <button
+                disabled={isResetting}
+                onClick={async () => {
+                  setIsResetting(true);
+                  try {
+                    if (activeWorkout?.planDay) {
+                      await cancelWorkout();
+                    }
+                    await resetFitnessPlan();
+                    setShowResetConfirm(false);
+                    navigate('/fitness/onboarding');
+                  } finally {
+                    setIsResetting(false);
+                  }
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold bg-fit-primary hover:bg-fit-primary-dark text-white flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition-all cursor-pointer"
+              >
+                <Sparkles size={15} />
+                {isResetting ? 'Resetting...' : 'Cancel & Create New Plan'}
+              </button>
+
+              <button
+                disabled={isResetting}
+                onClick={async () => {
+                  setIsResetting(true);
+                  try {
+                    if (activeWorkout?.planDay) {
+                      await cancelWorkout();
+                    }
+                    await resetFitnessPlan();
+                    setShowResetConfirm(false);
+                  } finally {
+                    setIsResetting(false);
+                  }
+                }}
+                className="py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 transition-all cursor-pointer text-center"
+              >
+                {isResetting ? 'Resetting...' : 'Cancel Plan Only'}
+              </button>
+            </div>
+
+            <button
+              disabled={isResetting}
+              onClick={() => setShowResetConfirm(false)}
+              className="w-full text-center text-xs font-semibold text-fit-muted hover:text-fit-text transition-colors py-1 cursor-pointer"
+            >
+              Keep Current Plan
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

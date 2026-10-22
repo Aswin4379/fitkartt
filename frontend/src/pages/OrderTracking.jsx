@@ -152,9 +152,11 @@ export default function OrderTracking() {
               <Truck size={22} />
             </div>
             <div>
-              <p className="text-xs font-bold text-fit-text">Express Rider</p>
-              <p className="text-[11px] text-fit-muted">Karthik (Vaccinated &amp; Verified)</p>
-              <p className="text-[11px] text-fit-primary font-semibold mt-0.5">📞 +91 98765 12345</p>
+              <p className="text-xs font-bold text-fit-text">Delivery Executive</p>
+              <p className="text-[11px] text-fit-muted">Assigned courier logistics partner</p>
+              <p className="text-[11px] text-fit-primary font-semibold mt-0.5">
+                {stageIndex >= 3 ? 'Active on delivery route' : 'Assigned upon dispatch'}
+              </p>
             </div>
           </div>
 
@@ -165,8 +167,13 @@ export default function OrderTracking() {
             <div className="min-w-0">
               <p className="text-xs font-bold text-fit-text">Delivery Destination</p>
               <p className="text-[11px] text-fit-muted truncate">
-                {order.deliveryAddress?.line || 'Registered Delivery Address'}, {order.deliveryAddress?.city || 'City'}
+                {order.deliveryAddress?.name ? `${order.deliveryAddress.name} · ` : ''}{order.deliveryAddress?.line || 'Registered Delivery Address'}, {order.deliveryAddress?.city || 'City'}
               </p>
+              {(order.deliveryAddress?.phone || order.customerPhone) && (
+                <p className="text-[11px] text-fit-primary font-semibold mt-0.5">
+                  📞 Contact: +91 {order.deliveryAddress?.phone || order.customerPhone}
+                </p>
+              )}
             </div>
           </div>
         </div>

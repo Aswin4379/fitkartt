@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react'
 import { useUser } from '../context/UserContext.jsx'
 import { authApi } from '../services/api.js'
 import { GoogleLogin } from '@react-oauth/google'
@@ -9,7 +9,7 @@ import { GoogleLogin } from '@react-oauth/google'
 export default function Signup() {
   const navigate = useNavigate()
   const { signup, loginWithGoogle } = useUser()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,7 +19,16 @@ export default function Signup() {
     e.stopPropagation()
     if (loading) return
     if (!form.name.trim() || !form.email.trim() || !form.password) {
-      setError('Please fill in all fields.')
+      setError('Please fill in all required fields.')
+      return
+    }
+    const cleanPhone = form.phone.replace(/\D/g, '').slice(-10)
+    if (!cleanPhone) {
+      setError('Please enter your 10-digit mobile number for delivery updates.')
+      return
+    }
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).')
       return
     }
     if (form.password.length < 6) {
@@ -36,6 +45,7 @@ export default function Signup() {
           state: { 
             email: form.email.trim(), 
             name: form.name.trim(), 
+            phone: cleanPhone,
             password: form.password, 
             next: '/home' 
           } 
@@ -120,6 +130,28 @@ export default function Signup() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="input-field text-xs pl-10"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold text-fit-muted uppercase block mb-1">
+              Mobile Number <span className="text-[10px] text-fit-muted/80 font-normal lowercase">(for delivery &amp; order updates)</span>
+            </label>
+            <div className="relative">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-fit-muted pointer-events-none">
+                <Phone size={16} />
+                <span className="text-xs font-bold text-fit-text border-r border-fit-border pr-1.5 ml-0.5">+91</span>
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                placeholder="98765 43210"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                className="input-field text-xs pl-[76px]"
+                maxLength={10}
               />
             </div>
           </div>

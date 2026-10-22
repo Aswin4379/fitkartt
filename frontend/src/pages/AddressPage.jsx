@@ -30,19 +30,30 @@ const EMPTY_FORM = {
 
 export default function AddressPage() {
   const navigate = useNavigate()
-  const { user, addAddress, deleteAddress } = useUser()
+  const { user, addAddress, updateAddress, deleteAddress } = useUser()
 
   const [selected, setSelected] = useState(() => {
     const first = user?.addresses?.[0]
     return first ? (first._id || first.id) : null
   })
   const [showForm, setShowForm] = useState(!user?.addresses?.length)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [editingId, setEditingId] = useState(null)
+  const [form, setForm] = useState(() => ({
+    ...EMPTY_FORM,
+    name: user?.name || '',
+    phone: user?.phone || ''
+  }))
   const [errors, setErrors] = useState({})
 
   const validate = () => {
     const e = {}
     if (!form.line.trim()) e.line = 'Address line is required'
+    const cleanPhone = form.phone.replace(/\D/g, '').slice(-10)
+    if (!cleanPhone) {
+      e.phone = 'Contact phone number is required for courier delivery'
+    } else if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      e.phone = 'Valid 10-digit Indian mobile number required (starting with 6-9)'
+    }
     if (!form.city.trim()) e.city = 'City is required'
     if (!form.pincode.trim() || form.pincode.length < 6) e.pincode = 'Valid 6-digit pincode is required'
     setErrors(e)
@@ -52,9 +63,35 @@ export default function AddressPage() {
   const submit = async (e) => {
     e.preventDefault()
     if (!validate()) return
-    await addAddress(form)
+    const cleanPhone = form.phone.replace(/\D/g, '').slice(-10)
+    const payload = { ...form, phone: cleanPhone }
+    if (editingId && updateAddress) {
+      await updateAddress(editingId, payload)
+    } else {
+      await addAddress(payload)
+    }
     setShowForm(false)
-    setForm(EMPTY_FORM)
+    setEditingId(null)
+    setForm({ ...EMPTY_FORM, name: user?.name || '', phone: user?.phone || '' })
+    setErrors({})
+  }
+
+  const handleEdit = (e, addr) => {
+    e.stopPropagation()
+    const addrId = addr._id || addr.id
+    setEditingId(addrId)
+    setForm({
+      name: addr.name || '',
+      phone: addr.phone || '',
+      line: addr.line || '',
+      landmark: addr.landmark || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || '',
+      type: addr.type || 'Home',
+      instructions: addr.instructions || ''
+    })
+    setShowForm(true)
     setErrors({})
   }
 
@@ -81,7 +118,7 @@ export default function AddressPage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout showBottomNav={false}>
       {/* Checkout Stepper */}
       <div className="bg-fit-surface/80 backdrop-blur-md border-b border-fit-border sticky top-0 z-30">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12">
@@ -143,6 +180,14 @@ export default function AddressPage() {
                                 )}
                                 <button
                                   type="button"
+                                  onClick={(e) => handleEdit(e, addr)}
+                                  className="text-fit-muted hover:text-fit-primary p-1 transition-colors"
+                                  title="Edit Address"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={(e) => handleDelete(e, addrId)}
                                   className="text-fit-muted hover:text-red-400 p-1 transition-colors"
                                   title="Delete Address"
@@ -160,8 +205,10 @@ export default function AddressPage() {
                               {addr.line}{addr.landmark ? `, ${addr.landmark}` : ''}, {addr.city}{addr.state ? `, ${addr.state}` : ''} - <span className="font-bold text-fit-text">{addr.pincode}</span>
                             </p>
 
-                            {addr.phone && (
-                              <p className="text-xs text-fit-muted mt-1 font-medium">📞 +91 {addr.phone}</p>
+                            {addr.phone ? (
+                              <p className="text-xs text-fit-muted mt-1 font-medium">📞 +91 {addr.phone.length === 10 ? `${addr.phone.slice(0, 5)} ${addr.phone.slice(5)}` : addr.phone}</p>
+                            ) : (
+                              <p className="text-xs text-amber-400/90 mt-1 font-medium">⚠️ No contact phone (Click Edit to add for courier delivery)</p>
                             )}
 
                             {addr.instructions && (
@@ -199,7 +246,12 @@ export default function AddressPage() {
                 {/* Add New Address Button */}
                 <button
                   type="button"
-                  onClick={() => setShowForm(true)}
+                  onClick={() => {
+                    setEditingId(null)
+                    setForm({ ...EMPTY_FORM, name: user?.name || '', phone: user?.phone || '' })
+                    setShowForm(true)
+                    setErrors({})
+                  }}
                   className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-fit-primary/40 text-fit-primary rounded-2xl py-4 text-xs font-bold hover:bg-fit-primary/5 transition-all"
                 >
                   <Plus size={16} />
@@ -208,7 +260,7 @@ export default function AddressPage() {
               </div>
             )}
 
-            {/* Add Address Form */}
+            {/* Add/Edit Address Form */}
             <AnimatePresence>
               {showForm && (
                 <motion.form
@@ -220,13 +272,13 @@ export default function AddressPage() {
                 >
                   <div className="flex items-center justify-between pb-3 border-b border-fit-border">
                     <h2 className="font-bold text-base text-fit-text flex items-center gap-2">
-                      <Plus size={16} className="text-fit-primary" />
-                      <span>Add New Delivery Address</span>
+                      {editingId ? <Edit2 size={16} className="text-fit-primary" /> : <Plus size={16} className="text-fit-primary" />}
+                      <span>{editingId ? 'Edit Delivery Address' : 'Add New Delivery Address'}</span>
                     </h2>
                     {user?.addresses?.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => { setShowForm(false); setErrors({}) }}
+                        onClick={() => { setShowForm(false); setEditingId(null); setErrors({}) }}
                         className="text-xs text-fit-muted hover:text-fit-primary font-semibold"
                       >
                         Cancel
@@ -271,17 +323,26 @@ export default function AddressPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-fit-muted block mb-1">Contact Phone</label>
+                        <label className="text-xs font-semibold text-fit-muted block mb-1">Contact Phone *</label>
                         <div className="relative">
-                          <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-fit-muted" />
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-fit-muted pointer-events-none">
+                            <Phone size={14} />
+                            <span className="text-xs font-bold text-fit-text border-r border-fit-border pr-1 ml-0.5">+91</span>
+                          </div>
                           <input
-                            placeholder="10-digit mobile"
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="98765 43210"
                             value={form.phone}
-                            onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                            className="input-field text-xs pl-9"
+                            onChange={(e) => {
+                              setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })
+                              if (errors.phone) setErrors({ ...errors, phone: '' })
+                            }}
+                            className={`input-field text-xs pl-[68px] ${errors.phone ? 'border-red-500' : ''}`}
                             maxLength={10}
                           />
                         </div>
+                        {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone}</p>}
                       </div>
                     </div>
 

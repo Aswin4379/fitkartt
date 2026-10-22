@@ -68,7 +68,7 @@ export default function Cart() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout showBottomNav={false}>
       {/* Checkout Stepper */}
       <div className="bg-fit-surface/80 backdrop-blur-md border-b border-fit-border sticky top-0 z-30">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12">
@@ -76,7 +76,7 @@ export default function Cart() {
         </div>
       </div>
 
-      <main className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
+      <main className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 pt-6 pb-28 lg:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
           
           {/* Left Column: Cart Items & Free Delivery Progress */}
@@ -378,9 +378,12 @@ export default function Cart() {
       </main>
 
       {/* Mobile Sticky Bottom Floating Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-strong border-t border-fit-border px-4 py-3 z-40 backdrop-blur-xl shadow-2xl flex items-center justify-between">
+      <div 
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-fit-surface/95 border-t border-fit-border px-4 py-3 z-50 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.35)] flex items-center justify-between"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+      >
         <div>
-          <span className="text-[10px] text-fit-muted">Total Payable</span>
+          <span className="text-[10px] text-fit-muted font-bold uppercase tracking-wider block">Total Payable</span>
           <p className="text-xl font-black text-fit-primary font-mono leading-tight">₹{total}</p>
         </div>
         <button

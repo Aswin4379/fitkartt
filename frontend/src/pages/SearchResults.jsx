@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Search, Sparkles, SlidersHorizontal } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
@@ -12,6 +12,11 @@ export default function SearchResults() {
   const initialQ = params.get('q') || ''
   const [query, setQuery] = useState(initialQ)
   const { products, searchProducts } = useProducts()
+
+  useEffect(() => {
+    const q = params.get('q') || ''
+    setQuery(q)
+  }, [params])
 
   const quickPills = ['Protein', 'Peanut Butter', 'Creatine', 'Oats', 'BCAA', 'Mass Gainer', 'Bar']
 

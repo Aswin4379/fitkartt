@@ -4,6 +4,109 @@ import { categories as staticCategories, products as staticProducts } from '../d
 
 const ProductContext = createContext(null)
 
+export function rankProductsBySearch(productsList, query) {
+  if (!query || !query.trim()) return productsList
+  const q = query.trim().toLowerCase()
+  const genericPackWords = new Set(['pack', 'packs', 'package', 'packet', 'combo'])
+
+  const scored = []
+  for (const p of productsList) {
+    let score = 0
+    const name = (p.name || '').toLowerCase()
+    const brand = (p.brand || '').toLowerCase()
+    const category = (p.category || '').toLowerCase()
+    const subCategory = (p.subCategory || '').toLowerCase()
+    const tags = Array.isArray(p.tags) ? p.tags.map((t) => t.toLowerCase()) : []
+    const description = (p.description || '').toLowerCase()
+
+    const nameWords = name.split(/[^a-z0-9]+/).filter(Boolean)
+    const brandWords = brand.split(/[^a-z0-9]+/).filter(Boolean)
+
+    // Check where the match happens:
+    // 1. Exact match with name
+    if (name === q) {
+      score += 1000
+    } 
+    // 2. Name starts with query
+    else if (name.startsWith(q)) {
+      score += 600
+    } 
+    // 3. Match in words of the product name
+    else {
+      // Find words in main title (before parentheses or pack mentions)
+      const cleanMainTitle = name.replace(/\s*\(.*?\)\s*/g, ' ').trim()
+      const mainWords = cleanMainTitle.split(/[^a-z0-9]+/).filter(Boolean)
+      
+      const matchingMainWord = mainWords.slice(0, 4).find((w) => w.startsWith(q))
+      if (matchingMainWord) {
+        if (genericPackWords.has(matchingMainWord)) {
+          score += 280
+        } else {
+          score += 450
+        }
+      } else if (nameWords.some((w) => w.startsWith(q))) {
+        score += 220
+      }
+    }
+
+    // Brand matching
+    if (brand === q) {
+      score += 400
+    } else if (brand.startsWith(q)) {
+      score += 250
+    } else if (brandWords.some((w) => w.startsWith(q))) {
+      score += 180
+    }
+
+    // Category / SubCategory matching
+    if (category === q || subCategory === q) {
+      score += 220
+    } else if (category.startsWith(q) || subCategory.startsWith(q)) {
+      score += 150
+    }
+
+    // Tags matching
+    if (tags.some((t) => t === q)) {
+      score += 180
+    } else if (tags.some((t) => t.startsWith(q))) {
+      score += 120
+    }
+
+    // Only for queries of 4+ characters, look into substrings inside words and descriptions
+    if (q.length >= 4) {
+      if (name.includes(q) && !name.startsWith(q) && !nameWords.some((w) => w.startsWith(q))) {
+        score += 80
+      }
+      if (brand.includes(q) && !brand.startsWith(q) && !brandWords.some((w) => w.startsWith(q))) {
+        score += 50
+      }
+      if (tags.some((t) => t.includes(q) && !t.startsWith(q))) {
+        score += 40
+      }
+      // Description: only whole words matching, low weight
+      const descWords = description.split(/[^a-z0-9]+/).filter(Boolean)
+      if (descWords.includes(q)) {
+        score += 25
+      } else if (descWords.some((w) => w.startsWith(q))) {
+        score += 15
+      }
+    }
+
+    if (score > 0) {
+      scored.push({ product: p, score })
+    }
+  }
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    const bRating = b.product.rating || 0
+    const aRating = a.product.rating || 0
+    return bRating - aRating
+  })
+
+  return scored.map((s) => s.product)
+}
+
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState(staticProducts)
   const [categories, setCategories] = useState(staticCategories)
@@ -69,15 +172,7 @@ export function ProductProvider({ children }) {
 
   const searchProducts = useCallback(
     (query) => {
-      if (!query || !query.trim()) return products
-      const q = query.toLowerCase().trim()
-      return products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q) ||
-          p.tags?.some((t) => t.toLowerCase().includes(q))
-      )
+      return rankProductsBySearch(products, query)
     },
     [products]
   )

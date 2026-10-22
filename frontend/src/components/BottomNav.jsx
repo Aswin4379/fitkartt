@@ -1,14 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Dumbbell, LayoutGrid, ShoppingCart, User, Activity } from 'lucide-react'
+import { Home, Dumbbell, ShoppingBag, User, Activity, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext.jsx'
 
 const items = [
   { to: '/home', label: 'Home', icon: Home },
-  { to: '/dashboard', label: 'Track', icon: LayoutGrid },
-  { to: '/workouts', label: 'Workouts', icon: Dumbbell },
-  { to: '/fitness', label: 'Gym', icon: Activity },
-  { to: '/cart', label: 'Cart', icon: ShoppingCart },
+  { to: '/category/all', label: 'Shop', icon: ShoppingBag },
+  { to: '/fitness', label: 'Fitness', icon: Dumbbell },
+  { to: '/fitness/bodycare', label: 'AI Coach', icon: Sparkles },
+  { to: '/dashboard', label: 'Activity', icon: Activity },
   { to: '/profile', label: 'Profile', icon: User },
 ]
 

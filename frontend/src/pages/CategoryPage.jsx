@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard.jsx'
 import { useProducts } from '../context/ProductContext.jsx'
 import { getMinPrice } from '../utils/productVariants.js'
 import { SlidersHorizontal, Sparkles, ChevronRight, Zap } from 'lucide-react'
+import CategoryIcon from '../components/CategoryIcon.jsx'
 
 const sortOptions = [
   { id: 'popular', label: 'Most Popular' },
@@ -56,8 +57,8 @@ export default function CategoryPage() {
             
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-black/70 backdrop-blur border border-white/10 flex items-center justify-center text-base">
-                  {category.icon}
+                <span className="w-8 h-8 rounded-xl bg-black/70 backdrop-blur border border-white/10 flex items-center justify-center text-fit-primary">
+                  <CategoryIcon id={category.id} size={16} />
                 </span>
                 <span className="badge-new text-[10px]">{category.name}</span>
                 <span className="text-xs text-gray-200 font-mono">({filtered.length} items)</span>
@@ -81,11 +82,11 @@ export default function CategoryPage() {
               setActiveCat('all')
               navigate('/category/all')
             }}
-            className={`chip flex items-center gap-1.5 py-2 px-4 text-xs font-bold ${
-              activeCat === 'all' ? 'chip-active' : ''
+            className={`chip py-2 px-4 text-xs font-bold transition-all ${
+              activeCat === 'all' ? 'chip-active shadow-sm' : ''
             }`}
           >
-            <Sparkles size={14} /> <span>All Products</span>
+            All Products
           </button>
           {categories.map((c) => (
             <button
@@ -94,11 +95,11 @@ export default function CategoryPage() {
                 setActiveCat(c.id)
                 navigate(`/category/${c.id}`)
               }}
-              className={`chip flex items-center gap-1.5 py-2 px-4 text-xs font-bold ${
-                activeCat === c.id ? 'chip-active' : ''
+              className={`chip py-2 px-4 text-xs font-bold transition-all ${
+                activeCat === c.id ? 'chip-active shadow-sm' : ''
               }`}
             >
-              <span>{c.icon}</span> <span>{c.name}</span>
+              {c.name}
             </button>
           ))}
         </div>

@@ -76,6 +76,14 @@ export default function PaymentPage() {
       deliveryAddress = user.addresses[0]
     }
 
+    const rawPhone = (deliveryAddress?.phone || user?.phone || '').replace(/\D/g, '').slice(-10)
+    if (!rawPhone || !/^[6-9]\d{9}$/.test(rawPhone)) {
+      alert('A valid 10-digit delivery contact number is required for courier delivery. Please verify your delivery address.')
+      setProcessing(false)
+      navigate('/checkout/address')
+      return
+    }
+
     const localOrderId = `FK${Date.now().toString().slice(-8)}`
     const orderPayload = {
       orderId: localOrderId,
@@ -127,10 +135,13 @@ export default function PaymentPage() {
       total: Number(total || 0),
       coupon: coupon?.code || null,
       paymentMethod: selected,
-      deliveryAddress: deliveryAddress || {},
-      customerName: user?.name || 'FitKart Customer',
+      deliveryAddress: deliveryAddress ? {
+        ...deliveryAddress,
+        phone: rawPhone
+      } : { phone: rawPhone },
+      customerName: user?.name || deliveryAddress?.name || 'FitKart Customer',
       customerEmail: user?.email || '',
-      customerPhone: user?.phone || '',
+      customerPhone: rawPhone,
     }
 
     try {
@@ -156,7 +167,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout showBottomNav={false}>
       {/* Checkout Stepper */}
       <div className="bg-fit-surface/80 backdrop-blur-md border-b border-fit-border sticky top-0 z-30">
         <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12">
@@ -164,7 +175,7 @@ export default function PaymentPage() {
         </div>
       </div>
 
-      <main className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
+      <main className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 pt-6 pb-32 lg:pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
           
           {/* Left Column: Payment Methods Accordion */}
@@ -349,14 +360,35 @@ export default function PaymentPage() {
 
                             {/* Cash on Delivery */}
                             {id === 'cod' && (
-                              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-2.5 mt-3">
-                                <Wallet size={16} className="shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="font-bold">Cash on Delivery Available</p>
-                                  <p className="text-[11px] text-fit-muted mt-0.5 leading-relaxed">
-                                    Keep exact cash amount of ₹{total} ready upon delivery. UPI payment at delivery is also accepted by the rider.
-                                  </p>
+                              <div className="mt-3 space-y-3">
+                                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-2.5">
+                                  <Wallet size={16} className="shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="font-bold">Cash on Delivery Available</p>
+                                    <p className="text-[11px] text-fit-muted mt-0.5 leading-relaxed">
+                                      Keep exact cash amount of ₹{total} ready upon delivery. UPI payment at delivery is also accepted by the rider.
+                                    </p>
+                                  </div>
                                 </div>
+
+                                <button
+                                  type="button"
+                                  onClick={pay}
+                                  disabled={processing}
+                                  className="w-full btn-primary py-3 text-xs font-black shadow-glow flex items-center justify-center gap-2 hover:scale-[1.01] transition-transform disabled:opacity-70"
+                                >
+                                  {processing ? (
+                                    <>
+                                      <Loader2 size={16} className="animate-spin" />
+                                      <span>Confirming Order...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Wallet size={15} />
+                                      <span>Place Order with Cash on Delivery (₹{total})</span>
+                                    </>
+                                  )}
+                                </button>
                               </div>
                             )}
 
@@ -369,17 +401,23 @@ export default function PaymentPage() {
               })}
             </div>
 
-            {/* Desktop Place Order Button */}
-            <div className="hidden lg:block pt-2">
+            {/* In-Page Place Order Button (Always visible on all screen sizes) */}
+            <div className="pt-3">
               <button
+                type="button"
                 onClick={pay}
                 disabled={processing}
-                className="w-full btn-primary py-4 text-base font-black flex items-center justify-center gap-2 shadow-glow hover:scale-[1.01] transition-transform disabled:opacity-70"
+                className="w-full btn-primary py-4 text-sm sm:text-base font-black flex items-center justify-center gap-2 shadow-glow hover:scale-[1.01] transition-transform disabled:opacity-70"
               >
                 {processing ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
                     <span>Authorizing &amp; Confirming Order...</span>
+                  </>
+                ) : selected === 'cod' ? (
+                  <>
+                    <Wallet size={17} />
+                    <span>Place Order with Cash on Delivery (₹{total})</span>
                   </>
                 ) : (
                   <>
@@ -408,20 +446,31 @@ export default function PaymentPage() {
       </main>
 
       {/* Mobile Sticky Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-strong border-t border-fit-border px-4 py-3 z-40 backdrop-blur-xl shadow-2xl flex items-center justify-between">
+      <div 
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-fit-surface/95 border-t border-fit-border px-4 py-3 z-50 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.35)] flex items-center justify-between"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+      >
         <div>
-          <span className="text-[10px] text-fit-muted">Final Amount</span>
+          <span className="text-[10px] text-fit-muted font-bold uppercase tracking-wider block">
+            {selected === 'cod' ? 'Cash to Pay' : 'Final Amount'}
+          </span>
           <p className="text-xl font-black text-fit-primary font-mono leading-tight">₹{total}</p>
         </div>
         <button
+          type="button"
           onClick={pay}
           disabled={processing}
-          className="btn-primary py-3 px-8 text-xs font-black shadow-glow flex items-center gap-2"
+          className="btn-primary py-3 px-6 text-xs font-black shadow-glow flex items-center gap-2 disabled:opacity-70"
         >
           {processing ? (
             <>
               <Loader2 size={15} className="animate-spin" />
               <span>Processing...</span>
+            </>
+          ) : selected === 'cod' ? (
+            <>
+              <Wallet size={15} />
+              <span>Place COD Order</span>
             </>
           ) : (
             <>

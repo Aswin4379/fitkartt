@@ -291,147 +291,304 @@ export const deleteCustomRoutine = async (req, res) => {
 
 // @desc Generate AI Workout Plan
 // @route POST /api/workouts/generate-plan
+// Helper to build a science-based 7-day weekly schedule template adhering strictly to user inputs
+function buildStructuredWeeklySchedule({
+  daysPerWeek = 4,
+  split = 'Full Body',
+  goal = 'Build Muscle',
+  duration = 45,
+  level = 'Beginner',
+  equipment = ['Bodyweight'],
+  targetAreas = ['fullbody'],
+  workoutDays = null,
+  restStyle = 'consecutive',
+  allDbExercises = []
+}) {
+  const numDays = Math.min(6, Math.max(2, Number(daysPerWeek) || 4));
+
+  // Determine active workout vs rest days in a 7-day week
+  const getActiveDaysMap = () => {
+    if (Array.isArray(workoutDays) && workoutDays.length > 0) {
+      return [1, 2, 3, 4, 5, 6, 7].map(d => workoutDays.includes(d));
+    }
+    if (restStyle === 'spread' || restStyle === 'midweek') {
+      switch (numDays) {
+        case 2: return [true, false, false, true, false, false, false];
+        case 3: return [true, false, true, false, true, false, false];
+        case 4: return [true, true, false, true, true, false, false];
+        case 5: return [true, true, false, true, true, true, false];
+        case 6: return [true, true, true, true, true, true, false];
+        default: return [true, true, false, true, true, false, false];
+      }
+    }
+    // Default: Consecutive training days (Days 1 to N Workout, remaining Rest days grouped together at the end)
+    // E.g. 4 days -> Days 1, 2, 3, 4 Gym, Days 5, 6, 7 Rest (no vittu vittu rest)
+    return [1, 2, 3, 4, 5, 6, 7].map(d => d <= numDays);
+  };
+
+  const activeDaysMap = getActiveDaysMap();
+  const normSplit = String(split || '').toLowerCase();
+  let splitFoci = [];
+
+  if (normSplit.includes('upper') && normSplit.includes('lower')) {
+    splitFoci = [
+      { focus: 'Upper Body Strength & Power', target: ['Chest', 'Back', 'Shoulders', 'Arms'] },
+      { focus: 'Lower Body Quads & Hamstrings', target: ['Legs', 'Core'] },
+      { focus: 'Upper Body Hypertrophy & Arms', target: ['Chest', 'Back', 'Arms'] },
+      { focus: 'Lower Body Glutes & Calves', target: ['Legs', 'Core'] },
+      { focus: 'Upper & Core Functional Density', target: ['Shoulders', 'Arms', 'Core'] },
+      { focus: 'Full Body Athletic Conditioning', target: ['Full Body', 'Legs', 'Core'] }
+    ];
+  } else if (normSplit.includes('push') || normSplit.includes('pull')) {
+    splitFoci = [
+      { focus: 'Push: Chest, Shoulders & Triceps', target: ['Chest', 'Shoulders', 'Arms'] },
+      { focus: 'Pull: Back, Rear Delts & Biceps', target: ['Back', 'Arms'] },
+      { focus: 'Legs: Quads, Hamstrings & Calves', target: ['Legs', 'Core'] },
+      { focus: 'Push: Incline Chest & Overhead Press', target: ['Chest', 'Shoulders', 'Arms'] },
+      { focus: 'Pull: Lat Width & Bicep Peak', target: ['Back', 'Arms'] },
+      { focus: 'Legs & Core Power', target: ['Legs', 'Core'] }
+    ];
+  } else if (normSplit.includes('bro') || normSplit.includes('part')) {
+    splitFoci = [
+      { focus: 'Chest & Tricep Hypertrophy', target: ['Chest', 'Arms'] },
+      { focus: 'Back & Bicep Thickness', target: ['Back', 'Arms'] },
+      { focus: 'Shoulders & Trap Sculpting', target: ['Shoulders'] },
+      { focus: 'Legs & Lower Body Dominance', target: ['Legs'] },
+      { focus: 'Arms & Abdominal Core', target: ['Arms', 'Core'] },
+      { focus: 'Functional Mobility & Conditioning', target: ['Core', 'Full Body'] }
+    ];
+  } else {
+    // Full Body default
+    splitFoci = [
+      { focus: 'Full Body Compound Strength', target: ['Chest', 'Back', 'Legs'] },
+      { focus: 'Full Body Hypertrophy & Stamina', target: ['Legs', 'Shoulders', 'Arms'] },
+      { focus: 'Full Body Functional Core & Power', target: ['Full Body', 'Core', 'Back'] },
+      { focus: 'Full Body Muscular Density', target: ['Chest', 'Legs', 'Arms'] },
+      { focus: 'Full Body Athletic Conditioning', target: ['Legs', 'Back', 'Core'] },
+      { focus: 'Full Body Power & Mobility', target: ['Full Body'] }
+    ];
+  }
+
+  const goalConfig = {
+    'Build Strength': { sets: 4, reps: '5-8 reps', rest: 90, weight: 'Heavy / Strength load' },
+    'Build Muscle': { sets: 3, reps: '8-12 reps', rest: 60, weight: 'Moderate-Heavy' },
+    'Lose Weight': { sets: 3, reps: '12-15 reps', rest: 45, weight: 'High Burn / Fast cadence' },
+    'Get Fit': { sets: 3, reps: '10-12 reps', rest: 60, weight: 'Moderate / Functional' }
+  }[goal] || { sets: 3, reps: '10-12 reps', rest: 60, weight: 'Moderate' };
+
+  let activeIdx = 0;
+  const sevenDaySchedule = [];
+
+  for (let day = 1; day <= 7; day++) {
+    const isActive = activeDaysMap[day - 1];
+    if (!isActive) {
+      sevenDaySchedule.push({
+        day,
+        focus: 'Rest & Active Recovery',
+        estimatedDuration: 0,
+        exercises: []
+      });
+    } else {
+      const dayConfig = splitFoci[activeIdx % splitFoci.length];
+      activeIdx++;
+
+      const matchingPool = allDbExercises.filter(ex => {
+        return dayConfig.target.some(t => 
+          (ex.target && ex.target.toLowerCase().includes(t.toLowerCase())) ||
+          (ex.categories && ex.categories.some(c => c.toLowerCase().includes(t.toLowerCase())))
+        );
+      });
+
+      const poolToUse = matchingPool.length >= 4 ? matchingPool : allDbExercises;
+      const dayExercises = [];
+      const numExercises = duration >= 60 ? 6 : (duration >= 45 ? 5 : 4);
+
+      for (let e = 0; e < numExercises; e++) {
+        const ex = poolToUse[(activeIdx * 2 + e) % poolToUse.length] || {
+          name: 'Functional Compound Exercise',
+          target: 'Full Body'
+        };
+
+        const isWarmup = e === 0;
+        const isCooldown = e === numExercises - 1;
+
+        dayExercises.push({
+          name: ex.name,
+          type: isWarmup ? 'warm-up' : (isCooldown ? 'cooldown' : 'main'),
+          sets: isWarmup || isCooldown ? 2 : goalConfig.sets,
+          reps: isWarmup ? '30-45 secs' : (isCooldown ? 'Stretching / 60s' : goalConfig.reps),
+          recommendedWeight: isWarmup || isCooldown ? 'Bodyweight' : (ex.defaultWeight || goalConfig.weight),
+          restTime: isWarmup || isCooldown ? 30 : goalConfig.rest,
+          targetMuscles: ex.target ? [ex.target] : dayConfig.target,
+          difficulty: level || ex.level || 'Intermediate',
+          equipment: ex.equipment || 'None',
+          reason: isWarmup ? 'Prepares joints and nervous system' : (isCooldown ? 'Aids recovery and reduces soreness' : `Targets ${ex.target || 'target muscles'} for ${goal}`),
+          gifUrl: ex.gifUrl || '',
+          videoUrl: ex.videoUrl || '',
+          instructions: ex.instructions || [],
+          secondary: ex.secondary || '',
+          formTips: ex.formTips || 'Control the movement through full range of motion.',
+          commonMistakes: ex.commonMistakes || 'Avoid using momentum or arching your back.'
+        });
+      }
+
+      sevenDaySchedule.push({
+        day,
+        focus: dayConfig.focus,
+        estimatedDuration: Number(duration) || 45,
+        exercises: dayExercises
+      });
+    }
+  }
+
+  return sevenDaySchedule;
+}
+
 export const generateAIPlan = async (req, res) => {
   try {
-    const { goal, gender, weight, height, age, targetAreas, level, equipment, daysPerWeek, duration, split } = req.body;
+    const { goal, gender, weight, height, age, targetAreas, level, equipment, daysPerWeek, duration, split, workoutDays, restStyle } = req.body;
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    const numDaysPerWeek = Math.min(6, Math.max(2, Number(daysPerWeek) || 4));
 
-    if (!GROQ_API_KEY) {
-      return res.status(500).json({ message: 'Groq API key not configured.' });
+    // Determine active workout days vs rest days
+    let activeDaysList = [];
+    if (Array.isArray(workoutDays) && workoutDays.length > 0) {
+      activeDaysList = workoutDays.map(Number);
+    } else if (restStyle === 'spread' || restStyle === 'midweek') {
+      if (numDaysPerWeek === 4) activeDaysList = [1, 2, 4, 5];
+      else if (numDaysPerWeek === 5) activeDaysList = [1, 2, 4, 5, 6];
+      else if (numDaysPerWeek === 3) activeDaysList = [1, 3, 5];
+      else if (numDaysPerWeek === 2) activeDaysList = [1, 4];
+      else activeDaysList = Array.from({ length: numDaysPerWeek }, (_, i) => i + 1);
+    } else {
+      // Consecutive default: Days 1 to numDaysPerWeek are WORKOUT days (no vittu vittu rest)
+      activeDaysList = Array.from({ length: numDaysPerWeek }, (_, i) => i + 1);
     }
 
-    const prompt = `You are a world-class fitness coach AI.
-Generate a structured 3-day seed workout schedule for a ${age}yo ${gender}, ${weight}kg, ${height}cm.
-Goal: "${goal}". Experience level: ${level || 'Beginner'}.
-Equipment available: ${equipment?.join(', ') || 'Bodyweight'}.
-Training split: ${split || 'Full Body'}, ${daysPerWeek || 3} days/week, ${duration || 45} mins per session.
-Target areas: ${targetAreas?.join(', ') || 'Full Body'}.
+    const restDaysList = [1, 2, 3, 4, 5, 6, 7].filter(d => !activeDaysList.includes(d));
 
-Create a JSON response with EXACTLY this structure:
+    // Load available DB exercises for mapping
+    const allDbExercises = await import('../models/Exercise.js').then(m => m.default.find({}).lean());
+
+    let sevenDaySchedule = null;
+
+    if (GROQ_API_KEY) {
+      try {
+        const prompt = `You are an elite fitness coach AI.
+Generate a structured 7-day workout schedule (Day 1 to Day 7) for a ${age || 25}yo ${gender || 'Male'}, ${weight || 70}kg, ${height || 175}cm.
+Goal: "${goal || 'Build Muscle'}". Experience level: ${level || 'Intermediate'}.
+Equipment available: ${equipment?.join(', ') || 'Full Gym'}.
+Training split: "${split || 'Upper / Lower'}".
+Days per week: ${numDaysPerWeek} days/week.
+Session duration: ${duration || 45} mins.
+Target muscles: ${targetAreas?.join(', ') || 'Full Body'}.
+
+MANDATORY RULES:
+1. The "schedule" array MUST contain EXACTLY 7 items, numbered day 1 to day 7.
+2. Active workout days: Day ${activeDaysList.join(', Day ')} are WORKOUT days (${activeDaysList.length} workout days).
+3. Rest days: Day ${restDaysList.join(', Day ')} are REST days (${restDaysList.length} rest days).
+4. On REST days, "focus" must be "Rest & Active Recovery", "estimatedDuration" must be 0, and "exercises" array must be completely empty [].
+5. On ACTIVE days, include 5-6 exercises tailored to "${split}" and "${goal}".
+6. Output ONLY raw JSON matching:
 {
   "schedule": [
     {
       "day": 1,
-      "focus": "Upper Body Push",
-      "estimatedDuration": 45,
+      "focus": "Upper Body Strength & Power",
+      "estimatedDuration": ${duration || 45},
       "exercises": [
-        { 
-          "name": "Arm Circles", 
-          "type": "warm-up", 
-          "sets": 1, 
-          "reps": "30 secs", 
-          "recommendedWeight": "Bodyweight",
-          "restTime": 15,
-          "targetMuscles": ["Shoulders"],
-          "difficulty": "Beginner",
-          "equipment": "Bodyweight",
-          "reason": "Increases shoulder mobility"
-        },
-        { 
-          "name": "Dumbbell Bench Press", 
-          "type": "main", 
-          "sets": 3, 
-          "reps": "10-12", 
-          "recommendedWeight": "15kg",
+        {
+          "name": "Barbell Bench Press",
+          "type": "main",
+          "sets": 4,
+          "reps": "5-8",
+          "recommendedWeight": "60kg",
           "restTime": 90,
           "targetMuscles": ["Chest", "Triceps"],
           "difficulty": "Intermediate",
-          "equipment": "Dumbbells",
-          "reason": "Primary mass builder for chest"
+          "equipment": "Barbell",
+          "reason": "Compound mass & strength builder"
         }
       ]
     }
   ]
-}
+}`;
 
-Ensure there are exactly 3 days. Include warm-up, main, and cooldown exercises for each active day.
-If it's a rest day, leave the "exercises" array empty.
-Output ONLY raw JSON. No markdown or conversational text.`;
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'qwen/qwen3.8-27b',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 3000
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Groq Fetch Error:", response.status, errorText);
-      throw new Error('Failed to fetch from Groq: ' + errorText);
-    }
-
-    const data = await response.json();
-    const aiContent = data.choices[0].message.content;
-    let cleanContent = aiContent.replace(/```json\n?|\n?```/gi, '').trim();
-    
-    // Extract everything between the first '{' and the last '}'
-    const firstBrace = cleanContent.indexOf('{');
-    const lastBrace = cleanContent.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
-      cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
-    }
-
-    let parsedPlan;
-    try {
-      parsedPlan = (new Function('return ' + cleanContent))();
-      if (!parsedPlan || !Array.isArray(parsedPlan.schedule)) {
-        throw new Error("Missing schedule array");
-      }
-    } catch (e) {
-      console.error("JSON Parse Error. Using fallback plan.", e);
-      // Fallback plan if AI completely fails or truncates
-      parsedPlan = {
-        schedule: [
-          {
-            day: 1,
-            focus: "Full Body Foundation",
-            exercises: [
-              { name: "Push-ups", sets: 3, reps: 15 },
-              { name: "Bodyweight Squats", sets: 3, reps: 20 },
-              { name: "Plank", sets: 3, reps: 60 }
-            ]
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
           },
-          {
-            day: 2,
-            focus: "Cardio & Core",
-            exercises: [
-              { name: "Jumping Jacks", sets: 4, reps: 30 },
-              { name: "Crunches", sets: 3, reps: 20 },
-              { name: "Mountain Climbers", sets: 3, reps: 20 }
-            ]
-          },
-          {
-            day: 3,
-            focus: "Rest and Recovery",
-            exercises: []
-          }
-        ]
-      };
-    }
-
-    let scheduleData = parsedPlan?.schedule || [];
-    
-    // Duplicate 7-day schedule to create a full 30-day plan
-    if (scheduleData.length > 0) {
-      let expandedSchedule = [];
-      for (let i = 0; i < 30; i++) {
-        const sourceDay = scheduleData[i % scheduleData.length];
-        expandedSchedule.push({
-          ...sourceDay,
-          day: i + 1
+          body: JSON.stringify({
+            model: 'qwen/qwen3.8-27b',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+            max_tokens: 3800
+          })
         });
+
+        if (response.ok) {
+          const data = await response.json();
+          const aiContent = data.choices[0]?.message?.content || '';
+          let cleanContent = aiContent.replace(/```json\n?|\n?```/gi, '').trim();
+          const firstBrace = cleanContent.indexOf('{');
+          const lastBrace = cleanContent.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+            cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+          }
+          const parsed = JSON.parse(cleanContent);
+          if (parsed && Array.isArray(parsed.schedule) && parsed.schedule.length === 7) {
+            sevenDaySchedule = parsed.schedule;
+          }
+        }
+      } catch (aiErr) {
+        console.warn("[workoutController] Groq AI generation fallback triggered:", aiErr.message);
       }
-      scheduleData = expandedSchedule;
     }
-    const allDbExercises = await import('../models/Exercise.js').then(m => m.default.find({}).lean());
+
+    // If Groq was unavailable or returned non-7-day plan, use our scientific 7-day builder
+    if (!sevenDaySchedule || sevenDaySchedule.length !== 7) {
+      sevenDaySchedule = buildStructuredWeeklySchedule({
+        daysPerWeek: numDaysPerWeek,
+        split,
+        goal,
+        duration,
+        level,
+        equipment,
+        targetAreas,
+        workoutDays: activeDaysList,
+        restStyle,
+        allDbExercises
+      });
+    }
+
+    // Expand the 7-day schedule across the full 30 days with progressive overload phases
+    const expandedSchedule = [];
+    for (let i = 0; i < 30; i++) {
+      const weekNum = Math.floor(i / 7) + 1;
+      const dayInWeek = i % 7;
+      const sourceDay = sevenDaySchedule[dayInWeek];
+      const isRest = !sourceDay.exercises || sourceDay.exercises.length === 0;
+
+      let progressiveFocus = sourceDay.focus;
+      if (!isRest) {
+        if (weekNum === 1) progressiveFocus = `${sourceDay.focus} (Phase 1: Foundation)`;
+        else if (weekNum === 2) progressiveFocus = `${sourceDay.focus} (Phase 2: Volume Progression)`;
+        else if (weekNum === 3) progressiveFocus = `${sourceDay.focus} (Phase 3: Peak Intensity)`;
+        else if (weekNum === 4) progressiveFocus = `${sourceDay.focus} (Phase 4: Hypertrophy Overload)`;
+        else progressiveFocus = `${sourceDay.focus} (Phase 5: Strength Consolidation)`;
+      }
+
+      expandedSchedule.push({
+        ...sourceDay,
+        day: i + 1,
+        focus: progressiveFocus,
+        estimatedDuration: isRest ? 0 : (sourceDay.estimatedDuration || duration || 45)
+      });
+    }
+
+    let scheduleData = expandedSchedule;
     
     // Helper to find closest DB exercise
     const findMatchingExercise = (aiName) => {
@@ -563,3 +720,17 @@ export const clearActiveSession = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const resetAIPlan = async (req, res) => {
+  try {
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { 'fitnessStats.fitnessPlan': null } },
+      { new: true, runValidators: false }
+    );
+    res.json({ message: 'Workout plan reset successfully', user: updated });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

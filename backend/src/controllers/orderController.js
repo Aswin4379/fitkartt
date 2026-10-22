@@ -2,6 +2,8 @@ import Order from '../models/Order.js';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import { logAuditEvent } from '../utils/auditLogger.js';
+import { sanitizeIndianPhone } from '../utils/phoneValidator.js';
+import { getNextOrderId } from '../models/Counter.js';
 
 // @desc Create new order with server-side price validation & duplicate prevention
 // @route POST /api/orders
@@ -24,7 +26,16 @@ export const createOrder = async (req, res) => {
     const userId = req.user ? req.user._id : null;
     const userEmail = customerEmail || (req.user ? req.user.email : '');
     const userName = customerName || (req.user ? req.user.name : 'FitKart Customer');
-    const userPhone = customerPhone || (req.user ? req.user.phone : '');
+    
+    // Resolve contact phone from customerPhone, deliveryAddress.phone, or authenticated user
+    const rawContactPhone = customerPhone || (deliveryAddress && deliveryAddress.phone ? deliveryAddress.phone : '') || (req.user ? req.user.phone : '');
+    const userPhone = rawContactPhone ? sanitizeIndianPhone(rawContactPhone) : '';
+
+    // Delivery address snapshot ensures original delivery contact number is preserved forever
+    const addressSnapshot = deliveryAddress ? {
+      ...deliveryAddress,
+      phone: deliveryAddress.phone ? sanitizeIndianPhone(deliveryAddress.phone) : userPhone
+    } : {};
 
     // 1. Duplicate check (Idempotency protection): prevent duplicate order on double-click or rapid retries within 15 seconds
     if (userId) {
@@ -168,7 +179,7 @@ export const createOrder = async (req, res) => {
     const serverDeliveryFee = serverSubtotal === 0 || serverSubtotal >= 499 ? 0 : 29;
     const serverTotal = Math.max(0, serverSubtotal - serverDiscount + serverDeliveryFee);
 
-    const orderId = `FK${Date.now().toString().slice(-8)}`;
+    const orderId = await getNextOrderId();
 
     let deliveryEstimate = { min: 1, max: 3, unit: 'days' };
     if (maxDays > 0) {
@@ -192,7 +203,7 @@ export const createOrder = async (req, res) => {
       paymentMethod: paymentMethod || 'upi',
       paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
       status: 'Order Confirmed',
-      deliveryAddress: deliveryAddress || {},
+      deliveryAddress: addressSnapshot,
       deliveryEstimate,
       timeline: [
         {
@@ -208,11 +219,18 @@ export const createOrder = async (req, res) => {
     // 4. Persistence side-effects: Credit coins, add order to user, and CLEAR CART in MongoDB
     if (userId) {
       const coinsEarned = Math.round(serverTotal / 20);
-      await User.findByIdAndUpdate(userId, {
+      const userUpdateFields = {
         $inc: { fitCoins: coinsEarned },
         $push: { orders: orderId },
         $set: { cart: [] } // Database is source of truth: cart cleared upon confirmed checkout
-      });
+      };
+
+      // If user had no phone in profile but provided contact phone in order, save to profile
+      if (userPhone && (!req.user?.phone || req.user.phone.trim() === '')) {
+        userUpdateFields.$set.phone = userPhone;
+      }
+
+      await User.findByIdAndUpdate(userId, userUpdateFields);
 
       await logAuditEvent({
         userId,

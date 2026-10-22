@@ -107,10 +107,12 @@ export default function Footer() {
               <Mail size={14} className="text-fit-primary shrink-0" />
               <span>support@fitkart.app</span>
             </li>
-            <li className="flex items-center gap-2">
-              <Phone size={14} className="text-fit-primary shrink-0" />
-              <span>+91 98765 43210</span>
-            </li>
+            {import.meta.env.VITE_SUPPORT_PHONE && (
+              <li className="flex items-center gap-2">
+                <Phone size={14} className="text-fit-primary shrink-0" />
+                <span>{import.meta.env.VITE_SUPPORT_PHONE}</span>
+              </li>
+            )}
             <li className="flex items-start gap-2">
               <MapPin size={14} className="text-fit-primary shrink-0 mt-0.5" />
               <span>FitKart Tech Park, Bengaluru &amp; Chennai Hubs</span>

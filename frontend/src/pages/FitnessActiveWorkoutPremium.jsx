@@ -18,6 +18,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
     removeExerciseFromActive, 
     sessions, 
     addSetToActive, 
+    removeSetFromActive,
     addExerciseToActive,
     setActiveExerciseIndex 
   } = useWorkout();
@@ -578,13 +579,14 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
           {/* Sets Tracker */}
           <div className="bg-fit-surface border border-fit-border rounded-3xl p-6 flex-1 shadow-card">
             
-            <div className={`grid ${getExerciseType(currentExercise) === 'weighted' ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 text-[11px] font-bold text-fit-muted uppercase tracking-widest text-center px-2 mb-4`}>
+            <div className={`grid ${getExerciseType(currentExercise) === 'weighted' ? 'grid-cols-[36px_1fr_1.5fr_1.5fr_48px_32px]' : 'grid-cols-[36px_1fr_2.5fr_48px_32px]'} gap-2 sm:gap-3 text-[11px] font-bold text-fit-muted uppercase tracking-widest text-center px-2 mb-4`}>
               <div>Set</div>
               <div>Prev</div>
               {getExerciseType(currentExercise) === 'weighted' && <div>KG</div>}
               {getExerciseType(currentExercise) !== 'time' && <div>Reps</div>}
               {getExerciseType(currentExercise) === 'time' && <div>Duration</div>}
               <div><Check size={14} className="mx-auto" /></div>
+              <div></div>
             </div>
 
             <div className="space-y-3">
@@ -599,13 +601,13 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                                     isBodyweight ? (set.reps > 0) : true;
                 
                 return (
-                  <div key={setIndex} className={`grid ${isWeighted ? 'grid-cols-[1fr_2fr_2fr_2fr_1fr]' : 'grid-cols-[1fr_2fr_3fr_1fr]'} gap-3 items-center text-center p-3 rounded-2xl transition-all duration-300 ${set.isCompleted ? 'bg-fit-primary/10 border border-fit-primary/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-fit-surface2/60 border border-fit-border'}`}>
+                  <div key={setIndex} className={`grid ${isWeighted ? 'grid-cols-[36px_1fr_1.5fr_1.5fr_48px_32px]' : 'grid-cols-[36px_1fr_2.5fr_48px_32px]'} gap-2 sm:gap-3 items-center text-center p-2.5 sm:p-3 rounded-2xl transition-all duration-300 ${set.isCompleted ? 'bg-fit-primary/10 border border-fit-primary/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-fit-surface2/60 border border-fit-border'}`}>
                     
                     <div className={`font-bold ${set.isCompleted ? 'text-fit-primary' : 'text-fit-muted'}`}>
                       {setIndex + 1}
                     </div>
                     
-                    <div className="text-fit-muted text-xs font-semibold">
+                    <div className="text-fit-muted text-xs font-semibold truncate">
                       {getPrevString(currentExercise.name, setIndex, type)}
                     </div>
                     
@@ -657,7 +659,7 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                     <button
                       onClick={() => canComplete && handleCompleteSet(setIndex)}
                       disabled={!canComplete && !set.isCompleted}
-                      className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${
+                      className={`mx-auto w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${
                         set.isCompleted 
                           ? 'bg-fit-primary text-white shadow-glow' 
                           : canComplete 
@@ -665,8 +667,22 @@ export default function FitnessActiveWorkoutPremium({ onSwitchTheme }) {
                             : 'bg-fit-surface2/40 text-fit-muted/40 cursor-not-allowed border border-transparent'
                       }`}
                     >
-                      {set.isCompleted ? <Check size={24} strokeWidth={3} /> : <CheckCircle size={24} />}
+                      {set.isCompleted ? <Check size={22} strokeWidth={3} /> : <CheckCircle size={22} />}
                     </button>
+
+                    {currentExercise.sets.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeSetFromActive(currentExerciseIndex, setIndex)}
+                        disabled={set.isCompleted}
+                        title="Delete set"
+                        className="w-8 h-8 mx-auto flex items-center justify-center rounded-lg text-fit-muted/50 hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-20 disabled:pointer-events-none"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    ) : (
+                      <div className="w-8 h-8" />
+                    )}
                   </div>
                 );
               })}

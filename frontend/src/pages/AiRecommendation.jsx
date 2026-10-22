@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Flame, Dumbbell, Salad, Wheat, Droplet, Check, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Sparkles, Flame, Dumbbell, Salad, Wheat, Droplet, Check, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react'
 import AppLayout from '../components/AppLayout.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import ProductCard from '../components/ProductCard.jsx'
@@ -13,6 +13,12 @@ const goals = [
   { id: 'Weight Loss', category: 'weight-loss', desc: 'Caloric deficit with high protein retention' },
   { id: 'Weight Gain', category: 'weight-gain', desc: 'Clean caloric surplus for maximum hypertrophy' },
   { id: 'Fitness Maintenance', category: 'fitness-maintenance', desc: 'Sustained energy and metabolic wellness' },
+]
+
+const LOADING_STEPS = [
+  'Analyzing metabolic profile & calorie expenditure...',
+  'Optimizing clinical protein & macro targets...',
+  'Calibrating personalized nutrition protocol...',
 ]
 
 export default function AiRecommendation() {
@@ -28,8 +34,21 @@ export default function AiRecommendation() {
   const [result, setResult] = useState(null)
   const [aiPlan, setAiPlan] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [loadingStep, setLoadingStep] = useState(0)
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [quickEvalResult, setQuickEvalResult] = useState(null)
+
+  // Cycle loading status text smoothly while computing clinical plan
+  useEffect(() => {
+    let interval
+    if (loading) {
+      setLoadingStep(0)
+      interval = setInterval(() => {
+        setLoadingStep((prev) => (prev + 1) % LOADING_STEPS.length)
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [loading])
 
   // Auto-compute baseline results on mount or when user profile updates
   useEffect(() => {
@@ -264,9 +283,30 @@ export default function AiRecommendation() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3.5 text-sm font-bold shadow-glow"
+            className={`w-full py-3.5 px-3 sm:px-6 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-glow text-center ${
+              loading
+                ? 'bg-fit-primary/85 text-white cursor-wait opacity-95'
+                : 'btn-primary hover:scale-[1.005] active:scale-[0.995]'
+            }`}
           >
-            {loading ? 'AI is crafting your plan (takes ~3s)...' : 'Generate My Clinical Diet Plan'}
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin shrink-0 text-white" />
+                <span className="tracking-wide animate-pulse">
+                  {LOADING_STEPS[loadingStep]}
+                </span>
+              </>
+            ) : result ? (
+              <>
+                <Sparkles size={18} className="shrink-0 text-white" />
+                <span>Recalculate Clinical Nutrition Plan</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} className="shrink-0 text-white" />
+                <span>Generate Clinical Diet & Macro Plan</span>
+              </>
+            )}
           </button>
         </form>
 
@@ -287,7 +327,7 @@ export default function AiRecommendation() {
                   </div>
                   <div>
                     <h3 className="text-fit-text font-bold text-sm mb-1 flex items-center gap-2">
-                      Groq AI Clinical Assessment
+                      FitKart Clinical AI Assessment
                     </h3>
                     <p className="text-xs text-fit-muted leading-relaxed mb-2">
                       <strong className="text-fit-text">BMI:</strong> {result.bmi} ({result.bmiCategory})

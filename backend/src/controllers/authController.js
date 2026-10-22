@@ -6,6 +6,7 @@ import { calculateMetabolicMetrics, getLocalDateString } from '../utils/metaboli
 import transporter from '../utils/email.js';
 import { OAuth2Client } from 'google-auth-library';
 import { logAuditEvent } from '../utils/auditLogger.js';
+import { sanitizeIndianPhone, isValidIndianPhone } from '../utils/phoneValidator.js';
 
 export const sendOtp = async (req, res) => {
   try {
@@ -338,6 +339,14 @@ export const registerUser = async (req, res) => {
     const isFirstUser = (await User.countDocuments({})) === 0;
     const role = (isFirstUser || userEmail.includes('admin')) ? 'admin' : 'user';
 
+    let cleanPhone = '';
+    if (phone) {
+      cleanPhone = sanitizeIndianPhone(phone);
+      if (!isValidIndianPhone(cleanPhone)) {
+        return res.status(400).json({ message: 'Invalid Indian mobile number. Please provide a valid 10-digit number starting with 6, 7, 8, or 9.' });
+      }
+    }
+
     const curW = currentWeight !== undefined ? Number(currentWeight) : 70;
     const startW = startingWeight !== undefined ? Number(startingWeight) : curW;
     const tarW = targetWeight !== undefined ? Number(targetWeight) : 65;
@@ -346,7 +355,7 @@ export const registerUser = async (req, res) => {
       name: name.trim(),
       email: userEmail,
       password,
-      phone: phone || '',
+      phone: cleanPhone,
       role,
       goal: goal || 'Fitness Maintenance',
       age: age ? Number(age) : 24,
@@ -600,7 +609,17 @@ export const updateProfile = async (req, res) => {
     } = req.body;
 
     if (name) user.name = name;
-    if (phone !== undefined) user.phone = phone;
+    if (phone !== undefined) {
+      if (phone === '' || phone === null) {
+        user.phone = '';
+      } else {
+        const cleanPhone = sanitizeIndianPhone(phone);
+        if (!isValidIndianPhone(cleanPhone)) {
+          return res.status(400).json({ message: 'Invalid Indian mobile number. Please provide a valid 10-digit number starting with 6, 7, 8, or 9.' });
+        }
+        user.phone = cleanPhone;
+      }
+    }
     if (avatar !== undefined) user.avatar = avatar;
     if (goal !== undefined) user.goal = goal;
     if (age !== undefined) user.age = Number(age);
@@ -735,7 +754,16 @@ export const addAddress = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.addresses.push(req.body);
+    const addressData = { ...req.body };
+    if (addressData.phone !== undefined && addressData.phone !== '') {
+      const cleanPhone = sanitizeIndianPhone(addressData.phone);
+      if (!isValidIndianPhone(cleanPhone)) {
+        return res.status(400).json({ message: 'Invalid delivery contact phone. Must be a valid 10-digit Indian mobile number.' });
+      }
+      addressData.phone = cleanPhone;
+    }
+
+    user.addresses.push(addressData);
     await user.save();
 
     await logAuditEvent({
@@ -751,6 +779,58 @@ export const addAddress = async (req, res) => {
     res.status(201).json({
       addresses: user.addresses,
       message: 'Address added successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Update existing address with audit logging
+// @route PUT /api/auth/addresses/:id
+export const updateAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const addr = user.addresses.id(req.params.id) || user.addresses.find(a => a._id?.toString() === req.params.id || a.id === req.params.id);
+    if (!addr) return res.status(404).json({ message: 'Address not found' });
+
+    if (req.body.name !== undefined) addr.name = req.body.name;
+    if (req.body.phone !== undefined) {
+      if (req.body.phone === '' || req.body.phone === null) {
+        addr.phone = '';
+      } else {
+        const cleanPhone = sanitizeIndianPhone(req.body.phone);
+        if (!isValidIndianPhone(cleanPhone)) {
+          return res.status(400).json({ message: 'Invalid delivery contact phone. Must be a valid 10-digit Indian mobile number.' });
+        }
+        addr.phone = cleanPhone;
+      }
+    }
+    if (req.body.line !== undefined) addr.line = req.body.line;
+    if (req.body.landmark !== undefined) addr.landmark = req.body.landmark;
+    if (req.body.city !== undefined) addr.city = req.body.city;
+    if (req.body.state !== undefined) addr.state = req.body.state;
+    if (req.body.pincode !== undefined) addr.pincode = req.body.pincode;
+    if (req.body.type !== undefined) addr.type = req.body.type;
+    if (req.body.instructions !== undefined) addr.instructions = req.body.instructions;
+    if (req.body.isDefault !== undefined) addr.isDefault = Boolean(req.body.isDefault);
+
+    await user.save();
+
+    await logAuditEvent({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'ADDRESS_UPDATED',
+      entityType: 'Address',
+      entityId: req.params.id,
+      metadata: { city: addr.city, pincode: addr.pincode, phone: addr.phone },
+      req
+    });
+
+    res.json({
+      addresses: user.addresses,
+      message: 'Address updated successfully'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

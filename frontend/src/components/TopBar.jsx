@@ -1,27 +1,49 @@
-import { MapPin, Search, Clock, ChevronDown, Heart, ShoppingCart, User, Sun, Moon, Dumbbell, Sparkles } from 'lucide-react'
+import { MapPin, Search, Clock, ChevronDown, Heart, ShoppingCart, User, Sun, Moon, Dumbbell, Sparkles, Activity } from 'lucide-react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useCart } from '../context/CartContext.jsx'
 import { useUser } from '../context/UserContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
+import BlinkitSearchBar from './BlinkitSearchBar.jsx'
 
 export default function TopBar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [query, setQuery] = useState('')
+  const [aiCoachOpen, setAiCoachOpen] = useState(false)
+  const aiCoachRef = useRef(null)
   const { itemCount, total } = useCart()
   const { user } = useUser()
   const { theme, toggleTheme } = useTheme()
 
-  const submit = (e) => {
-    e.preventDefault()
-    if (query.trim()) navigate(`/search?q=${encodeURIComponent(query.trim())}`)
-  }
+  // Close AI Coach dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (aiCoachRef.current && !aiCoachRef.current.contains(e.target)) {
+        setAiCoachOpen(false)
+      }
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setAiCoachOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  // Auto-close dropdown when navigating to a new route
+  useEffect(() => {
+    setAiCoachOpen(false)
+  }, [location.pathname])
 
   const quickSearches = ['Whey Protein', 'Peanut Butter', 'Creatine', 'Oats', 'BCAA']
 
   return (
-    <header className="sticky top-0 z-40 glass-strong border-b border-fit-border transition-all duration-200">
+    <header className="sticky top-0 z-50 glass-strong border-b border-fit-border transition-all duration-200">
       {/* Top Banner / Location & Desktop Navigation */}
       <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-8 lg:px-12 py-3">
         <div className="flex items-center justify-between gap-4">
@@ -56,86 +78,141 @@ export default function TopBar() {
                   <ChevronDown size={12} className="text-fit-muted shrink-0" />
                 </div>
                 <div className="text-[10px] text-fit-muted flex items-center gap-1">
-                  <Clock size={10} className="text-fit-primary" /> <span className="text-fit-primary font-semibold">12 mins</span> · Express
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-fit-primary font-semibold">Express Delivery</span> · Free over ₹499
                 </div>
               </div>
             </button>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 text-sm font-semibold">
+          <nav className="hidden lg:flex items-center gap-1.5 text-sm font-semibold relative">
             <Link
               to="/home"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
+              className={`px-3 py-1.5 rounded-xl transition-colors ${
                 location.pathname === '/home' || location.pathname === '/'
-                  ? 'text-fit-primary bg-fit-primary/10'
+                  ? 'text-fit-primary bg-fit-primary/10 font-bold'
                   : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
               }`}
             >
               Home
             </Link>
+
             <Link
               to="/category/all"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
-                location.pathname.startsWith('/category')
-                  ? 'text-fit-primary bg-fit-primary/10'
+              className={`px-3 py-1.5 rounded-xl transition-colors ${
+                location.pathname.startsWith('/category') || location.pathname.startsWith('/product')
+                  ? 'text-fit-primary bg-fit-primary/10 font-bold'
                   : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
               }`}
             >
-              Products
+              Shop
             </Link>
-            <Link
-              to="/workouts"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
-                location.pathname.startsWith('/workouts')
-                  ? 'text-fit-primary bg-fit-primary/10'
-                  : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
-              }`}
-            >
-              Workouts
-            </Link>
+
             <Link
               to="/fitness"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
-                location.pathname.startsWith('/fitness')
-                  ? 'text-fit-primary bg-fit-primary/10'
+              className={`px-3 py-1.5 rounded-xl transition-colors ${
+                location.pathname.startsWith('/fitness') && !location.pathname.startsWith('/fitness/bodycare')
+                  ? 'text-fit-primary bg-fit-primary/10 font-bold'
                   : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
               }`}
             >
-              Gym
+              Fitness
             </Link>
-            <Link
-              to="/ai-recommendation"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 ${
-                location.pathname === '/ai-recommendation'
-                  ? 'text-fit-primary bg-fit-primary/10'
-                  : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
-              }`}
+
+            {/* AI Coach Dropdown Menu */}
+            <div 
+              ref={aiCoachRef}
+              className="relative"
+              onMouseEnter={() => setAiCoachOpen(true)}
+              onMouseLeave={() => setAiCoachOpen(false)}
             >
-              <Sparkles size={14} className="text-fit-accent" /> AI Diet Plan
-            </Link>
+              <button
+                type="button"
+                onClick={() => setAiCoachOpen((prev) => !prev)}
+                className={`px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer ${
+                  location.pathname === '/ai-recommendation' || location.pathname === '/fitness/bodycare'
+                    ? 'text-fit-primary bg-fit-primary/10 font-bold'
+                    : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
+                }`}
+                aria-expanded={aiCoachOpen}
+                aria-haspopup="true"
+              >
+                <Sparkles size={14} className="text-fit-accent animate-pulse" />
+                <span>AI Coach</span>
+                <ChevronDown size={12} className={`transition-transform duration-200 ${aiCoachOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Card */}
+              {aiCoachOpen && (
+                <div className="absolute top-full left-0 pt-2 w-80 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="p-2.5 bg-fit-surface border border-fit-border rounded-2xl shadow-2xl space-y-1 ring-1 ring-white/10">
+                    <div className="px-3 py-1.5 text-[10px] font-bold text-fit-muted uppercase tracking-wider flex items-center justify-between border-b border-fit-border/40 pb-2">
+                      <span>FitKart AI Intelligence</span>
+                      <span className="inline-flex items-center gap-1 text-[9px] text-fit-primary font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-fit-primary animate-ping" />
+                        ACTIVE
+                      </span>
+                    </div>
+
+                    <Link
+                      to="/ai-recommendation"
+                      onClick={() => setAiCoachOpen(false)}
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-fit-surface2 transition-colors group cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-fit-primary/10 border border-fit-primary/20 flex items-center justify-center text-fit-primary group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                        <Sparkles size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-fit-text group-hover:text-fit-primary transition-colors flex items-center gap-1.5">
+                          <span>AI Diet Plan</span>
+                          <span className="text-[9px] bg-fit-primary/20 text-fit-primary px-1.5 py-0.2 rounded font-black">MACROS</span>
+                        </div>
+                        <p className="text-[11px] text-fit-muted leading-tight mt-0.5">
+                          Personalized calories, protein &amp; custom meal targets.
+                        </p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/fitness/bodycare"
+                      onClick={() => setAiCoachOpen(false)}
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-fit-surface2 transition-colors group cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-500 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                        <Activity size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-fit-text group-hover:text-teal-400 transition-colors flex items-center gap-1.5">
+                          <span>BodyCare AI</span>
+                          <span className="text-[9px] bg-teal-500/20 text-teal-400 px-1.5 py-0.2 rounded font-black">RECOVERY</span>
+                        </div>
+                        <p className="text-[11px] text-fit-muted leading-tight mt-0.5">
+                          Interactive body map, soreness relief &amp; joint care.
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Link
               to="/dashboard"
-              className={`px-3.5 py-1.5 rounded-xl transition-colors ${
+              className={`px-3 py-1.5 rounded-xl transition-colors ${
                 location.pathname === '/dashboard'
-                  ? 'text-fit-primary bg-fit-primary/10'
+                  ? 'text-fit-primary bg-fit-primary/10 font-bold'
                   : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
               }`}
             >
-              Tracker
+              My Activity
             </Link>
           </nav>
 
-          {/* Desktop Search Bar */}
-          <form onSubmit={submit} className="hidden md:flex flex-1 max-w-md relative mx-2">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-fit-muted pointer-events-none" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search protein, workouts, creatine, oats..."
-              className="input-field pl-10 pr-4 py-2 text-xs w-full bg-fit-surface2/60 focus:bg-fit-surface"
-            />
-          </form>
+          {/* Desktop Search Bar (Blinkit Style) */}
+          <div className="hidden md:flex flex-1 max-w-md relative mx-2">
+            <BlinkitSearchBar />
+          </div>
 
           {/* Actions & Profile */}
           <div className="flex items-center gap-2 shrink-0">
@@ -214,15 +291,7 @@ export default function TopBar() {
 
         {/* Mobile Search Bar & Quick Tags */}
         <div className="md:hidden mt-2.5 space-y-2">
-          <form onSubmit={submit} className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-fit-muted pointer-events-none" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search protein, oats, workouts..."
-              className="input-field pl-10 py-2.5 text-xs shadow-inner"
-            />
-          </form>
+          <BlinkitSearchBar isMobile />
 
           {/* Quick pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">

@@ -1,4 +1,4 @@
-﻿import Product from '../models/Product.js';
+import Product from '../models/Product.js';
 
 // @desc Get all products with filters, sorting, search
 // @route GET /api/products
@@ -12,12 +12,16 @@ export const getProducts = async (req, res) => {
     }
 
     if (search) {
-      query.$or = [
+      const isShort = search.trim().length < 4;
+      const orConditions = [
         { name: { $regex: search, $options: 'i' } },
         { brand: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
         { tags: { $in: [new RegExp(search, 'i')] } }
       ];
+      if (!isShort) {
+        orConditions.push({ description: { $regex: search, $options: 'i' } });
+      }
+      query.$or = orConditions;
     }
 
     let sortOption = {};
@@ -68,13 +72,18 @@ export const searchProducts = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) return res.json([]);
+    const isShort = q.trim().length < 4;
+    const orConditions = [
+      { name: { $regex: q, $options: 'i' } },
+      { brand: { $regex: q, $options: 'i' } },
+      { category: { $regex: q, $options: 'i' } },
+      { tags: { $in: [new RegExp(q, 'i')] } }
+    ];
+    if (!isShort) {
+      orConditions.push({ description: { $regex: q, $options: 'i' } });
+    }
     const products = await Product.find({
-      $or: [
-        { name: { $regex: q, $options: 'i' } },
-        { brand: { $regex: q, $options: 'i' } },
-        { category: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
-      ]
+      $or: orConditions
     }).limit(20);
     res.json(products);
   } catch (error) {
