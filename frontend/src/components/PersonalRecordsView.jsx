@@ -46,7 +46,7 @@ export default function PersonalRecordsView({ prData }) {
   const sortedPRs = parsedPRs.sort((a, b) => b.weight - a.weight);
 
   return (
-    <div className="bg-fit-surface border border-fit-border rounded-3xl p-6 shadow-card relative overflow-hidden group">
+    <div className="bg-fit-surface border border-fit-border rounded-3xl p-4 sm:p-6 shadow-card relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
       
       {/* Header */}
