@@ -11,27 +11,19 @@ export default function TopBar() {
   const location = useLocation()
   const [aiCoachOpen, setAiCoachOpen] = useState(false)
   const aiCoachRef = useRef(null)
-  const [fitnessOpen, setFitnessOpen] = useState(false)
-  const fitnessRef = useRef(null)
   const { itemCount, total } = useCart()
   const { user } = useUser()
   const { theme, toggleTheme } = useTheme()
 
-  // Close dropdowns when clicking outside or pressing Escape
+  // Close AI Coach dropdown when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (aiCoachRef.current && !aiCoachRef.current.contains(e.target)) {
         setAiCoachOpen(false)
       }
-      if (fitnessRef.current && !fitnessRef.current.contains(e.target)) {
-        setFitnessOpen(false)
-      }
     }
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setAiCoachOpen(false)
-        setFitnessOpen(false)
-      }
+      if (e.key === 'Escape') setAiCoachOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('touchstart', handleClickOutside)
@@ -43,10 +35,9 @@ export default function TopBar() {
     }
   }, [])
 
-  // Auto-close dropdowns when navigating to a new route
+  // Auto-close dropdown when navigating to a new route
   useEffect(() => {
     setAiCoachOpen(false)
-    setFitnessOpen(false)
   }, [location.pathname])
 
   const quickSearches = ['Whey Protein', 'Peanut Butter', 'Creatine', 'Oats', 'BCAA']
@@ -118,100 +109,16 @@ export default function TopBar() {
               Shop
             </Link>
 
-            {/* Fitness Dropdown Menu */}
-            <div 
-              ref={fitnessRef}
-              className="relative"
-              onMouseEnter={() => setFitnessOpen(true)}
-              onMouseLeave={() => setFitnessOpen(false)}
+            <Link
+              to="/fitness"
+              className={`px-3 py-1.5 rounded-xl transition-colors ${
+                location.pathname.startsWith('/fitness') && !location.pathname.startsWith('/fitness/bodycare')
+                  ? 'text-fit-primary bg-fit-primary/10 font-bold'
+                  : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
+              }`}
             >
-              <button
-                type="button"
-                onClick={() => {
-                  navigate('/fitness')
-                  setFitnessOpen(false)
-                }}
-                className={`px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer ${
-                  (location.pathname.startsWith('/fitness') && !location.pathname.startsWith('/fitness/bodycare')) || location.pathname.startsWith('/workouts')
-                    ? 'text-fit-primary bg-fit-primary/10 font-bold'
-                    : 'text-fit-muted hover:text-fit-text hover:bg-fit-surface2/50'
-                }`}
-                aria-expanded={fitnessOpen}
-                aria-haspopup="true"
-              >
-                <span>Fitness</span>
-                <ChevronDown size={12} className={`transition-transform duration-200 ${fitnessOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Fitness Dropdown Card */}
-              {fitnessOpen && (
-                <div className="absolute top-full left-0 pt-2 w-80 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="p-2.5 bg-fit-surface border border-fit-border rounded-2xl shadow-2xl space-y-1 ring-1 ring-white/10">
-                    <div className="px-3 py-1.5 text-[10px] font-bold text-fit-muted uppercase tracking-wider flex items-center justify-between border-b border-fit-border/40 pb-2">
-                      <span>Training Suite</span>
-                      <span className="text-[9px] text-fit-primary font-bold">134 EXERCISES</span>
-                    </div>
-
-                    <Link
-                      to="/fitness"
-                      onClick={() => setFitnessOpen(false)}
-                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-fit-surface2 transition-colors group cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-fit-primary/10 border border-fit-primary/20 flex items-center justify-center text-fit-primary group-hover:scale-105 transition-transform shrink-0 mt-0.5">
-                        <Activity size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-fit-text group-hover:text-fit-primary transition-colors flex items-center gap-1.5">
-                          <span>Fitness Gym</span>
-                          <span className="text-[9px] bg-fit-primary/20 text-fit-primary px-1.5 py-0.2 rounded font-black">30-DAY</span>
-                        </div>
-                        <p className="text-[11px] text-fit-muted leading-tight mt-0.5">
-                          Active 30-day program, routine tracker &amp; live workouts.
-                        </p>
-                      </div>
-                    </Link>
-
-                    <Link
-                      to="/workouts"
-                      onClick={() => setFitnessOpen(false)}
-                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-fit-surface2 transition-colors group cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
-                        <Dumbbell size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-fit-text group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                          <span>134 Workouts Portal</span>
-                          <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded font-black">AI &amp; LOGS</span>
-                        </div>
-                        <p className="text-[11px] text-fit-muted leading-tight mt-0.5">
-                          134 HD exercises, AI workout generator &amp; personal records.
-                        </p>
-                      </div>
-                    </Link>
-
-                    <Link
-                      to="/fitness/routines"
-                      onClick={() => setFitnessOpen(false)}
-                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-fit-surface2 transition-colors group cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
-                        <Calendar size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-fit-text group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
-                          <span>Routines &amp; Builder</span>
-                          <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.2 rounded font-black">CUSTOM</span>
-                        </div>
-                        <p className="text-[11px] text-fit-muted leading-tight mt-0.5">
-                          Curated split programs and custom routine creator.
-                        </p>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+              Fitness
+            </Link>
 
             {/* AI Coach Dropdown Menu */}
             <div 
