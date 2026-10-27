@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell, Sparkles, HeartPulse, ArrowRight } from 'lucide-react';
+import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell, Sparkles, HeartPulse, ArrowRight, X } from 'lucide-react';
 import AppLayout from '../components/AppLayout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { useWorkout } from '../context/WorkoutContext.jsx';
@@ -69,14 +69,14 @@ export default function Fitness() {
                 onClick={async () => {
                   await cancelWorkout();
                 }}
-                className="bg-black/20 hover:bg-black/30 text-black border border-black/20 px-4 py-2 rounded-full font-semibold text-sm transition-colors"
-                title="Discard active workout"
+                className="bg-black/20 hover:bg-black/30 text-black border border-black/20 px-4 py-2 rounded-full font-bold text-sm transition-all hover:scale-105 cursor-pointer flex items-center gap-1.5 shadow-sm"
+                title="Discard and cancel active workout"
               >
-                Discard
+                <X size={15} /> Discard Session
               </button>
               <button 
                 onClick={() => navigate('/fitness/active')}
-                className="bg-black text-white px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2 shadow-md"
+                className="bg-black text-white px-6 py-2 rounded-full font-extrabold hover:scale-105 transition-transform flex items-center gap-2 shadow-md cursor-pointer"
               >
                 Resume <Play size={16} fill="white" />
               </button>
@@ -112,10 +112,19 @@ export default function Fitness() {
             <div className="absolute -right-10 -top-10 text-fit-muted/10 group-hover:text-fit-primary/20 group-hover:rotate-12 transition-all">
               <Activity size={110} />
             </div>
-            <h3 className="text-lg font-bold text-fit-text mb-1">Quick Start</h3>
-            <p className="text-fit-muted text-xs mb-4">Start an empty workout and log sets & reps on the fly.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-bold text-fit-text">Quick Start</h3>
+              {activeWorkout && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                  Active
+                </span>
+              )}
+            </div>
+            <p className="text-fit-muted text-xs mb-4">
+              {activeWorkout ? 'Session currently in progress. Tap to resume.' : 'Start an empty workout and log sets & reps on the fly.'}
+            </p>
             <div className="flex items-center text-fit-primary font-semibold text-xs mt-auto">
-              Start Freely <Play size={14} className="ml-1.5" />
+              {activeWorkout ? 'Resume Session' : 'Start Freely'} <Play size={14} className="ml-1.5" />
             </div>
           </button>
 
