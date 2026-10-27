@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell, Sparkles, HeartPulse } from 'lucide-react';
+import { Play, Activity, Calendar, TrendingUp, Plus, Clock, CheckCircle, Search, Dumbbell, Sparkles, HeartPulse, ArrowRight } from 'lucide-react';
 import AppLayout from '../components/AppLayout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { useWorkout } from '../context/WorkoutContext.jsx';
@@ -84,8 +84,8 @@ export default function Fitness() {
           </div>
         )}
 
-        {/* Quick Actions: Quick Start, Routines, Exercises (ALWAYS VISIBLE) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Quick Actions: Quick Start, 134 Workouts Portal, Routines, BodyCare AI */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button 
             onClick={() => {
               if (activeWorkout && activeWorkout.exercises && activeWorkout.exercises.length > 0) {
@@ -107,48 +107,67 @@ export default function Fitness() {
                 navigate('/fitness/active');
               }
             }}
-            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden shadow-card"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-5 text-left hover:border-fit-primary transition-all group relative overflow-hidden shadow-card"
           >
             <div className="absolute -right-10 -top-10 text-fit-muted/10 group-hover:text-fit-primary/20 group-hover:rotate-12 transition-all">
-              <Activity size={120} />
+              <Activity size={110} />
             </div>
-            <h3 className="text-xl font-bold text-fit-text mb-2">Quick Start</h3>
-            <p className="text-fit-muted text-sm mb-4">Start an empty workout and track as you go.</p>
-            <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
-              Start Freely <Play size={16} className="ml-2" />
+            <h3 className="text-lg font-bold text-fit-text mb-1">Quick Start</h3>
+            <p className="text-fit-muted text-xs mb-4">Start an empty workout and log sets & reps on the fly.</p>
+            <div className="flex items-center text-fit-primary font-semibold text-xs mt-auto">
+              Start Freely <Play size={14} className="ml-1.5" />
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/workouts')}
+            className="bg-fit-surface border border-fit-border rounded-2xl p-5 text-left hover:border-amber-400 transition-all group relative overflow-hidden flex flex-col shadow-card hover:shadow-glow"
+          >
+            <div className="absolute -right-8 -top-8 text-amber-400/10 group-hover:text-amber-400/25 group-hover:scale-110 transition-all">
+              <Dumbbell size={110} />
+            </div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <h3 className="text-lg font-bold text-fit-text">134 Workouts Portal</h3>
+              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/30 text-[9px] font-black text-amber-400 uppercase tracking-wider">
+                134 HD
+              </span>
+            </div>
+            <p className="text-fit-muted text-xs mb-4">Complete 134 exercises, AI routine generator & PR logs.</p>
+            <div className="flex items-center text-amber-400 font-semibold text-xs mt-auto">
+              Open 134 Workouts <ArrowRight size={14} className="ml-1.5" />
             </div>
           </button>
 
           <button 
             onClick={() => navigate('/fitness/routines')}
-            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-blue-500 transition-all group relative overflow-hidden flex flex-col shadow-card"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-5 text-left hover:border-blue-500 transition-all group relative overflow-hidden flex flex-col shadow-card"
           >
             <div className="absolute -right-10 -top-10 text-fit-muted/10 group-hover:text-blue-500/20 group-hover:rotate-12 transition-all">
-              <Calendar size={120} />
+              <Calendar size={110} />
             </div>
-            <h3 className="text-xl font-bold text-fit-text mb-2">Routines</h3>
-            <p className="text-fit-muted text-sm mb-4">Select a pre-built plan or your custom routine.</p>
-            <div className="flex items-center text-blue-500 font-semibold text-sm mt-auto">
-              Browse Plans <Plus size={16} className="ml-2" />
+            <h3 className="text-lg font-bold text-fit-text mb-1">Routines</h3>
+            <p className="text-fit-muted text-xs mb-4">Browse pre-built split programs or build custom routines.</p>
+            <div className="flex items-center text-blue-500 font-semibold text-xs mt-auto">
+              Browse Plans <Plus size={14} className="ml-1.5" />
             </div>
           </button>
 
           <button 
             onClick={() => navigate('/fitness/bodycare')}
-            className="bg-fit-surface border border-fit-border rounded-2xl p-6 text-left hover:border-fit-primary transition-all group relative overflow-hidden flex flex-col shadow-card hover:shadow-glow"
+            className="bg-fit-surface border border-fit-border rounded-2xl p-5 text-left hover:border-teal-400 transition-all group relative overflow-hidden flex flex-col shadow-card hover:shadow-glow"
           >
-            <div className="absolute -right-8 -top-8 text-fit-primary/10 group-hover:text-fit-primary/25 group-hover:scale-110 transition-all">
-              <HeartPulse size={120} />
+            <div className="absolute -right-8 -top-8 text-teal-400/10 group-hover:text-teal-400/25 group-hover:scale-110 transition-all">
+              <HeartPulse size={110} />
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-bold text-fit-text">BodyCare AI</h3>
-              <span className="px-2 py-0.5 rounded-full bg-fit-primary/20 border border-fit-primary/30 text-[10px] font-black text-fit-primary uppercase tracking-wider flex items-center gap-1">
-                <Sparkles size={10} /> AI Powered
+            <div className="flex items-center gap-1.5 mb-1">
+              <h3 className="text-lg font-bold text-fit-text">BodyCare AI</h3>
+              <span className="px-2 py-0.5 rounded-full bg-teal-400/20 border border-teal-400/30 text-[9px] font-black text-teal-400 uppercase tracking-wider flex items-center gap-0.5">
+                <Sparkles size={9} /> AI Care
               </span>
             </div>
-            <p className="text-fit-muted text-sm mb-4">Interactive pain assessment & dynamic recovery guidance.</p>
-            <div className="flex items-center text-fit-primary font-semibold text-sm mt-auto">
-              Assess Body <Sparkles size={16} className="ml-2" />
+            <p className="text-fit-muted text-xs mb-4">Interactive pain assessment & physical therapy recovery.</p>
+            <div className="flex items-center text-teal-400 font-semibold text-xs mt-auto">
+              Assess Body <Sparkles size={14} className="ml-1.5" />
             </div>
           </button>
         </div>
