@@ -1,10 +1,10 @@
 import React from 'react';
-import { X, Play, Clock, Target, Dumbbell, Flame, CheckCircle2, Activity, Snowflake } from 'lucide-react';
+import { X, Play, Clock, Target, Dumbbell, Flame, CheckCircle2, Activity, Snowflake, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkout } from '../../context/WorkoutContext.jsx';
 import { useUser } from '../../context/UserContext.jsx';
 
-export default function FitnessDayModal({ dayData, onClose }) {
+export default function FitnessDayModal({ dayData, isTodayWorkoutDone, todayDoneDay, onClose }) {
   const navigate = useNavigate();
   const { startWorkout, activeWorkout } = useWorkout();
   const { user } = useUser();
@@ -21,6 +21,8 @@ export default function FitnessDayModal({ dayData, onClose }) {
   const activeCompletedCount = isThisWorkoutActive && activeWorkout?.exercises
     ? activeWorkout.exercises.filter(ex => ex.sets?.every(s => s.isCompleted)).length
     : 0;
+
+  const isScheduledForTomorrow = Boolean(isTodayWorkoutDone && dayData.day === (todayDoneDay + 1) && !dayData.isCompleted);
 
   const handleStart = () => {
     if (isThisWorkoutActive) {
@@ -70,11 +72,18 @@ export default function FitnessDayModal({ dayData, onClose }) {
         
         {/* Header */}
         <div className="p-6 border-b border-fit-border sticky top-0 bg-fit-surface z-10 rounded-t-3xl sm:rounded-t-3xl">
-          <button onClick={onClose} className="absolute top-6 right-6 text-fit-muted hover:text-fit-text bg-fit-surface2 border border-fit-border p-2 rounded-full transition-colors">
+          <button onClick={onClose} className="absolute top-6 right-6 text-fit-muted hover:text-fit-text bg-fit-surface2 border border-fit-border p-2 rounded-full transition-colors cursor-pointer">
             <X size={20} />
           </button>
           
-          <div className="text-[#2196f3] font-bold text-xs uppercase tracking-widest mb-1">Day {dayData.day}</div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[#2196f3] font-bold text-xs uppercase tracking-widest">Day {dayData.day}</span>
+            {isScheduledForTomorrow && (
+              <span className="bg-blue-500/10 border border-blue-500/30 text-blue-500 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                Scheduled for Tomorrow
+              </span>
+            )}
+          </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-fit-text mb-4 pr-12">{dayData.focus}</h2>
           
           <div className="flex flex-wrap gap-3 text-sm">
@@ -102,8 +111,23 @@ export default function FitnessDayModal({ dayData, onClose }) {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 hide-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
           
+          {/* Rest Recommendation Alert if today's workout is already done */}
+          {isScheduledForTomorrow && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 shrink-0 mt-0.5">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-amber-500 text-sm">Today's Workout Complete!</h4>
+                <p className="text-fit-muted text-xs mt-1 leading-relaxed">
+                  You have already crushed Day {todayDoneDay || (dayData.day - 1)} today! Muscles need 24–48 hours to recover and rebuild stronger. Day {dayData.day} is scheduled for <strong>tomorrow</strong>. Rest & good nutrition are key to muscle growth!
+                </p>
+              </div>
+            </div>
+          )}
+
           {Object.entries(exerciseGroups).map(([type, exercises]) => {
             if (exercises.length === 0) return null;
             
@@ -153,24 +177,44 @@ export default function FitnessDayModal({ dayData, onClose }) {
 
         {/* Footer */}
         <div className="p-6 border-t border-fit-border bg-fit-surface rounded-b-3xl">
-          <button 
-            onClick={handleStart}
-            className={`w-full py-4 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-md ${
-              isThisWorkoutActive
-                ? 'bg-fit-primary text-white hover:scale-[1.02] shadow-glow animate-pulse'
-                : dayData.isCompleted 
-                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25'
-                : 'bg-[#2196f3] text-white hover:scale-[1.02] hover:bg-[#1976d2]'
-            }`}
-          >
-            {isThisWorkoutActive ? (
-              <><Play fill="currentColor" size={20} /> Resume In-Progress Workout ({activeCompletedCount} of {activeWorkout.exercises?.length || dayData.exercises.length} Done)</>
-            ) : dayData.isCompleted ? (
-              'View / Re-do Workout'
-            ) : (
-              <><Play fill="currentColor" size={20} /> Start Workout Session</>
-            )}
-          </button>
+          {isThisWorkoutActive ? (
+            <button 
+              onClick={handleStart}
+              className="w-full py-4 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-md bg-fit-primary text-white hover:scale-[1.02] shadow-glow animate-pulse cursor-pointer"
+            >
+              <Play fill="currentColor" size={20} /> Resume In-Progress Workout ({activeCompletedCount} of {activeWorkout.exercises?.length || dayData.exercises.length} Done)
+            </button>
+          ) : dayData.isCompleted ? (
+            <button 
+              onClick={handleStart}
+              className="w-full py-4 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25 cursor-pointer"
+            >
+              <CheckCircle2 size={20} /> View / Re-do Workout
+            </button>
+          ) : isScheduledForTomorrow ? (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-fit-surface2 text-fit-text border border-fit-border hover:bg-fit-border transition-colors text-center cursor-pointer"
+              >
+                Rest Today (Recommended 💤)
+              </button>
+              <button 
+                onClick={handleStart}
+                className="flex-1 py-3.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 bg-[#2196f3]/15 text-[#2196f3] border border-[#2196f3]/40 hover:bg-[#2196f3] hover:text-white transition-all cursor-pointer"
+                title="Start Day 2 early if you really want an extra session today"
+              >
+                <Play fill="currentColor" size={16} /> Start Day {dayData.day} Early
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handleStart}
+              className="w-full py-4 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-md bg-[#2196f3] text-white hover:scale-[1.02] hover:bg-[#1976d2] cursor-pointer"
+            >
+              <Play fill="currentColor" size={20} /> Start Workout Session
+            </button>
+          )}
         </div>
         
       </div>

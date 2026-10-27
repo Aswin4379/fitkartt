@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info, Activity, RotateCcw, AlertTriangle, X } from 'lucide-react';
+import { Sparkles, Calendar as CalendarIcon, CheckCircle2, Play, Lock, Info, Activity, RotateCcw, AlertTriangle, X, Clock } from 'lucide-react';
 import { useWorkout } from '../../context/WorkoutContext.jsx';
 import { useUser } from '../../context/UserContext.jsx';
 import FitnessDayModal from './FitnessDayModal.jsx';
@@ -11,7 +11,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
   const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
   const { startWorkout, activeWorkout, cancelWorkout } = useWorkout();
-  const { resetFitnessPlan } = useUser();
+  const { user, resetFitnessPlan } = useUser();
 
   if (!fitnessPlan || !fitnessPlan.onboarded) {
     return (
@@ -55,47 +55,51 @@ export default function FitnessAIPlan({ fitnessPlan }) {
     );
   }
 
-  // Render the calendar
-  // Calculate current day based on Indian Standard Time (Asia/Kolkata) calendar day difference
-  const getISTDayStart = (date) => {
-    const d = new Date(date);
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-    const parts = formatter.formatToParts(d);
-    const m = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    const y = parts.find(p => p.type === 'year').value;
-    // Return midnight UTC just for easy day difference math
-    return new Date(`${y}-${m}-${day}T00:00:00Z`);
+  // Helper to check if a date string/object is today in local time
+  const isDateToday = (dateValue) => {
+    if (!dateValue) return false;
+    try {
+      const d = new Date(dateValue);
+      if (isNaN(d.getTime())) return false;
+      const today = new Date();
+      return (
+        d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate()
+      );
+    } catch {
+      return false;
+    }
   };
 
-  const completedDays = (fitnessPlan.schedule || []).filter(s => s.isCompleted).map(s => s.day);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const completedScheduleDays = (fitnessPlan.schedule || []).filter(s => s.isCompleted);
+  const completedDays = completedScheduleDays.map(s => s.day);
   const maxCompletedDay = completedDays.length > 0 ? Math.max(...completedDays) : 0;
   const nextIncompleteDay = (fitnessPlan.schedule || []).find(s => !s.isCompleted)?.day || 30;
 
-  let calendarDay = 1;
-  if (fitnessPlan.planGeneratedAt) {
-    const startIST = getISTDayStart(fitnessPlan.planGeneratedAt);
-    const todayIST = getISTDayStart(new Date());
-    const diffDays = Math.floor((todayIST - startIST) / (1000 * 60 * 60 * 24));
-    calendarDay = Math.min(30, Math.max(1, diffDays + 1));
-  } else {
-    calendarDay = nextIncompleteDay;
-  }
+  // Determine if a plan workout (or any workout) was completed today
+  const dayCompletedToday = completedScheduleDays.find(s => isDateToday(s.completedAt));
+  const hasWorkoutLoggedToday = Boolean(
+    dayCompletedToday ||
+    (user?.fitnessStats?.activity?.workoutsCompletedToday > 0 && user?.fitnessStats?.activity?.lastUpdatedDate === todayStr) ||
+    (user?.fitnessStats?.workoutStats?.lastWorkoutDate === todayStr) ||
+    (user?.fitnessStats?.workoutLogs?.[0] && (
+      isDateToday(user.fitnessStats.workoutLogs[0].completedAt) ||
+      user.fitnessStats.workoutLogs[0].date === todayStr
+    ))
+  );
 
-  // Calculate currentDay taking into account:
-  // 1. Active ongoing workout session
-  // 2. Completed workout progress (e.g. if Day 8 is completed, current is Day 9)
-  // 3. Calendar days elapsed
-  let currentDay = calendarDay;
+  const isTodayWorkoutDone = Boolean(maxCompletedDay > 0 && (dayCompletedToday || hasWorkoutLoggedToday));
+  const todayDoneDay = dayCompletedToday?.day || maxCompletedDay;
+
+  // Determine currentDay
+  let currentDay = nextIncompleteDay;
   if (activeWorkout?.planDay) {
     currentDay = activeWorkout.planDay;
-  } else if (maxCompletedDay > 0) {
-    currentDay = Math.min(30, Math.max(calendarDay, maxCompletedDay + 1));
+  } else if (isTodayWorkoutDone) {
+    currentDay = todayDoneDay;
   }
 
   const currentDayData = fitnessPlan.schedule?.find(s => s.day === currentDay);
@@ -114,14 +118,27 @@ export default function FitnessAIPlan({ fitnessPlan }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <h3 className="text-xl font-bold text-fit-text flex items-center gap-2">
             <CalendarIcon size={20} className="text-[#2196f3]" />
             Your 30-Day Plan
           </h3>
-          <div className="text-xs font-bold text-[#2196f3] uppercase tracking-wider bg-[#2196f3]/10 px-3 py-1 rounded-full border border-[#2196f3]/20">
-            Day {currentDay} / 30
-          </div>
+
+          {isTodayWorkoutDone ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="text-xs font-black text-emerald-500 uppercase tracking-wider bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
+                <CheckCircle2 size={13} /> Day {todayDoneDay} Done Today
+              </div>
+              <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 flex items-center gap-1">
+                <Clock size={11} /> Next: Day {todayDoneDay + 1} Tomorrow
+              </span>
+            </div>
+          ) : (
+            <div className="text-xs font-bold text-[#2196f3] uppercase tracking-wider bg-[#2196f3]/10 px-3 py-1 rounded-full border border-[#2196f3]/20">
+              Day {currentDay} / 30
+            </div>
+          )}
+
           {isCurrentDayActive && (
             <span className="text-[11px] font-black text-fit-primary bg-fit-primary/10 border border-fit-primary/30 px-2.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
               <Activity size={12} /> IN PROGRESS
@@ -130,7 +147,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
         </div>
         
         {/* Header Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setShowResetConfirm(true)}
             className="px-3 py-2 rounded-full text-xs font-bold border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/60 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -140,18 +157,29 @@ export default function FitnessAIPlan({ fitnessPlan }) {
             <span>Cancel Plan</span>
           </button>
 
-          {currentDayData && currentDayData.exercises.length > 0 && (
+          {isCurrentDayActive ? (
             <button 
               onClick={() => handleStartDay(currentDayData)}
-              className={`px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg ${
-                isCurrentDayActive
-                  ? 'bg-fit-primary text-white shadow-glow animate-pulse'
-                  : 'bg-[#2196f3] text-white shadow-md'
-              }`}
+              className="px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg bg-fit-primary text-white shadow-glow animate-pulse"
             >
-              {isCurrentDayActive ? `Resume Day ${currentDay}` : `Start Day ${currentDay}`} <Play size={14} fill="currentColor" />
+              Resume Day {currentDay} <Play size={14} fill="currentColor" />
             </button>
-          )}
+          ) : isTodayWorkoutDone ? (
+            <button 
+              onClick={() => handleStartDay(fitnessPlan.schedule?.find(s => s.day === todayDoneDay))}
+              className="px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-all flex items-center justify-center gap-2 bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 shadow-sm"
+              title="Today's workout completed! Click to view summary"
+            >
+              <CheckCircle2 size={16} /> Today Completed 🎉 (Rest Day)
+            </button>
+          ) : currentDayData && currentDayData.exercises.length > 0 ? (
+            <button 
+              onClick={() => handleStartDay(currentDayData)}
+              className="px-5 py-2 rounded-full text-sm font-extrabold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-lg bg-[#2196f3] text-white shadow-md"
+            >
+              Start Day {currentDay} <Play size={14} fill="currentColor" />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -164,8 +192,12 @@ export default function FitnessAIPlan({ fitnessPlan }) {
               (activeWorkout.name && activeWorkout.name.toLowerCase().includes(`day ${day.day}:`))
             )
           );
+          
+          const isCompleted = day.isCompleted;
+          const isCompletedToday = isCompleted && isTodayWorkoutDone && day.day === todayDoneDay;
+          const isScheduledForTomorrow = isTodayWorkoutDone && day.day === todayDoneDay + 1;
+          const isTodayToWorkOut = !isTodayWorkoutDone && day.day === currentDay;
           const isPast = day.day < currentDay;
-          const isToday = day.day === currentDay;
           const isFuture = day.day > currentDay;
           const isRest = !day.exercises || day.exercises.length === 0;
           const canView = !isRest;
@@ -179,9 +211,11 @@ export default function FitnessAIPlan({ fitnessPlan }) {
               } ${
                 isThisDayActive
                   ? 'bg-gradient-to-b from-fit-primary/15 to-fit-surface border-fit-primary shadow-glow'
-                  : day.isCompleted
+                  : isCompleted
                   ? 'bg-fit-surface border-emerald-500/40 hover:border-emerald-500/70 shadow-sm'
-                  : isToday && !isRest
+                  : isScheduledForTomorrow
+                  ? 'bg-fit-surface/90 border-blue-500/30 hover:border-blue-500/60'
+                  : isTodayToWorkOut && !isRest
                   ? 'bg-gradient-to-b from-[#2196f3]/15 to-fit-surface border-[#2196f3]'
                   : isPast && !isRest
                   ? 'bg-fit-surface border-amber-500/30 hover:border-amber-500/50'
@@ -194,9 +228,17 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                 <div className="absolute top-4 right-4 flex items-center gap-1 bg-fit-primary/20 border border-fit-primary/40 px-2 py-0.5 rounded-full text-fit-primary text-[10px] font-black animate-pulse">
                   <Activity size={12} /> IN PROGRESS
                 </div>
-              ) : day.isCompleted ? (
+              ) : isCompletedToday ? (
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full text-emerald-500 text-[10px] font-black shadow-sm">
+                  <CheckCircle2 size={12} /> COMPLETED TODAY
+                </div>
+              ) : isCompleted ? (
                 <div className="absolute top-4 right-4 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-emerald-500 text-[10px] font-bold">
                   <CheckCircle2 size={12} /> COMPLETED
+                </div>
+              ) : isScheduledForTomorrow ? (
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full text-blue-500 text-[10px] font-bold">
+                  <Clock size={11} /> TOMORROW
                 </div>
               ) : isPast && !day.isCompleted && !isRest ? (
                 <div className="absolute top-4 right-4 text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
@@ -210,7 +252,7 @@ export default function FitnessAIPlan({ fitnessPlan }) {
 
               <div className="mb-4">
                 <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${
-                  isThisDayActive ? 'text-fit-primary' : day.isCompleted ? 'text-emerald-500' : isToday ? 'text-[#2196f3]' : 'text-fit-muted'
+                  isThisDayActive ? 'text-fit-primary' : isCompleted ? 'text-emerald-500' : isScheduledForTomorrow ? 'text-blue-500' : isTodayToWorkOut ? 'text-[#2196f3]' : 'text-fit-muted'
                 }`}>
                   Day {day.day}
                 </div>
@@ -238,14 +280,21 @@ export default function FitnessAIPlan({ fitnessPlan }) {
                   >
                     <Play size={14} fill="currentColor" /> Resume Workout
                   </button>
-                ) : day.isCompleted ? (
+                ) : isCompleted ? (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
                     className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all shadow-sm"
                   >
                     <CheckCircle2 size={14} /> View Completed
                   </button>
-                ) : isToday ? (
+                ) : isScheduledForTomorrow ? (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-fit-surface2 hover:bg-fit-border text-fit-text border border-blue-500/30 hover:border-blue-500/60 transition-colors"
+                  >
+                    <Info size={14} className="text-blue-500" /> Scheduled Tomorrow
+                  </button>
+                ) : isTodayToWorkOut ? (
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleStartDay(day); }}
                     className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-[#2196f3] text-white hover:bg-[#1976d2] shadow-md transition-all hover:scale-[1.02]"
@@ -269,6 +318,8 @@ export default function FitnessAIPlan({ fitnessPlan }) {
       {selectedDay && (
         <FitnessDayModal 
           dayData={selectedDay} 
+          isTodayWorkoutDone={isTodayWorkoutDone}
+          todayDoneDay={todayDoneDay}
           onClose={() => setSelectedDay(null)} 
         />
       )}
