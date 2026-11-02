@@ -106,7 +106,7 @@ export default function Profile() {
     { icon: Target, label: 'Fitness Goal & Plan', desc: user.goal || 'Weight Loss', to: '/ai-recommendation' },
     { icon: Coins, label: 'FitCoins & Rewards', desc: `${user.fitCoins || 120} Coins available`, to: '/rewards' },
     { icon: Crown, label: 'FitKart VIP Pro', desc: user.isPremium ? 'Active Pro Tier' : 'Upgrade for 0 delivery fees', to: '/subscription' },
-    { icon: ShieldCheck, label: 'Activity History & Audit Log', desc: 'Verified database event trail', action: openActivityModal },
+    { icon: ShieldCheck, label: 'Account Activity', desc: 'Recent login and account events', action: openActivityModal },
   ]
 
   const displayName = user.name || (user.email ? user.email.split('@')[0] : 'Athlete')
@@ -165,21 +165,6 @@ export default function Profile() {
       </div>
 
       <main className="w-full max-w-[1200px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-6 pb-12">
-        
-        {/* DEV DIAGNOSTICS */}
-        <div className="card p-4 border border-fit-primary/50 bg-fit-primary/5 rounded-xl text-[10px] sm:text-xs font-mono text-fit-muted">
-          <p className="font-bold text-fit-primary mb-2 uppercase">System Sync Diagnostics</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div><span className="opacity-70">Email:</span> {user.email}</div>
-            <div><span className="opacity-70">Account ID:</span> {user._id || user.id || 'N/A'}</div>
-            <div className="sm:col-span-2"><span className="opacity-70">API URL:</span> {import.meta.env?.VITE_API_URL || 'https://fitkartt.onrender.com/api'}</div>
-            <div><span className="opacity-70">Weight (Current/Target):</span> {user.currentWeight}kg / {user.targetWeight}kg</div>
-            <div><span className="opacity-70">Height / Age:</span> {user.height}cm / {user.age}</div>
-            <div><span className="opacity-70">Goal:</span> {user.goal}</div>
-            <div><span className="opacity-70">Activity:</span> {user.activityLevel}</div>
-          </div>
-        </div>
-
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
           <button
@@ -444,8 +429,8 @@ export default function Profile() {
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-fit-text">Account Activity & Audit Log</h3>
-                  <p className="text-[11px] text-fit-muted">Verified database event history</p>
+                  <h3 className="text-sm font-bold text-fit-text">Account Activity</h3>
+                  <p className="text-[11px] text-fit-muted">Recent login and account events</p>
                 </div>
               </div>
               <button
@@ -460,7 +445,7 @@ export default function Profile() {
               {loadingActivity ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center">
                   <Loader2 size={32} className="animate-spin text-fit-primary mb-2" />
-                  <p className="text-xs text-fit-muted">Fetching audit records from MongoDB...</p>
+                  <p className="text-xs text-fit-muted">Loading account activity...</p>
                 </div>
               ) : activityLogs.length === 0 ? (
                 <div className="py-12 text-center text-fit-muted space-y-2">
