@@ -1,4 +1,8 @@
 import Exercise from '../models/Exercise.js';
+import { exerciseLibrary } from '../data/workouts.js';
+
+const exerciseLibraryMap = new Map(exerciseLibrary.map(e => [e.id, e]));
+const exerciseLibraryNameMap = new Map(exerciseLibrary.map(e => [e.name?.toLowerCase().trim(), e]));
 
 // @desc Get all exercises with category / target filter and search
 // @route GET /api/exercises
@@ -33,10 +37,21 @@ export const getExercises = async (req, res) => {
     }
 
     const exercises = await Exercise.find(filter).sort({ createdAt: 1 });
+    const safeExercises = exercises.map(ex => {
+      const doc = ex.toObject ? ex.toObject() : { ...ex };
+      const fallback = exerciseLibraryMap.get(doc.id) || exerciseLibraryNameMap.get(doc.name?.toLowerCase().trim());
+      return {
+        ...doc,
+        imageUrl: doc.imageUrl || doc.gifUrl || fallback?.imageUrl || fallback?.gifUrl || '',
+        gifUrl: doc.gifUrl || doc.imageUrl || fallback?.gifUrl || fallback?.imageUrl || '',
+        image2Url: doc.image2Url || fallback?.image2Url || '',
+        videoUrl: doc.videoUrl || fallback?.videoUrl || ''
+      };
+    });
     res.json({
       success: true,
-      count: exercises.length,
-      exercises
+      count: safeExercises.length,
+      exercises: safeExercises
     });
   } catch (error) {
     console.error('[Get Exercises Error]:', error);

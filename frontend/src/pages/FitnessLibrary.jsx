@@ -5,11 +5,22 @@ import AppLayout from '../components/AppLayout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { exerciseApi } from '../services/api.js';
 import ExerciseVideoPlayer from '../components/ExerciseVideoPlayer.jsx';
+import { exerciseLibrary } from '../data/workouts.js';
+
+const getExerciseThumbnail = (ex) => {
+  if (!ex) return '';
+  if (ex.imageUrl && ex.imageUrl.trim()) return ex.imageUrl;
+  if (ex.gifUrl && ex.gifUrl.trim()) return ex.gifUrl;
+  if (ex.image2Url && ex.image2Url.trim()) return ex.image2Url;
+  const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1];
+  if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  return '';
+};
 
 export default function FitnessLibrary() {
   const navigate = useNavigate();
-  const [exercises, setExercises] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [exercises, setExercises] = useState(exerciseLibrary);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTarget, setFilterTarget] = useState('All');
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -17,8 +28,26 @@ export default function FitnessLibrary() {
   const targets = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Cardio'];
 
   useEffect(() => {
-    exerciseApi.getExercises({ limit: 100 })
-      .then(data => setExercises(data.exercises || data))
+    exerciseApi.getExercises({ limit: 150 })
+      .then(data => {
+        const list = data?.exercises || data;
+        if (Array.isArray(list) && list.length > 0) {
+          const localMap = new Map(exerciseLibrary.map((e) => [e.id, e]));
+          const localNameMap = new Map(exerciseLibrary.map((e) => [e.name?.toLowerCase().trim(), e]));
+          const merged = list.map((ex) => {
+            const local = localMap.get(ex.id) || localNameMap.get(ex.name?.toLowerCase().trim());
+            return {
+              ...(local || {}),
+              ...ex,
+              imageUrl: ex.imageUrl || ex.gifUrl || local?.imageUrl || local?.gifUrl || '',
+              image2Url: ex.image2Url || local?.image2Url || '',
+              gifUrl: ex.gifUrl || ex.imageUrl || local?.gifUrl || local?.imageUrl || '',
+              videoUrl: ex.videoUrl || local?.videoUrl || ''
+            };
+          });
+          setExercises(merged);
+        }
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -82,9 +111,9 @@ export default function FitnessLibrary() {
                 className="bg-fit-surface border border-fit-border rounded-xl overflow-hidden hover:border-fit-primary transition-colors cursor-pointer group shadow-card"
               >
                 <div className="h-32 bg-fit-surface2 relative">
-                  {ex.imageUrl ? (
+                  {getExerciseThumbnail(ex) ? (
                     <img 
-                      src={ex.imageUrl} 
+                      src={getExerciseThumbnail(ex)} 
                       alt={ex.name} 
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
                       onError={(e) => {

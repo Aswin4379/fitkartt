@@ -33,6 +33,16 @@ import ExerciseVideoPlayer from '../components/ExerciseVideoPlayer.jsx'
 import { useUser } from '../context/UserContext.jsx'
 import { getLocalDateString } from '../utils/metabolicEngine.js'
 
+export const getExerciseThumbnail = (ex) => {
+  if (!ex) return ''
+  if (ex.imageUrl && ex.imageUrl.trim()) return ex.imageUrl
+  if (ex.gifUrl && ex.gifUrl.trim()) return ex.gifUrl
+  if (ex.image2Url && ex.image2Url.trim()) return ex.image2Url
+  const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1]
+  if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+  return ''
+}
+
 export default function Workouts() {
   const navigate = useNavigate()
   const { user, updateUser, refreshUser } = useUser()
@@ -120,7 +130,23 @@ export default function Workouts() {
     exerciseApi.getExercises()
       .then((res) => {
         if (isMounted && res?.exercises && res.exercises.length > 0) {
-          setExercises(res.exercises)
+          const localMap = new Map(exerciseLibrary.map((e) => [e.id, e]))
+          const localNameMap = new Map(exerciseLibrary.map((e) => [e.name?.toLowerCase().trim(), e]))
+          const merged = res.exercises.map((ex) => {
+            const local = localMap.get(ex.id) || localNameMap.get(ex.name?.toLowerCase().trim())
+            return {
+              ...(local || {}),
+              ...ex,
+              imageUrl: ex.imageUrl || ex.gifUrl || local?.imageUrl || local?.gifUrl || '',
+              image2Url: ex.image2Url || local?.image2Url || '',
+              gifUrl: ex.gifUrl || ex.imageUrl || local?.gifUrl || local?.imageUrl || '',
+              videoUrl: ex.videoUrl || local?.videoUrl || '',
+              instructions: (ex.instructions && ex.instructions.length > 0) ? ex.instructions : (local?.instructions || []),
+              formTips: ex.formTips || local?.formTips || '',
+              commonMistakes: ex.commonMistakes || local?.commonMistakes || ''
+            }
+          })
+          setExercises(merged)
         }
       })
       .catch(() => {})
@@ -690,10 +716,21 @@ export default function Workouts() {
                         className="p-2 rounded-xl bg-fit-surface2/60 border border-fit-border/60 flex items-center gap-2 cursor-pointer hover:border-fit-primary/40 transition-colors"
                       >
                         <img
-                          src={ex.imageUrl}
+                          src={getExerciseThumbnail(ex)}
                           alt={ex.name}
                           className="w-8 h-8 rounded-lg object-cover bg-fit-surface shrink-0"
-                          onError={(e) => { e.target.style.display = 'none' }}
+                          onError={(e) => {
+                            if (ex.image2Url && e.target.src !== ex.image2Url) {
+                              e.target.src = ex.image2Url
+                            } else {
+                              const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1]
+                              if (ytId && !e.target.src.includes('img.youtube.com')) {
+                                e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+                              } else {
+                                e.target.style.display = 'none'
+                              }
+                            }
+                          }}
                         />
                         <span className="text-[11px] font-bold text-fit-text truncate">{ex.name}</span>
                       </div>
@@ -939,12 +976,14 @@ export default function Workouts() {
                   {/* High Quality Thumbnail */}
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-fit-border/70 bg-fit-surface2 flex items-center justify-center relative shrink-0 shadow-inner">
                     <img
-                      src={ex.imageUrl}
+                      src={getExerciseThumbnail(ex)}
                       alt={ex.name}
                       className="absolute inset-0 w-full h-full object-cover z-10 transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {
                         if (ex.image2Url && e.target.src !== ex.image2Url) {
                           e.target.src = ex.image2Url
+                        } else if (ex.gifUrl && e.target.src !== ex.gifUrl) {
+                          e.target.src = ex.gifUrl
                         } else {
                           const ytId = ex.videoUrl?.match(/(?:embed\/|v=)([a-zA-Z0-9_-]+)/)?.[1]
                           if (ytId && !e.target.src.includes('img.youtube.com')) {
@@ -1339,9 +1378,9 @@ export default function Workouts() {
               <span className="text-[10px] uppercase font-extrabold tracking-wider text-fit-muted">Movement Guide & Visual Form</span>
               <ExerciseVideoPlayer
                 videoUrl={selectedExerciseInfo.videoUrl}
-                imageUrl={selectedExerciseInfo.imageUrl}
+                imageUrl={selectedExerciseInfo.imageUrl || selectedExerciseInfo.gifUrl}
                 image2Url={selectedExerciseInfo.image2Url}
-                gifUrl={selectedExerciseInfo.gifUrl}
+                gifUrl={selectedExerciseInfo.gifUrl || selectedExerciseInfo.imageUrl}
                 name={selectedExerciseInfo.name}
                 target={selectedExerciseInfo.target}
               />

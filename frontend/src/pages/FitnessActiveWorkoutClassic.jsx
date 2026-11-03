@@ -292,8 +292,8 @@ export default function FitnessActiveWorkoutClassic({ onSwitchTheme }) {
                 className="flex items-center gap-3 p-3 border-b border-fit-border active:bg-fit-surface2 cursor-pointer hover:bg-fit-surface"
               >
                 <div className="w-12 h-12 rounded bg-fit-surface2 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                  {ex.imageUrl ? (
-                    <img src={ex.imageUrl} alt={ex.name} className="w-full h-full object-cover" />
+                  {(ex.imageUrl || ex.gifUrl || ex.image2Url) ? (
+                    <img src={ex.imageUrl || ex.gifUrl || ex.image2Url} alt={ex.name} className="w-full h-full object-cover" />
                   ) : (
                     <Dumbbell size={20} className="text-fit-muted" />
                   )}

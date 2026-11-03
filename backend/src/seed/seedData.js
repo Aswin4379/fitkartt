@@ -88,7 +88,29 @@ export const seedDatabase = async () => {
       await Exercise.insertMany(exerciseDocs);
       console.log(`[Seeding]: ✓ Successfully stored ${exerciseDocs.length} exercises in MongoDB.`);
     } else {
-      console.log(`[Seeding]: Exercises already present (${existingExercises} records). Preserving collection.`);
+      console.log(`[Seeding]: Exercises present (${existingExercises} records). Syncing exercise media assets...`);
+      const bulkOps = exerciseLibrary.map(e => ({
+        updateOne: {
+          filter: { id: e.id },
+          update: {
+            $set: {
+              imageUrl: e.imageUrl || e.gifUrl || '',
+              image2Url: e.image2Url || '',
+              gifUrl: e.gifUrl || e.imageUrl || '',
+              videoUrl: e.videoUrl || '',
+              categories: e.categories || [e.target],
+              instructions: e.instructions || [],
+              formTips: e.formTips || '',
+              commonMistakes: e.commonMistakes || ''
+            }
+          },
+          upsert: true
+        }
+      }));
+      if (bulkOps.length > 0) {
+        await Exercise.bulkWrite(bulkOps);
+        console.log(`[Seeding]: ✓ Synced all ${bulkOps.length} exercises with full media assets in MongoDB.`);
+      }
     }
 
     // 2. Seed products if needed

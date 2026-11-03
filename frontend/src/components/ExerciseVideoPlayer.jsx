@@ -53,8 +53,8 @@ export default function ExerciseVideoPlayer({ videoUrl, imageUrl, image2Url, gif
   const watchUrl = getWatchUrl(videoUrl)
   const hasVideo = !!embedUrl
   const ytThumbnail = getThumbnailUrl(videoUrl)
-  const primaryImg = imageUrl || ytThumbnail
-  const peakImg = image2Url || imageUrl || ytThumbnail
+  const primaryImg = imageUrl || gifUrl || ytThumbnail;
+  const peakImg = image2Url || imageUrl || gifUrl || ytThumbnail;
 
   return (
     <div className="space-y-3">
